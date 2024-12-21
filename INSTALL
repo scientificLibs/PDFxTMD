@@ -4,12 +4,6 @@ To install this software you'll need to provide the following:
 - CMake >= 3.20
 - GIT
 - Doxygen + Graphviz
-- CPPCheck
-- Valgrind
-
-This project also depends on GTest, GMock and FXTUI. This
-software is automatically pulled from external repositories
-during the installation.
 
 To configure the project type:
 
