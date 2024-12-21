@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(GSL REQUIRED)
+find_dependency(yaml-cpp REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/PDFLibTargets.cmake")

@@ -1,0 +1,5 @@
+- Support for reading PDF set from archive files with different formats
+- Support for PDF uncertainty
+- Support for QCD coupling
+- Support batch evaluation for x, kt2, mu2 Points
+- Support for accepting various parton flavor, i.e. {u, d, ..., g}
