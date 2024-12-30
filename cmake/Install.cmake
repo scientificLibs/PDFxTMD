@@ -1,32 +1,32 @@
 
 # Install Targets for yaml-cpp
-install(TARGETS yaml-cpp EXPORT PDFLibTargets)
+install(TARGETS yaml-cpp EXPORT PDFxTMDLibTargets)
 
 # Install PDFLib library
-install(TARGETS PDFLib 
-        EXPORT PDFLibTargets
+install(TARGETS PDFxTMDLib 
+        EXPORT PDFxTMDLibTargets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # Install header files
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PDFLib)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib)
 
 # Export targets for package config
-install(EXPORT PDFLibTargets
-        FILE PDFLibTargets.cmake
-        NAMESPACE PDFLib::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PDFLib)
+install(EXPORT PDFxTMDLibTargets
+        FILE PDFxTMDLibTargets.cmake
+        NAMESPACE PDFxTMDLib::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PDFxTMDLib)
 
 # Configure package config files
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
-    cmake/PDFLibConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/PDFLibConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PDFLib
+    cmake/PDFxTMDLibConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/PDFxTMDLibConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PDFxTMDLib
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/PDFLibConfig.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PDFLib)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/PDFxTMDLibConfig.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PDFxTMDLib)
 
 # Add uninstall target
 configure_file(${CMAKE_SOURCE_DIR}/cmake/uninstall.cmake 
