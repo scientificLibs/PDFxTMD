@@ -3,6 +3,9 @@
 #include "Common/Exception.h"
 #include <cmath>
 #include <iostream>
+#include <set>
+#include <unistd.h>
+
 namespace fs = std::filesystem;
 namespace PDFxTMD
 {
@@ -11,26 +14,47 @@ std::string StandardPDFNaming(const std::string &pdfName, int set)
     return pdfName + "_" + std::to_string(set) + ".dat";
 }
 
+std::vector<std::string> splitPaths(const std::string &paths)
+{
+    std::vector<std::string> result;
+    size_t start = 0, end;
+    while ((end = paths.find(':', start)) != std::string::npos)
+    {
+        result.push_back(paths.substr(start, end - start));
+        start = end + 1;
+    }
+    result.push_back(paths.substr(start));
+    return result;
+}
+bool hasWriteAccess(const std::string &path)
+{
+    return std::filesystem::exists(path) && std::filesystem::is_directory(path) &&
+           (access(path.c_str(), W_OK) == 0);
+}
 std::vector<std::string> GetEnviormentalVariablePaths(const std::string &envVariable,
                                                       char delimiter)
 {
     std::vector<std::string> output;
     const char *PDFxTMDEnv = std::getenv(envVariable.c_str());
+    std::cout << "PDFxTMD_PATH: " << std::getenv("PDFxTMD_PATH") << std::endl;
     if (!std::filesystem::exists(DEFAULT_ENV_PATH))
     {
         std::filesystem::create_directories(DEFAULT_ENV_PATH);
     }
-    std::vector<std::string> result;
-    result.push_back(DEFAULT_ENV_PATH);
+    std::set<std::string> result;
+    result.emplace(DEFAULT_ENV_PATH);
     std::string currentPath = std::filesystem::current_path();
-    result.push_back(currentPath);
+    result.emplace(currentPath);
     if (PDFxTMDEnv == nullptr)
     {
-        return result;
+        return std::vector(result.begin(), result.end());
     }
-    result = split(PDFxTMDEnv, delimiter);
-    result.push_back(DEFAULT_ENV_PATH);
-    return result;
+    auto notDefaultPaths = split(PDFxTMDEnv, delimiter);
+    for (auto &&notDefaultPath : notDefaultPaths)
+    {
+        result.emplace(notDefaultPath);
+    }
+    return std::vector(result.begin(), result.end());
 }
 
 std::vector<std::string> split(const std::string &str, char delimiter)

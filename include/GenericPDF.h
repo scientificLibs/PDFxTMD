@@ -7,6 +7,7 @@
 #include "Interface/IExtrapolator.h"
 #include "Interface/IInterpolator.h"
 #include "Interface/IReader.h"
+#include "MissingPDFSetHandler/PDFSetDownloadHandler.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -69,6 +70,11 @@ class GenericPDF
     // Initialization and loading functions
     void initializeComponents()
     {
+        PDFSetDownloadHandler downloadHandler;
+        if (!downloadHandler.Start(m_pdfName))
+        {
+            throw FileLoadException("Unable to find, or download pdf set path!");
+        }
         if constexpr (std::is_base_of_v<IAdvancedExtrapolator<Extrapolator, Reader, Interpolator>,
                                         Extrapolator>)
         {
