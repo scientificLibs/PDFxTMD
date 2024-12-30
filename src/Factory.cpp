@@ -15,7 +15,6 @@
 #include "Implementation/Interpolator/Collinear/GSL/CGSLBicubic.h"
 #include "Implementation/Interpolator/Collinear/GSL/CGSLBilinear.h"
 #endif
-
 namespace PDFxTMD
 {
 

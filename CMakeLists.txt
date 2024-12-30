@@ -40,8 +40,11 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include_directories(lib3)
+include_directories(lib3/json-nlohmann/include)
+include_directories(lib3/FTXUI/include)
 
 add_subdirectory(lib3/yaml-cpp-src)
+
 find_package(GSL QUIET)
 
 if(GSL_FOUND)
@@ -56,7 +59,7 @@ else()
     set(GSL_SOURCES "")
 endif()
 
-add_library(PDFLib STATIC  
+add_library(PDFxTMDLib STATIC  
     src/Common/YamlInfoReader.cpp 
     src/Common/PartonUtils.cpp 
     ${GSL_SOURCES}
@@ -65,25 +68,51 @@ add_library(PDFLib STATIC
     src/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.cpp
     src/Implementation/Reader/TMD/TDefaultAllFlavorReader.cpp
     src/Factory.cpp
+    src/MissingPDFSetHandler/PDFSetDownloadHandler.cpp
+    src/MissingPDFSetHandler/PathSelectionCommand.cpp
+    src/MissingPDFSetHandler/RepoSelectionCommand.cpp
+    src/MissingPDFSetHandler/DownloadUrlCommand.cpp
+    src/MissingPDFSetHandler/ArchiveExtractorCommand.cpp
+    src/Common/FileUtils.cpp
+    src/Common/EnvUtils.cpp
 )
 
+# Find the cURL package
+find_package(CURL REQUIRED)
+
+# Add this near other find_package commands
+find_package(LibArchive REQUIRED)
+
 if(GSL_FOUND)
-    target_compile_definitions(PDFLib PRIVATE USE_GSL)
-    target_link_libraries(PDFLib PRIVATE yaml-cpp::yaml-cpp GSL::gsl GSL::gslcblas)
+    target_compile_definitions(PDFxTMDLib PRIVATE USE_GSL)
+    target_link_libraries(PDFxTMDLib PRIVATE 
+        yaml-cpp::yaml-cpp 
+        GSL::gsl 
+        GSL::gslcblas 
+        ${CURL_LIBRARIES}
+        ${LibArchive_LIBRARIES}
+    )
 else()
-    target_link_libraries(PDFLib PRIVATE yaml-cpp::yaml-cpp)
+    target_link_libraries(PDFxTMDLib PRIVATE 
+        yaml-cpp::yaml-cpp 
+        ${CURL_LIBRARIES}
+        ${LibArchive_LIBRARIES}
+    )
 endif()
 
 
-include(Doxygen)
-Doxygen(PDFLib include)
 
-target_include_directories(PDFLib 
+include(Doxygen)
+Doxygen(PDFxTMDLib include)
+
+target_include_directories(PDFxTMDLib 
     PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFLib>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib>
 )
 include(Install)
 include(Format)
-Format(PDFLib include/)
-Format(PDFLib src/)
+Format(PDFxTMDLib include/)
+Format(PDFxTMDLib src/)
+
+add_subdirectory(examples)

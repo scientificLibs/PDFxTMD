@@ -26,7 +26,6 @@ enum class OffBoundaryPolicy
     Ignore, // Ignore and keep the value unchanged
     Throw   // Throw an exception for out of range
 };
-
 enum class PhaseSpaceComponent
 {
     X,
@@ -58,7 +57,6 @@ enum class OrderQCD
     NNLO,
     N3LO
 };
-#define MAX_NUM_FLAVOR 15
 enum PartonFlavor
 {
     tbar = -6,
@@ -82,10 +80,13 @@ enum PartonFlavor
     wminus,
     higgs
 };
+
+std::vector<std::string> splitPaths(const std::string &paths);
+bool hasWriteAccess(const std::string &path);
 double _extrapolateLinear(double x, double xl, double xh, double yl, double yh);
 std::string StandardPDFNaming(const std::string &pdfName, int set);
 std::vector<std::string> GetEnviormentalVariablePaths(
-    const std::string &envVariable = "PDFxTMD_PATH", char delimiter = ':');
+    const std::string &envVariable = ENV_PATH_VARIABLE, char delimiter = ':');
 std::vector<std::string> split(const std::string &str, char delimiter);
 /// Format an integer @a val as a zero-padded string of length
 /// @a nchars
