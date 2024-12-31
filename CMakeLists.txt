@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 # Project declaration
 include(cmake/version.cmake)
-project(PDFInterpLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} LANGUAGES CXX)
+project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} LANGUAGES CXX)
 add_definitions(-DPROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
 add_definitions(-DPROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR})
 add_definitions(-DPROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH})
@@ -56,7 +56,7 @@ else()
     set(GSL_SOURCES "")
 endif()
 
-add_library(PDFxTMDLib STATIC  
+add_library(PDFxTMDLib SHARED  
     src/Common/YamlInfoReader.cpp 
     src/Common/PartonUtils.cpp 
     ${GSL_SOURCES}
@@ -97,11 +97,6 @@ else()
     )
 endif()
 
-
-
-include(Doxygen)
-Doxygen(PDFxTMDLib include)
-
 target_include_directories(PDFxTMDLib 
     PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -111,5 +106,6 @@ include(Install)
 include(Format)
 Format(PDFxTMDLib include/)
 Format(PDFxTMDLib src/)
-
+include(Doxygen)
+Doxygen(PDFxTMDLib include/)
 add_subdirectory(examples)
