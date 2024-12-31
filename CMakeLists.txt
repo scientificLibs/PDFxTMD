@@ -40,9 +40,6 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include_directories(lib3)
-include_directories(lib3/json-nlohmann/include)
-include_directories(lib3/FTXUI/include)
-
 add_subdirectory(lib3/yaml-cpp-src)
 
 find_package(GSL QUIET)
