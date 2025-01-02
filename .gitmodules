@@ -1,3 +1,0 @@
-[submodule "lib3/yaml-cpp-src"]
-    path = lib3/yaml-cpp-src
-    url = https://github.com/jbeder/yaml-cpp.git

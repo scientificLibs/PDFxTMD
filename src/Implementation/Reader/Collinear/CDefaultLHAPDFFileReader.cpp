@@ -1,10 +1,9 @@
 #include "Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
-#include <fstream>
-#include <string>
-
 #include "Common/Exception.h"
 #include "Common/PartonUtils.h"
 #include "Common/YamlInfoReader.h"
+#include <fstream>
+#include <string>
 
 namespace PDFxTMD
 {

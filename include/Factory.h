@@ -1,6 +1,6 @@
 #pragma once
 #include "GenericPDF.h"
-#include "boost/te.hpp"
+#include <lib3/boost/te.hpp>
 
 namespace te = boost::te;
 namespace PDFxTMD

@@ -1,12 +1,10 @@
 #include "Implementation/Interpolator/Collinear/GSL/CGSLBilinear.h"
-
-#include <cassert>
-#include <cmath>
-#include <stdexcept>
-
 #include "Common/Exception.h"
 #include "Common/GSL/GSLInterp2D.h"
 #include "Common/GSL/common.h"
+#include <cassert>
+#include <cmath>
+#include <stdexcept>
 
 namespace PDFxTMD
 {
