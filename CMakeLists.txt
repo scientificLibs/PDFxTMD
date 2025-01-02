@@ -39,8 +39,8 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-include_directories(lib3)
-add_subdirectory(lib3/yaml-cpp-src)
+include_directories(./include)
+include_directories(.)
 
 find_package(GSL QUIET)
 
@@ -56,12 +56,13 @@ else()
     set(GSL_SOURCES "")
 endif()
 
+# Add shared library
 add_library(PDFxTMDLib SHARED  
     src/Common/YamlInfoReader.cpp 
     src/Common/PartonUtils.cpp 
     ${GSL_SOURCES}
     src/Implementation/Interpolator/Collinear/CBilinearInterpolator.cpp
-    src/Implementation/Interpolator/TMD//TTrilinearInterpolator.cpp
+    src/Implementation/Interpolator/TMD/TTrilinearInterpolator.cpp
     src/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.cpp
     src/Implementation/Reader/TMD/TDefaultAllFlavorReader.cpp
     src/Factory.cpp
@@ -74,6 +75,28 @@ add_library(PDFxTMDLib SHARED
     src/Common/EnvUtils.cpp
 )
 
+# Add static library
+add_library(PDFxTMDLibStatic STATIC  
+    src/Common/YamlInfoReader.cpp 
+    src/Common/PartonUtils.cpp 
+    ${GSL_SOURCES}
+    src/Implementation/Interpolator/Collinear/CBilinearInterpolator.cpp
+    src/Implementation/Interpolator/TMD/TTrilinearInterpolator.cpp
+    src/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.cpp
+    src/Implementation/Reader/TMD/TDefaultAllFlavorReader.cpp
+    src/Factory.cpp
+    src/MissingPDFSetHandler/PDFSetDownloadHandler.cpp
+    src/MissingPDFSetHandler/PathSelectionCommand.cpp
+    src/MissingPDFSetHandler/RepoSelectionCommand.cpp
+    src/MissingPDFSetHandler/DownloadUrlCommand.cpp
+    src/MissingPDFSetHandler/ArchiveExtractorCommand.cpp
+    src/Common/FileUtils.cpp
+    src/Common/EnvUtils.cpp
+)
+
+# Optionally, set properties for the static library
+set_target_properties(PDFxTMDLibStatic PROPERTIES OUTPUT_NAME "PDFxTMDLib")
+
 # Find the cURL package
 find_package(CURL REQUIRED)
 
@@ -83,7 +106,6 @@ find_package(LibArchive REQUIRED)
 if(GSL_FOUND)
     target_compile_definitions(PDFxTMDLib PRIVATE USE_GSL)
     target_link_libraries(PDFxTMDLib PRIVATE 
-        yaml-cpp::yaml-cpp 
         GSL::gsl 
         GSL::gslcblas 
         ${CURL_LIBRARIES}
@@ -91,7 +113,6 @@ if(GSL_FOUND)
     )
 else()
     target_link_libraries(PDFxTMDLib PRIVATE 
-        yaml-cpp::yaml-cpp 
         ${CURL_LIBRARIES}
         ${LibArchive_LIBRARIES}
     )

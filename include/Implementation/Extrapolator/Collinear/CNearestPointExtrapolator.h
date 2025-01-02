@@ -2,10 +2,9 @@
 
 #pragma once
 
-#include <cmath>
-
 #include "Common/PDFUtils.h"
 #include "Interface/IExtrapolator.h"
+#include <cmath>
 
 namespace PDFxTMD
 {

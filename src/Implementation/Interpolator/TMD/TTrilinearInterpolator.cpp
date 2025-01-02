@@ -6,7 +6,7 @@
 #include <array>
 #include <cmath>
 #include <fstream>
-#include <mlinterp/mlinterp.hpp>
+#include <lib3/mlinterp/mlinterp.hpp>
 #include <set>
 
 namespace PDFxTMD

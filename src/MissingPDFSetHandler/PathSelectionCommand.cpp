@@ -96,32 +96,25 @@ bool ResponseKeyValueErrorHandler(const KeyValueStore &response)
 
 bool CheckPathRequirements(const std::string &path)
 {
-    if (FileUtils::HasUserAccess(path))
+    std::string parentPath = FileUtils::ParentDir(path);
+    bool isPathOK = false;
+    if (FileUtils::HasUserAccess(parentPath))
     {
-        if (FileUtils::ParentDir(path) != "")
+        if (FileUtils::FreeSize(parentPath) > 1)
         {
-            if (FileUtils::FreeSize(path) > 1)
+            if (!FileUtils::Exists(path))
             {
-                return true;
+                isPathOK = FileUtils::CreateDir(path);
+                if (!isPathOK)
+                {
+                    std::cerr << "path: " << path << " failed to be created" << std::endl;
+                    return false;
+                }
             }
-            else
-            {
-                std::cerr << "path: " << path << " must have greater than 1 GB size" << std::endl;
-                return false;
-            }
-        }
-        else
-        {
-            std::cerr << "Parent dir of directory " << path << " does not exist " << std::endl;
-            return false;
+            isPathOK = true;
         }
     }
-    else
-    {
-        std::cerr << "Current user does not have access to the " << path << std::endl;
-        return false;
-    }
-    return false;
+    return isPathOK;
 }
 
 std::pair<bool, std::string> DownloadPathSelectionResponseHandler(const KeyValueStore &response)
@@ -148,6 +141,10 @@ std::pair<bool, std::string> DownloadPathSelectionResponseHandler(const KeyValue
             {
                 if (EnvUtils::AddPathToEnvironment(*pathStr))
                 {
+                    const char *currentPaths = getenv(ENV_PATH_VARIABLE);
+                    std::string updatedPaths =
+                        currentPaths ? std::string(currentPaths) + ":" + *pathStr : *pathStr;
+                    setenv(ENV_PATH_VARIABLE, updatedPaths.c_str(), 1);
                     return {true, *pathStr};
                 }
                 else

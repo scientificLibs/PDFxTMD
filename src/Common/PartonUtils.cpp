@@ -1,6 +1,6 @@
 #include "Common/PartonUtils.h"
-
 #include "Common/Exception.h"
+#include "Common/FileUtils.h"
 #include <cmath>
 #include <iostream>
 #include <set>
@@ -36,10 +36,15 @@ std::vector<std::string> GetEnviormentalVariablePaths(const std::string &envVari
 {
     std::vector<std::string> output;
     const char *PDFxTMDEnv = std::getenv(envVariable.c_str());
-    std::cout << "PDFxTMD_PATH: " << std::getenv("PDFxTMD_PATH") << std::endl;
     if (!std::filesystem::exists(DEFAULT_ENV_PATH))
     {
-        std::filesystem::create_directories(DEFAULT_ENV_PATH);
+        if (FileUtils::HasUserAccess(FileUtils::ParentDir(DEFAULT_ENV_PATH)))
+        {
+            if (!FileUtils::Exists(DEFAULT_ENV_PATH))
+            {
+                std::filesystem::create_directories(DEFAULT_ENV_PATH);
+            }
+        }
     }
     std::set<std::string> result;
     result.emplace(DEFAULT_ENV_PATH);
@@ -52,6 +57,11 @@ std::vector<std::string> GetEnviormentalVariablePaths(const std::string &envVari
     auto notDefaultPaths = split(PDFxTMDEnv, delimiter);
     for (auto &&notDefaultPath : notDefaultPaths)
     {
+        if (FileUtils::HasUserAccess(FileUtils::ParentDir(notDefaultPath)))
+        {
+            if (!FileUtils::Exists(notDefaultPath))
+                fs::create_directories(notDefaultPath);
+        }
         result.emplace(notDefaultPath);
     }
     return std::vector(result.begin(), result.end());

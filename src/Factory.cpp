@@ -1,5 +1,4 @@
 #include "Factory.h"
-
 #include "Common/YamlInfoReader.h"
 #include "GenericPDF.h"
 #include "Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
@@ -180,6 +179,11 @@ te::poly<ITMD> GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMe
 
 te::poly<ICPDF> GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
 {
+    PDFSetDownloadHandler downloadHandler;
+    if (!downloadHandler.Start(pdfSetName))
+    {
+        throw FileLoadException("Unable to find, or download pdf set path!");
+    }
     auto infoPathPair = StandardInfoFilePath(pdfSetName);
     if (infoPathPair.second != ErrorType::None)
     {
