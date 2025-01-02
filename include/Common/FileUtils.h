@@ -13,6 +13,6 @@ class FileUtils
     static double FreeSize(const std::string &path);
     static bool Exists(const std::string &path);
     static std::string ParentDir(const std::string &path);
-    static bool CreateDir(const std::string &path);
+    static bool CreateDirs(const std::string &path);
 };
 } // namespace PDFxTMD

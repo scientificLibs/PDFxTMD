@@ -14,7 +14,6 @@
 #define STD_PDF_INFO_EXTENSION ".info"
 #define STD_PDF_DATA_EXTENSION ".dat"
 #define ENV_PATH_VARIABLE "PDFxTMD_PATH"
-#define DEFAULT_ENV_PATH "/usr/local/share/PDFxTMD/"
 
 namespace PDFxTMD
 {
