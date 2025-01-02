@@ -46,7 +46,7 @@ std::string FileUtils::ParentDir(const std::string &path)
     return fsPath.parent_path().string();
 }
 
-bool FileUtils::CreateDir(const std::string &path)
+bool FileUtils::CreateDirs(const std::string &path)
 {
     std::error_code ec;
     return std::filesystem::create_directories(path, ec);

@@ -36,14 +36,11 @@ std::vector<std::string> GetEnviormentalVariablePaths(const std::string &envVari
 {
     std::vector<std::string> output;
     const char *PDFxTMDEnv = std::getenv(envVariable.c_str());
-    if (!std::filesystem::exists(DEFAULT_ENV_PATH))
+    if (!FileUtils::Exists(DEFAULT_ENV_PATH))
     {
         if (FileUtils::HasUserAccess(FileUtils::ParentDir(DEFAULT_ENV_PATH)))
         {
-            if (!FileUtils::Exists(DEFAULT_ENV_PATH))
-            {
-                std::filesystem::create_directories(DEFAULT_ENV_PATH);
-            }
+            FileUtils::CreateDirs(DEFAULT_ENV_PATH);
         }
     }
     std::set<std::string> result;
@@ -60,7 +57,7 @@ std::vector<std::string> GetEnviormentalVariablePaths(const std::string &envVari
         if (FileUtils::HasUserAccess(FileUtils::ParentDir(notDefaultPath)))
         {
             if (!FileUtils::Exists(notDefaultPath))
-                fs::create_directories(notDefaultPath);
+                FileUtils::CreateDirs(notDefaultPath);
         }
         result.emplace(notDefaultPath);
     }

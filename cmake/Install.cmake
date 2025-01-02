@@ -1,6 +1,3 @@
-# Set the installation prefix to /usr/local
-set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation Directory" FORCE)
-
 # Install PDFLib library using default CMake paths
 install(TARGETS PDFxTMDLib 
         EXPORT PDFxTMDLibTargets

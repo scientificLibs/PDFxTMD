@@ -104,7 +104,7 @@ bool CheckPathRequirements(const std::string &path)
         {
             if (!FileUtils::Exists(path))
             {
-                isPathOK = FileUtils::CreateDir(path);
+                isPathOK = FileUtils::CreateDirs(path);
                 if (!isPathOK)
                 {
                     std::cerr << "path: " << path << " failed to be created" << std::endl;

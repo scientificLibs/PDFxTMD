@@ -97,6 +97,12 @@ add_library(PDFxTMDLibStatic STATIC
 # Optionally, set properties for the static library
 set_target_properties(PDFxTMDLibStatic PROPERTIES OUTPUT_NAME "PDFxTMDLib")
 
+target_compile_definitions(PDFxTMDLibStatic PRIVATE
+    DEFAULT_ENV_PATH="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib"
+)
+target_compile_definitions(PDFxTMDLib PRIVATE
+    DEFAULT_ENV_PATH="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib"
+)
 # Find the cURL package
 find_package(CURL REQUIRED)
 
