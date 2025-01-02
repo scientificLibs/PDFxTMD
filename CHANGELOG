@@ -1,1 +1,11 @@
-0.1.0 first VERSION
+# CHANGELOG
+
+## [0.1.1] - 2023-10-01
+### Fixed
+- Bug fixes related to the PDF set downloader.
+- Improved installation process for easier setup.
+- Removed dependency on yaml-cpp to streamline the project.
+
+## [0.1.0] - 2023-09-15
+### Added
+- Initial version release.
