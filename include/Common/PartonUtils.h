@@ -17,30 +17,18 @@
 
 namespace PDFxTMD
 {
-// Enum to define policies for handling out of range values
-enum class OffBoundaryPolicy
+// https://www.modernescpp.com/index.php/from-variadic-templates-to-fold-expressions/
+template <typename... Args> bool all(Args... args)
 {
-    Zero,   // Return 0 for out of range
-    Clamp,  // Clamp the value to the nearest limit
-    Ignore, // Ignore and keep the value unchanged
-    Throw   // Throw an exception for out of range
-};
+    return (... && args);
+}
 enum class PhaseSpaceComponent
 {
     X,
     Kt2,
     Q2
 };
-struct OffBoundaryPolicies
-{
-    OffBoundaryPolicy xValPolicy = OffBoundaryPolicy::Throw;
-    OffBoundaryPolicy pValPolicy = OffBoundaryPolicy::Throw;
-};
 
-struct OffBoundaryPoliciesUPDF : OffBoundaryPolicies
-{
-    OffBoundaryPolicy ktValPolicy = OffBoundaryPolicy::Throw;
-};
 enum class ErrorType
 {
     None,                    // No error
@@ -53,7 +41,7 @@ enum class OrderQCD
 {
     LO,
     NLO,
-    NNLO,
+    N2LO,
     N3LO
 };
 enum PartonFlavor

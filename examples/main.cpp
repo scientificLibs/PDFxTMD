@@ -3,6 +3,12 @@
 #include "GenericPDF.h"
 #include "Implementation/Interpolator/Collinear/CBilinearInterpolator.h"
 #include "Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
+#include "Common/YamlInfoReader.h"
+#include "Common/PartonUtils.h"
+#include <string>
+#include <utility>
+#include <optional>
+#include <iostream>
 
 int main()
 {
@@ -13,5 +19,16 @@ int main()
     GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CBilinearInterpolator, CContinuationExtrapolator<CDefaultLHAPDFFileReader, CBilinearInterpolator>> genCPDF("CJ12min", 0);
     auto info = genCPDF.getStdPDFInfo();
     std::cout << "X_min: " << info.XMin << " X_max: " << info.XMax << std::endl;  
+    std::pair<std::optional<std::string>, ErrorType> CJ12minInfoPath = StandardInfoFilePath("CJ12min");
+    if (CJ12minInfoPath.second == ErrorType::None)
+    {
+        std::cout << "Info path of CJ12min is: " << *CJ12minInfoPath.first << std::endl;
+        std::pair<std::optional<YamlCouplingInfo>, ErrorType> couplingInfo = YamlCouplingInfoReader(*CJ12minInfoPath.first);
+        if (couplingInfo.second == ErrorType::None)
+        {
+            YamlCouplingInfo couplingInfo_ = *couplingInfo.first;
+            std::cout << "Info path of CJ12min is: " << (int)couplingInfo_.alphsOrder << std::endl;
+        }
+    }
     return 0;
 }
