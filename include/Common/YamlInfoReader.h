@@ -3,6 +3,7 @@
 
 #include "Common/ConfigWrapper.h"
 
+#define DEFULT_NUM_FLAVORS 5
 namespace PDFxTMD
 {
 struct YamlStandardPDFInfo
@@ -28,6 +29,32 @@ struct YamlImpelemntationInfo
     std::string reader;
     std::string interpolator;
     std::string extrapolator;
+};
+enum class AlphasType
+{
+    analytic,
+    ipol
+};
+enum class AlphasFlavorScheme
+{
+    fixed,
+    variable
+};
+
+struct YamlCouplingInfo
+{
+    AlphasType alphasOrder = AlphasType::analytic;
+    OrderQCD alphsOrder = OrderQCD::NLO;
+    std::vector<double> mu_vec;
+    std::vector<double> alphas_vec;
+    double alphasLambda3 = -1;
+    double alphasLambda4 = -1;
+    double alphasLambda5 = -1;
+    double MZ = 91.1876;
+    std::map<PartonFlavor, double> quarkThreshhold;
+    std::map<PartonFlavor, double> quarkMasses;
+    AlphasFlavorScheme flavorScheme = AlphasFlavorScheme::variable;
+    int numFlavors = DEFULT_NUM_FLAVORS;
 };
 std::pair<std::optional<YamlImpelemntationInfo>, ErrorType> YamlImpelemntationInfoReader(
     const std::string &yamlInfoPath);
@@ -159,4 +186,6 @@ YamlStandardPDFInfoReader(const std::string &yamlInfoPath)
 
     return {output, ErrorType::None};
 }
+std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
+    const std::string &yamlInfoPath);
 } // namespace PDFxTMD
