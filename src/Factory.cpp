@@ -14,6 +14,7 @@
 #include "Implementation/Interpolator/Collinear/GSL/CGSLBicubic.h"
 #include "Implementation/Interpolator/Collinear/GSL/CGSLBilinear.h"
 #endif
+#include "Implementation/Coupling/Interpolation/YamlCouplingInterp.h"
 namespace PDFxTMD
 {
 
@@ -285,4 +286,32 @@ te::poly<ICPDF> GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int se
     throw NotSupportError("Not known combination of Reader, Interpolator, "
                           "Extrapolator is selected for this collinear PDF");
 }
+te::poly<IQCDCoupling> CouplingFactory::mkCoupling(const std::string &pdfSetName)
+{
+    std::pair<std::optional<std::string>, ErrorType> pdfSetInfo = StandardInfoFilePath(pdfSetName);
+    YamlCouplingInfo couplingInfo_;
+    if (pdfSetInfo.second != ErrorType::None)
+    {
+        throw FileLoadException("PDFset info " + pdfSetName + " not found");
+    }
+    std::pair<std::optional<YamlCouplingInfo>, ErrorType> couplingInfo =
+        YamlCouplingInfoReader(*pdfSetInfo.first);
+    if (couplingInfo.second != ErrorType::None)
+    {
+        throw std::runtime_error("Coupling info not found!");
+    }
+
+    couplingInfo_ = *couplingInfo.first;
+    m_alphaType = couplingInfo_.alphaCalcMethod;
+    if (m_alphaType == AlphasType::ipol)
+    {
+        std::vector<double> mu2Vec;
+        mu2Vec.resize(couplingInfo_.mu_vec.size());
+        std::transform(couplingInfo_.mu_vec.begin(), couplingInfo_.mu_vec.end(), mu2Vec.begin(),
+                       [](double q) { return q * q; });
+        return std::make_unique<YamlCouplingInterp>(mu2Vec, couplingInfo_.alphas_vec);
+    }
+    throw NotSupportError("The requested coupling approach is currently not supported");
+}
+
 } // namespace PDFxTMD

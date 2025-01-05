@@ -1,4 +1,5 @@
 #include "Common/YamlInfoReader.h"
+#include "Common/Exception.h"
 #include "Common/StringUtils.h"
 #include <iostream>
 
@@ -249,6 +250,23 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
     if (MassZError == ErrorType::None)
     {
         output.alphasOrder = (AlphasType)*AlphaS_OrderQCD;
+    }
+    auto [AlphaS_Type, AlphaS_TypeError] = ConfigWrapper.get<std::string>("AlphaS_Type");
+    if (AlphaS_TypeError == ErrorType::None)
+    {
+        if (AlphaS_Type == "ipol")
+        {
+            output.alphaCalcMethod = AlphasType::ipol;
+        }
+        else if (AlphaS_Type == "analytic")
+        {
+            output.alphaCalcMethod = AlphasType::analytic;
+        }
+        else
+        {
+            throw NotSupportError(*AlphaS_Type +
+                                  " is currently not support for AlphaQCD calculation");
+        }
     }
     return {output, ErrorType::None};
 }
