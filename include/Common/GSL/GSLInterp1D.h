@@ -20,7 +20,8 @@ class GSLInterp1D
     GSLInterp1D &operator=(const GSLInterp1D &) = delete;
 
     // Constructor: Initializes the 1D interpolator with grid and data.
-    GSLInterp1D(const std::vector<double> &x, const std::vector<double> &y, InterpolationType interpType)
+    GSLInterp1D(const std::vector<double> &x, const std::vector<double> &y,
+                InterpolationType interpType)
         : x_size(x.size()), x_vals(x), y_vals(y)
     {
         if (x.size() != y.size())
@@ -40,7 +41,8 @@ class GSLInterp1D
             interp.reset(gsl_interp_alloc(gsl_interp_cspline, x_size));
             break;
         default:
-            throw std::runtime_error("[GSLInterp1D] undefined interpolation type for gsl is selected!");
+            throw std::runtime_error(
+                "[GSLInterp1D] undefined interpolation type for gsl is selected!");
         }
 
         // Initialize the interpolator with grid and data points
@@ -88,4 +90,4 @@ class GSLInterp1D
     std::unique_ptr<gsl_interp_accel, decltype(&gsl_interp_accel_free)> accel{
         nullptr, gsl_interp_accel_free};
     std::unique_ptr<gsl_interp, decltype(&gsl_interp_free)> interp{nullptr, gsl_interp_free};
-}; 
+};

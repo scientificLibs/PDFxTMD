@@ -55,6 +55,7 @@ struct YamlCouplingInfo
     std::map<PartonFlavor, double> quarkMasses;
     AlphasFlavorScheme flavorScheme = AlphasFlavorScheme::variable;
     int numFlavors = DEFULT_NUM_FLAVORS;
+    AlphasType alphaCalcMethod = AlphasType::analytic;
 };
 std::pair<std::optional<YamlImpelemntationInfo>, ErrorType> YamlImpelemntationInfoReader(
     const std::string &yamlInfoPath);
