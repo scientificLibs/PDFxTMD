@@ -28,6 +28,26 @@ struct ICPDF
     }
 };
 
+struct IQCDCoupling
+{
+    IQCDCoupling() = default;
+    double AlphaQCDMu2(double mu2)
+    {
+        return te::call<double>([](auto &self, auto mu2) { self->AlphaQCDMu2(mu2); }, *this, mu2);
+    }
+};
+
+class CouplingFactory
+{
+  public:
+    CouplingFactory() = default;
+    te::poly<IQCDCoupling> mkCoupling(const std::string &pdfSetName);
+
+  private:
+    std::string m_pdfSetName;
+    AlphasType m_alphaType;
+};
+
 class GenericTMDFactory
 {
   public:

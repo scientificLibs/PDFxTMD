@@ -57,42 +57,28 @@ else()
 endif()
 
 # Add shared library
-add_library(PDFxTMDLib SHARED  
-    src/Common/YamlInfoReader.cpp 
-    src/Common/PartonUtils.cpp 
-    ${GSL_SOURCES}
-    src/Implementation/Interpolator/Collinear/CBilinearInterpolator.cpp
-    src/Implementation/Interpolator/TMD/TTrilinearInterpolator.cpp
-    src/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.cpp
-    src/Implementation/Reader/TMD/TDefaultAllFlavorReader.cpp
-    src/Factory.cpp
-    src/MissingPDFSetHandler/PDFSetDownloadHandler.cpp
-    src/MissingPDFSetHandler/PathSelectionCommand.cpp
-    src/MissingPDFSetHandler/RepoSelectionCommand.cpp
-    src/MissingPDFSetHandler/DownloadUrlCommand.cpp
-    src/MissingPDFSetHandler/ArchiveExtractorCommand.cpp
-    src/Common/FileUtils.cpp
-    src/Common/EnvUtils.cpp
+set(ALL_SOURCES
+src/Common/YamlInfoReader.cpp 
+src/Common/PartonUtils.cpp 
+${GSL_SOURCES}
+src/Implementation/Interpolator/Collinear/CBilinearInterpolator.cpp
+src/Implementation/Interpolator/TMD/TTrilinearInterpolator.cpp
+src/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.cpp
+src/Implementation/Reader/TMD/TDefaultAllFlavorReader.cpp
+src/Factory.cpp
+src/MissingPDFSetHandler/PDFSetDownloadHandler.cpp
+src/MissingPDFSetHandler/PathSelectionCommand.cpp
+src/MissingPDFSetHandler/RepoSelectionCommand.cpp
+src/MissingPDFSetHandler/DownloadUrlCommand.cpp
+src/MissingPDFSetHandler/ArchiveExtractorCommand.cpp
+src/Implementation/Coupling/Interpolation/YamlCouplingInterp.cpp
+src/Common/FileUtils.cpp
+src/Common/EnvUtils.cpp
 )
+add_library(PDFxTMDLib SHARED  ${ALL_SOURCES})
 
 # Add static library
-add_library(PDFxTMDLibStatic STATIC  
-    src/Common/YamlInfoReader.cpp 
-    src/Common/PartonUtils.cpp 
-    ${GSL_SOURCES}
-    src/Implementation/Interpolator/Collinear/CBilinearInterpolator.cpp
-    src/Implementation/Interpolator/TMD/TTrilinearInterpolator.cpp
-    src/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.cpp
-    src/Implementation/Reader/TMD/TDefaultAllFlavorReader.cpp
-    src/Factory.cpp
-    src/MissingPDFSetHandler/PDFSetDownloadHandler.cpp
-    src/MissingPDFSetHandler/PathSelectionCommand.cpp
-    src/MissingPDFSetHandler/RepoSelectionCommand.cpp
-    src/MissingPDFSetHandler/DownloadUrlCommand.cpp
-    src/MissingPDFSetHandler/ArchiveExtractorCommand.cpp
-    src/Common/FileUtils.cpp
-    src/Common/EnvUtils.cpp
-)
+add_library(PDFxTMDLibStatic STATIC  ${ALL_SOURCES})
 
 # Optionally, set properties for the static library
 set_target_properties(PDFxTMDLibStatic PROPERTIES OUTPUT_NAME "PDFxTMDLib")
