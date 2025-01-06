@@ -72,6 +72,7 @@ src/MissingPDFSetHandler/RepoSelectionCommand.cpp
 src/MissingPDFSetHandler/DownloadUrlCommand.cpp
 src/MissingPDFSetHandler/ArchiveExtractorCommand.cpp
 src/Implementation/Coupling/Interpolation/YamlCouplingInterp.cpp
+src/FactoryWrapper.cpp
 src/Common/FileUtils.cpp
 src/Common/EnvUtils.cpp
 )

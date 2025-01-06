@@ -180,6 +180,7 @@ te::poly<ITMD> GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMe
 
 te::poly<ICPDF> GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
 {
+    std::cout << " GenericCPDFFactory pdfSetName " << pdfSetName << " check" << std::endl;
     PDFSetDownloadHandler downloadHandler;
     if (!downloadHandler.Start(pdfSetName))
     {
