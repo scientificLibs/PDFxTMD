@@ -1,5 +1,5 @@
 // FactoryWrapper.cpp
-#include "FactoryWrapper.h"
+#include "FortranFactoryWrapper.h"
 #include "stdio.h"
 
 extern "C"
@@ -21,6 +21,12 @@ extern "C"
         return new te::poly<PDFxTMD::IQCDCoupling>(couplingFactory->mkCoupling(pdfSetName));
     }
 
+    double alphaQCDMu2_wrapper(void *couplingObject, double mu2)
+    {
+        auto *coupling = static_cast<te::poly<PDFxTMD::IQCDCoupling> *>(couplingObject);
+        return (*coupling).AlphaQCDMu2(mu2);
+    }
+
     // GenericTMDFactory
     void *create_tmd_factory()
     {
@@ -37,7 +43,11 @@ extern "C"
         auto *tmdFactory = static_cast<PDFxTMD::GenericTMDFactory *>(factory);
         return new te::poly<PDFxTMD::ITMD>(tmdFactory->mkTMD(pdfSetName, setMember));
     }
-
+    double tmd_wrapper(void *tmd_obj, int flavor, double x, double kt2, double mu2)
+    {
+        auto *tmd = static_cast<te::poly<PDFxTMD::ITMD> *>(tmd_obj);
+        return (*tmd).tmd(static_cast<PDFxTMD::PartonFlavor>(flavor), x, kt2, mu2);
+    }
     // GenericCPDFFactory
     void *create_cpdf_factory()
     {
@@ -55,7 +65,7 @@ extern "C"
         printf("pdfSetName %s", pdfSetName);
         return new te::poly<PDFxTMD::ICPDF>(cpdfFactory->mkCPDF(pdfSetName, setMember));
     }
-    double cpdf_pdf(void *cpdf_obj, int flavor, double x, double mu2)
+    double cpdf_wrapper(void *cpdf_obj, int flavor, double x, double mu2)
     {
         auto *cpdf = static_cast<te::poly<PDFxTMD::ICPDF> *>(cpdf_obj);
         return (*cpdf).pdf(static_cast<PDFxTMD::PartonFlavor>(flavor), x, mu2);
