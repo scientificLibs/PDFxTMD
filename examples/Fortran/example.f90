@@ -21,7 +21,7 @@ program test_factory
     mu2 = 10.0d0  ! mu2 value
 
     ! Call the pdf function
-    result = cpdf_pdf(cpdf, flavor, x, mu2)
+    result = cpdf_wrapper(cpdf, flavor, x, mu2)
     print *, "PDF value for flavor=", flavor, " at x=", x, " mu2=", mu2, " is:", result
 
     ! Clean up

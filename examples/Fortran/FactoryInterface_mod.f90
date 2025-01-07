@@ -21,6 +21,13 @@ module FactoryInterface_mod
             character(kind=c_char), dimension(*) :: pdfSetName
         end function mk_coupling
 
+        function alphaQCDMu2_wrapper(couplingObject, mu2) bind(C, name="alphaQCDMu2_wrapper")
+            use iso_c_binding
+            real(c_double) :: alphaQCDMu2_wrapper
+            type(c_ptr), value :: couplingObject
+            real(c_double), value :: mu2
+        end function alphaQCDMu2_wrapper
+
         ! TMD Factory interfaces
         function create_tmd_factory() bind(C, name="create_tmd_factory")
             use iso_c_binding
@@ -39,6 +46,16 @@ module FactoryInterface_mod
             character(kind=c_char), dimension(*) :: pdfSetName
             integer(c_int), value :: setMember
         end function mk_tmd
+
+        function tmd_wrapper(tmd, flavor, x, kt2, mu2) bind(C, name="tmd_wrapper")
+            use iso_c_binding
+            real(c_double) :: tmd_wrapper
+            type(c_ptr), value :: tmd
+            integer(c_int), value :: flavor
+            real(c_double), value :: x
+            real(c_double), value :: kt2
+            real(c_double), value :: mu2
+        end function tmd_wrapper
 
         ! CPDF Factory interfaces
         function create_cpdf_factory() bind(C, name="create_cpdf_factory")
@@ -60,14 +77,14 @@ module FactoryInterface_mod
         end function mk_cpdf
 
         ! Add the interface for pdf function
-        function cpdf_pdf(cpdf, flavor, x, mu2) bind(C, name="cpdf_pdf")
+        function cpdf_wrapper(cpdf, flavor, x, mu2) bind(C, name="cpdf_wrapper")
             use iso_c_binding
-            real(c_double) :: cpdf_pdf
+            real(c_double) :: cpdf_wrapper
             type(c_ptr), value :: cpdf
             integer(c_int), value :: flavor
             real(c_double), value :: x
             real(c_double), value :: mu2
-        end function cpdf_pdf
+        end function cpdf_wrapper
     end interface
 
 end module FactoryInterface_mod 
