@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(Examples LANGUAGES Fortran)
 # Create the Fortran example executable
-add_executable(test_factory ../../wrappers/fortran/FactoryInterface.f90
+add_executable(test_factory 
 ../../wrappers/fortran/FactoryInterface_mod.f90  # Add the module file first
 example.f90)
 
