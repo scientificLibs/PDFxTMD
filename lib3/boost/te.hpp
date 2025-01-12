@@ -436,9 +436,10 @@ class poly : detail::poly_base,
     template <class T, class T_ = std::decay_t<T>, std::size_t... Ns>
     constexpr explicit poly(T &&t, std::index_sequence<Ns...>) noexcept(
         std::is_nothrow_constructible_v<T_, T &&>)
-        : detail::poly_base{}, vtable{std::forward<T>(t), vptr,
-                                      std::integral_constant<std::size_t, sizeof...(Ns)>{}},
-          storage{std::forward<T>(t)}
+        : detail::poly_base{},
+          storage{std::forward<T>(t)} , vtable{std::forward<T>(t), vptr,
+                                      std::integral_constant<std::size_t, sizeof...(Ns)>{}}
+          
     {
         static_assert(sizeof...(Ns) > 0);
         static_assert(std::is_destructible_v<T_>, "type must be desctructible");

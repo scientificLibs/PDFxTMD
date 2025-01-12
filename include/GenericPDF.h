@@ -35,7 +35,7 @@ class GenericPDF
     ~GenericPDF()
     {
     }
-    double pdf(PartonFlavor flavor, double x, double mu2)
+    double pdf(PartonFlavor flavor, double x, double mu2) const
     {
         if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
         {
@@ -107,38 +107,41 @@ class GenericPDF
             static_assert(!std::is_same_v<Tag, Tag>, "Unsupported Tag");
         }
     }
-    double computeCollinearPDF(PartonFlavor flavor, double x, double mu)
+    double computeCollinearPDF(PartonFlavor flavor, double x, double mu2) const
     {
         if (!m_dataLoaded)
         {
             loadData();
         }
-        if (!isInRange(m_reader, x, mu))
+        if (!isInRange(m_reader, x, mu2))
         {
-            return m_extrapolator.extrapolate(&m_reader, flavor, x, mu);
+            return m_extrapolator.extrapolate(&m_reader, flavor, x, mu2);
         }
-        return m_interpolator.interpolate(flavor, x, mu);
+        return m_interpolator.interpolate(flavor, x, mu2);
     }
 
-    double computeTMD(PartonFlavor flavor, double x, double kt, double mu)
+    double computeTMD(PartonFlavor flavor, double x, double kt2, double mu2)
     {
         if (!m_dataLoaded)
         {
             loadData();
         }
-        if (!isInRange(m_reader, x, kt, mu))
+        if (!isInRange(m_reader, x, kt2, mu2))
         {
-            return m_extrapolator.extrapolate(&m_reader, flavor, x, kt, mu);
+            return m_extrapolator.extrapolate(&m_reader, flavor, x, kt2, mu2);
         }
-        return m_interpolator.interpolate(flavor, x, kt, mu);
+        return m_interpolator.interpolate(flavor, x, kt2, mu2);
     }
 
-    void loadData()
+    void loadData() const
     {
         try
         {
-            m_reader.read(m_pdfName, m_setNumber);
-            m_interpolator.initialize(&m_reader);
+            auto &reader = const_cast<Reader &>(m_reader);
+            reader.read(m_pdfName, m_setNumber);
+
+            auto &interpolator = const_cast<Interpolator &>(m_interpolator);
+            interpolator.initialize(&reader);
         }
         catch (const std::exception &e)
         {
@@ -153,7 +156,7 @@ class GenericPDF
     Reader m_reader;
     Interpolator m_interpolator;
     Extrapolator m_extrapolator;
-    bool m_dataLoaded = false;
+    mutable bool m_dataLoaded = false;
     YamlStandardTMDInfo m_stdInfo;
 };
 } // namespace PDFxTMD

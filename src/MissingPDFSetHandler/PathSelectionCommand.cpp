@@ -144,7 +144,12 @@ std::pair<bool, std::string> DownloadPathSelectionResponseHandler(const KeyValue
                     const char *currentPaths = getenv(ENV_PATH_VARIABLE);
                     std::string updatedPaths =
                         currentPaths ? std::string(currentPaths) + ":" + *pathStr : *pathStr;
+#if defined(__linux__)
                     setenv(ENV_PATH_VARIABLE, updatedPaths.c_str(), 1);
+#elif defined(_WIN32)
+
+#endif
+
                     return {true, *pathStr};
                 }
                 else

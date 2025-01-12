@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.22)
 
-# Project declaration
 include(cmake/version.cmake)
 project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} LANGUAGES CXX)
 add_definitions(-DPROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
@@ -12,10 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Include GNUInstallDirs for standardized install directories
 include(GNUInstallDirs)
-
-# Optimization flags based on build type
 if(CMAKE_BUILD_TYPE MATCHES "Release")
     message(STATUS "Applying custom optimization flags for Release build.")
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -31,9 +27,6 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
     endif()
 endif()
 
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
-    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-endif()
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
@@ -41,22 +34,20 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include_directories(./include)
 include_directories(.)
-
-find_package(GSL QUIET)
-
-if(GSL_FOUND)
-    message(STATUS "GSL is available!")
-    set(GSL_SOURCES 
+find_path(SYSTEM_INCLUDE_DIR gsl/gsl_interp.h)
+find_path(SYSTEM_INCLUDE_DIR gsl/gsl_interp2d.h)
+include_directories(${SYSTEM_INCLUDE_DIR})
+find_package(GSL REQUIRED)
+find_package(CURL REQUIRED)
+find_package(LibArchive REQUIRED)
+set(GSL_SOURCES 
         src/Common/GSL/common.cpp
         src/Implementation/Interpolator/Collinear/GSL/CGSLBicubic.cpp
         src/Implementation/Interpolator/Collinear/GSL/CGSLBilinear.cpp
+        src/Implementation/Coupling/Interpolation/YamlCouplingInterp.cpp
     )
-else()
-    message(STATUS "GSL is not available! Skipping GSL-dependent sources.")
-    set(GSL_SOURCES "")
-endif()
 
-# Add shared library
+
 set(ALL_SOURCES
 src/Common/YamlInfoReader.cpp 
 src/Common/PartonUtils.cpp 
@@ -71,7 +62,6 @@ src/MissingPDFSetHandler/PathSelectionCommand.cpp
 src/MissingPDFSetHandler/RepoSelectionCommand.cpp
 src/MissingPDFSetHandler/DownloadUrlCommand.cpp
 src/MissingPDFSetHandler/ArchiveExtractorCommand.cpp
-src/Implementation/Coupling/Interpolation/YamlCouplingInterp.cpp
 src/Common/FileUtils.cpp
 src/Common/EnvUtils.cpp
 )
@@ -80,35 +70,25 @@ add_library(PDFxTMDLib SHARED  ${ALL_SOURCES})
 # Add static library
 add_library(PDFxTMDLibStatic STATIC  ${ALL_SOURCES})
 
-# Optionally, set properties for the static library
-set_target_properties(PDFxTMDLibStatic PROPERTIES OUTPUT_NAME "PDFxTMDLib")
-
-target_compile_definitions(PDFxTMDLibStatic PRIVATE
-    DEFAULT_ENV_PATH="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib"
-)
-target_compile_definitions(PDFxTMDLib PRIVATE
-    DEFAULT_ENV_PATH="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib"
-)
-# Find the cURL package
-find_package(CURL REQUIRED)
-
-# Add this near other find_package commands
-find_package(LibArchive REQUIRED)
-
-if(GSL_FOUND)
-    target_compile_definitions(PDFxTMDLib PRIVATE USE_GSL)
-    target_link_libraries(PDFxTMDLib PRIVATE 
+if(UNIX)
+    set(DEFAULT_ENV_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib")
+elseif(WIN32)
+    set(DEFAULT_ENV_PATH "C:/ProgramData/PDFxTMDLib")
+endif()
+target_compile_definitions(PDFxTMDLib PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
+target_compile_definitions(PDFxTMDLibStatic PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
+target_link_libraries(PDFxTMDLib PRIVATE 
         GSL::gsl 
         GSL::gslcblas 
         ${CURL_LIBRARIES}
         ${LibArchive_LIBRARIES}
     )
-else()
-    target_link_libraries(PDFxTMDLib PRIVATE 
+target_link_libraries(PDFxTMDLibStatic PRIVATE 
+        GSL::gsl 
+        GSL::gslcblas 
         ${CURL_LIBRARIES}
         ${LibArchive_LIBRARIES}
     )
-endif()
 
 target_include_directories(PDFxTMDLib 
     PUBLIC 
@@ -116,9 +96,12 @@ target_include_directories(PDFxTMDLib
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib>
 )
 include(Install)
+if(UNIX)
 include(Format)
 Format(PDFxTMDLib include/)
 Format(PDFxTMDLib src/)
 include(Doxygen)
 Doxygen(PDFxTMDLib include/)
+endif()
+
 add_subdirectory(examples)
