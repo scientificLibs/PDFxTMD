@@ -62,6 +62,8 @@ src/MissingPDFSetHandler/PathSelectionCommand.cpp
 src/MissingPDFSetHandler/RepoSelectionCommand.cpp
 src/MissingPDFSetHandler/DownloadUrlCommand.cpp
 src/MissingPDFSetHandler/ArchiveExtractorCommand.cpp
+src/Implementation/Coupling/Interpolation/YamlCouplingInterp.cpp
+src/FortranFactoryWrapper.cpp
 src/Common/FileUtils.cpp
 src/Common/EnvUtils.cpp
 )
@@ -95,6 +97,11 @@ target_include_directories(PDFxTMDLib
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib>
 )
+
+find_package(pybind11 REQUIRED)
+
+pybind11_add_module(pdfxtmd wrappers/python/bindings.cpp)
+target_link_libraries(pdfxtmd PRIVATE PDFxTMDLibStatic)
 include(Install)
 if(UNIX)
 include(Format)
