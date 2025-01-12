@@ -44,42 +44,27 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
     auto [mu_vec, mu_vecError] = ConfigWrapper.get<std::vector<double>>("AlphaS_Qs");
     if (mu_vecError == ErrorType::None)
     {
-        std::cout << "[PDFxTMD][YamlCouplingInfoReader] AlphaS_Qs is not "
-                     "found in yaml config file"
-                  << std::endl;
         output.mu_vec = std::move(*mu_vec);
     }
     auto [alphas_vec, alphas_vecError] = ConfigWrapper.get<std::vector<double>>("AlphaS_Vals");
     if (alphas_vecError == ErrorType::None)
     {
-        std::cout << "[PDFxTMD][YamlCouplingInfoReader] AlphaS_Vals is not "
-                     "found in yaml config file"
-                  << std::endl;
         output.alphas_vec = std::move(*alphas_vec);
     }
 
     auto [alphasLambda3, alphasLambda3Error] = ConfigWrapper.get<double>("AlphaS_Lambda3");
-    if (alphas_vecError == ErrorType::None)
+    if (alphasLambda3Error == ErrorType::None)
     {
-        std::cout << "[PDFxTMD][YamlCouplingInfoReader] AlphaS_Lambda3 is not "
-                     "found in yaml config file"
-                  << std::endl;
         output.alphasLambda3 = *alphasLambda3;
     }
     auto [alphasLambda4, alphasLambda4Error] = ConfigWrapper.get<double>("AlphaS_Lambda4");
     if (alphasLambda4Error != ErrorType::None)
     {
-        std::cout << "[PDFxTMD][YamlCouplingInfoReader] AlphaS_Lambda4 is not "
-                     "found in yaml config file"
-                  << std::endl;
         output.alphasLambda4 = *alphasLambda4;
     }
     auto [alphasLambda5, alphasLambda5Error] = ConfigWrapper.get<double>("AlphaS_Lambda5");
-    if (alphas_vecError == ErrorType::None)
+    if (alphasLambda5Error == ErrorType::None)
     {
-        std::cout << "[PDFxTMD][YamlCouplingInfoReader] AlphaS_Lambda5 is not "
-                     "found in yaml config file"
-                  << std::endl;
         output.alphasLambda5 = *alphasLambda5;
     }
 
@@ -247,7 +232,7 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
     }
 
     auto [AlphaS_OrderQCD, AlphaS_OrderQCDError] = ConfigWrapper.get<int>("AlphaS_OrderQCD");
-    if (MassZError == ErrorType::None)
+    if (AlphaS_OrderQCDError == ErrorType::None)
     {
         output.alphasOrder = (AlphasType)*AlphaS_OrderQCD;
     }

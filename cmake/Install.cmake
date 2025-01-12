@@ -8,7 +8,6 @@ install(TARGETS PDFxTMDLib
 # Install PDFLib static library using default CMake paths
 install(TARGETS PDFxTMDLibStatic
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
 # Install header files using default CMake paths
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib)
 
@@ -51,16 +50,16 @@ set(CPACK_PACKAGE_VENDOR "Ramin Kord")
 set(CPACK_PACKAGE_CONTACT "raminkord92@gmail.com")
 set(CPACK_PACKAGE_DESCRIPTION "PDF library for Collinear PDFs and TMDs")
 
-# Add license file
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-
 # Add GitHub repository link
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Raminkord92/PDFxTMD")
 
 include(CPack)
-
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")  # Ensure this points to a valid file
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
 set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_WIX_UPGRADE_GUID "{9674B1B2-ABC1-4B0D-9F28-510F30F8E0E2}")  # Set explicitly
+
 

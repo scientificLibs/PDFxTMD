@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [0.1.1] - 2024
+### Added
+- Support for windows added
+
 ## [0.1.1] - 2023-10-01
 ### Fixed
 - Bug fixes related to the PDF set downloader.

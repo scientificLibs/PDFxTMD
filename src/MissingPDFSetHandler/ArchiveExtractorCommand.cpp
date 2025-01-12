@@ -1,4 +1,5 @@
 #include "MissingPDFSetHandler/ArchiveExtractorCommand.h"
+#include "Common/FileUtils.h"
 
 namespace PDFxTMD
 {
@@ -46,8 +47,7 @@ std::pair<bool, std::string> extract_archive(const std::string &archive_path,
 
         // Ensure the directory exists
         std::string dir_path = full_output_path.substr(0, full_output_path.find_last_of('/'));
-        mkdir(dir_path.c_str(), 0777);
-
+        FileUtils::CreateDirs(dir_path);
         // Set the output path
         archive_entry_set_pathname(entry, full_output_path.c_str());
 
