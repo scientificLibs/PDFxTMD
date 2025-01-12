@@ -96,6 +96,12 @@ find_package(CURL REQUIRED)
 # Add this near other find_package commands
 find_package(LibArchive REQUIRED)
 
+# Add these lines before using pybind11_add_module
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
+find_package(pybind11 CONFIG REQUIRED)
+
+
+
 if(GSL_FOUND)
     target_compile_definitions(PDFxTMDLib PRIVATE USE_GSL)
     target_link_libraries(PDFxTMDLib PRIVATE 
@@ -116,6 +122,9 @@ target_include_directories(PDFxTMDLib
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib>
 )
+
+pybind11_add_module(pdfxtmd wrappers/python/bindings.cpp)
+target_link_libraries(pdfxtmd PRIVATE PDFxTMDLib)
 include(Install)
 include(Format)
 Format(PDFxTMDLib include/)
