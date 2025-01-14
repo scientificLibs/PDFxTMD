@@ -95,7 +95,7 @@ Contributions are welcome! If you are interested in contributing, please don't h
 
 ## License
 
-This project is licensed under the Creative Commons Attribution 4.0 International License. For more details, please see the [LICENSE](LICENSE) file..
+This project is licensed under the Creative Commons Attribution 4.0 International License. For more details, please see the [LICENSE](LICENSE) file.
 
 ## Contact
 

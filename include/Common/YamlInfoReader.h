@@ -10,25 +10,25 @@ struct YamlStandardPDFInfo
 {
     OrderQCD orderQCD;
     std::string Format;
-    double XMin;
-    double XMax;
-    double QMin;
-    double QMax;
-    int NumMembers;
+    double XMin = 0;
+    double XMax = 0;
+    double QMin = 0;
+    double QMax = 0;
+    int NumMembers = 0;
     std::vector<int> Flvors;
 };
 
 struct YamlStandardTMDInfo : YamlStandardPDFInfo
 {
-    double KtMin;
-    double KtMax;
-    std::string TMDScheme;
+    double KtMin = 0;
+    double KtMax = 0;
+    std::string TMDScheme = "";
 };
 struct YamlImpelemntationInfo
 {
-    std::string reader;
-    std::string interpolator;
-    std::string extrapolator;
+    std::string reader = "";
+    std::string interpolator = "";
+    std::string extrapolator = "";
 };
 enum class AlphasType
 {
@@ -90,16 +90,6 @@ YamlStandardPDFInfoReader(const std::string &yamlInfoPath)
         return {std::nullopt, errorFormat};
     }
     output.Format = *format;
-
-    auto [TMDScheme, errorTMDScheme] = ConfigWrapper.get<std::string>("TMDScheme");
-    if (errorFormat != ErrorType::None)
-    {
-        std::cout << "[PDFxTMD][YamlInfoReader] Format is not "
-                     "found in yaml config file"
-                  << std::endl;
-        return {std::nullopt, errorTMDScheme};
-    }
-    output.TMDScheme = *TMDScheme;
     //////NumMembers
     auto [NumMembers, errorNumMembers] = ConfigWrapper.get<int>("NumMembers");
     if (errorNumMembers != ErrorType::None)
@@ -163,6 +153,15 @@ YamlStandardPDFInfoReader(const std::string &yamlInfoPath)
     output.QMax = *QMax;
     if constexpr (std::is_same_v<T, YamlStandardTMDInfo>)
     {
+        auto [TMDScheme, errorTMDScheme] = ConfigWrapper.get<std::string>("TMDScheme");
+        if (errorTMDScheme != ErrorType::None)
+        {
+            std::cout << "[PDFxTMD][YamlInfoReader] Format is not "
+                         "found in yaml config file"
+                      << std::endl;
+            return {std::nullopt, errorTMDScheme};
+        }
+        output.TMDScheme = *TMDScheme;
         //////KtMin
         auto [KtMin, errorKtMin] = ConfigWrapper.get<double>("KtMin");
         if (errorKtMin != ErrorType::None)

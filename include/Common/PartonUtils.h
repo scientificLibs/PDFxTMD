@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 
-#if defined(__linux__)
 #define FOLDER_SEP "/"
-#elif defined(_WIN32)
-#define FOLDER_SEP "\\"
+
+#if defined(_WIN32)
+#define PDF_X_TMD_REGISTRY_PATH "Software\\PDFxTMD"
 #endif
 #define STD_PDF_INFO_EXTENSION ".info"
 #define STD_PDF_DATA_EXTENSION ".dat"
