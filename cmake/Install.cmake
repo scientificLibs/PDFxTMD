@@ -8,6 +8,7 @@ install(TARGETS PDFxTMDLib
 # Install PDFLib static library using default CMake paths
 install(TARGETS PDFxTMDLibStatic
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
 # Install header files using default CMake paths
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib)
 
@@ -20,6 +21,16 @@ install(DIRECTORY DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib)
 # Create an empty file called .PDFxTMD inside the directory
 file(WRITE "${CMAKE_BINARY_DIR}/.PDFxTMD" "")  # Create an empty file in the build directory
 install(FILES "${CMAKE_BINARY_DIR}/.PDFxTMD" DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib)
+
+# Install Python wrapper
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+# Determine Python package directory
+set(PYTHON_SITE_PACKAGES 
+    "lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
+
+install(TARGETS pdfxtmd
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES})
 
 # Export targets for package config using default CMake paths
 install(EXPORT PDFxTMDLibTargets
@@ -61,5 +72,3 @@ set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 set(CPACK_WIX_UPGRADE_GUID "{9674B1B2-ABC1-4B0D-9F28-510F30F8E0E2}")  # Set explicitly
-
-
