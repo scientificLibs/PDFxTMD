@@ -92,5 +92,6 @@
         "scoped_allocator": "cpp",
         "shared_mutex": "cpp",
         "syncstream": "cpp"
-    }
+    },
+    "fortran.fortls.disabled": true
 }
