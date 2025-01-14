@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.22)
-
 include(cmake/version.cmake)
 project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} LANGUAGES CXX)
 add_definitions(-DPROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
@@ -97,18 +96,14 @@ target_include_directories(PDFxTMDLib
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib>
 )
+add_subdirectory(wrappers)
 
-find_package(pybind11 REQUIRED)
-
-pybind11_add_module(pdfxtmd wrappers/python/bindings.cpp)
-target_link_libraries(pdfxtmd PRIVATE PDFxTMDLibStatic)
-include(Install)
 if(UNIX)
+include(Install)
 include(Format)
 Format(PDFxTMDLib include/)
 Format(PDFxTMDLib src/)
 include(Doxygen)
 Doxygen(PDFxTMDLib include/)
 endif()
-
 add_subdirectory(examples)
