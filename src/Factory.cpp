@@ -136,7 +136,11 @@ TExtrapolator TExtrapolatorype(const std::string &type)
 ////// end extrapolator type
 ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
 {
-
+    PDFSetDownloadHandler downloadHandler;
+    if (!downloadHandler.Start(pdfSetName))
+    {
+        throw FileLoadException("Unable to find, or download pdf set path!");
+    }
     auto infoPathPair = StandardInfoFilePath(pdfSetName);
     if (infoPathPair.second != ErrorType::None)
     {
@@ -178,13 +182,13 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
         {
             return ITMD(
                 GenericPDF<TMDPDFTag, TDefaultAllFlavorReader, TTrilinearInterpolator,
-                           TErrExtrapolator<TDefaultAllFlavorReader>>(pdfSetName, m_setMember));
+                           TErrExtrapolator<TDefaultAllFlavorReader>>(pdfSetName, setMember));
         }
         else if (extrapolatorType == TExtrapolator::TZeroExtrapolator)
         {
             return ITMD(
                 GenericPDF<TMDPDFTag, TDefaultAllFlavorReader, TTrilinearInterpolator,
-                           TZeroExtrapolator<TDefaultAllFlavorReader>>(m_pdfSetName, m_setMember));
+                           TZeroExtrapolator<TDefaultAllFlavorReader>>(pdfSetName, setMember));
         }
     }
     throw NotSupportError("Not known combination of Reader, Interpolator, "

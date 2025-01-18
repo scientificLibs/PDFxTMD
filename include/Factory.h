@@ -23,10 +23,6 @@ class GenericTMDFactory
   public:
     GenericTMDFactory() = default;
     ITMD mkTMD(const std::string &pdfSetName, int setMember);
-
-  private:
-    std::string m_pdfSetName;
-    int m_setMember;
 };
 
 class GenericCPDFFactory

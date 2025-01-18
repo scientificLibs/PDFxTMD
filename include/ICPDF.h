@@ -10,7 +10,6 @@
 
 namespace PDFxTMD
 {
-// ICPDF class without templates
 class ICPDF
 {
   public:
@@ -34,8 +33,6 @@ class ICPDF
               return new Model(*model);
           })
     {
-        std::cout << "[RAMIN] size of OwningModel<CPDFApproachT>: " << sizeof(pdfApproach)
-                  << std::endl;
     }
 
     double pdf(PartonFlavor parton, double x, double mu2) const
