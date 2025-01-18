@@ -1,12 +1,13 @@
 #include "MissingPDFSetHandler/RepoSelectionCommand.h"
 #include "Common/StringUtils.h"
 #include <curl/curl.h>
+#include <iomanip>
 #include <iostream>
 #include <regex>
+#include <sstream>
 
 namespace PDFxTMD
 {
-
 bool CheckUrl(const std::string &url, StandardTypeMap &context)
 {
     using namespace std::literals;
@@ -58,6 +59,24 @@ bool CheckUrl(const std::string &url, StandardTypeMap &context)
     return false;
 }
 
+// Function to normalize PDFSet names
+std::string normalizePDFSetName(const std::string &pdfSet)
+{
+    std::ostringstream normalized;
+    for (char c : pdfSet)
+    {
+        if (c == '+' || c == '=')
+        {
+            normalized << '%' << std::uppercase << std::hex << static_cast<int>(c);
+        }
+        else
+        {
+            normalized << c;
+        }
+    }
+    return normalized.str();
+}
+
 bool RepoSelectionCommand::execute(StandardTypeMap &context)
 {
     std::string PDFSet;
@@ -90,7 +109,9 @@ bool RepoSelectionCommand::execute(StandardTypeMap &context)
     }
     if (inputLine == "1")
     {
-        std::string url = "http://lhapdfsets.web.cern.ch/lhapdfsets/current/" + PDFSet + ".tar.gz";
+        std::string normalizedPDFSet = normalizePDFSetName(PDFSet);
+        std::string url =
+            "http://lhapdfsets.web.cern.ch/lhapdfsets/current/" + normalizedPDFSet + ".tar.gz";
         if (CheckUrl(url, context))
         {
             context["URL"] = url;
@@ -100,9 +121,10 @@ bool RepoSelectionCommand::execute(StandardTypeMap &context)
     }
     else if (inputLine == "2")
     {
+        std::string normalizedPDFSet = normalizePDFSetName(PDFSet);
         std::string url = "https://syncandshare.desy.de/index.php/s/GjjcwKQC93M979e/"
                           "download?path=%2FTMD%20grid%20files&files=" +
-                          PDFSet + ".tgz";
+                          normalizedPDFSet + ".tgz";
         if (CheckUrl(url, context))
         {
             context["URL"] = url;
