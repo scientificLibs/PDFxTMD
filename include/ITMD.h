@@ -1,6 +1,6 @@
 #pragma once
 #include "Common/TypeErasureUtils.h"
-#include <Common/PartonUtils.h>
+#include "Common/PartonUtils.h"
 #include <array>
 #include <cstddef>
 #include <cstdlib>

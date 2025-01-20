@@ -97,9 +97,8 @@ target_include_directories(PDFxTMDLib
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib>
 )
 add_subdirectory(wrappers)
-
-if(UNIX)
 include(Install)
+if(UNIX)
 include(Format)
 Format(PDFxTMDLib include/)
 Format(PDFxTMDLib src/)
