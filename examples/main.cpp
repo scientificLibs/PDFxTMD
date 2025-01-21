@@ -17,7 +17,7 @@ int main()
 
     using namespace PDFxTMD;
     GenericCPDFFactory cPDF;
-    auto CJ12min = cPDF.mkCPDF("CJ12min", 0);
+    auto CJ12min = cPDF.mkCPDF("MMHT2014lo68cl", 0);
     std::cout << "Calculating PDF: " << std::endl;
     double x = 0.0001;
     for (double mu2 = 2; mu2 < 100; mu2++)
