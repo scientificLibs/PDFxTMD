@@ -13,7 +13,7 @@ install(TARGETS PDFxTMDLibStatic
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib)
 
 # Install lib3 folder using default CMake paths
-install(DIRECTORY lib3/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib/lib3)
+install(DIRECTORY lib3/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib)
 
 # Create the directory during installation using default CMake paths
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib)
@@ -45,7 +45,6 @@ add_custom_target(uninstall
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_CONTACT "Ramin Kord <raminkord92@gmail.com>")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Ramin Kord")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "gsl, curl, pybind11, python, g++, gfortran")
 
 include(CPack)
 set(CPACK_PACKAGE_NAME "PDFxTMDLib")

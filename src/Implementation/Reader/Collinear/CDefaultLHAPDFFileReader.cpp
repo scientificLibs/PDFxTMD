@@ -32,10 +32,11 @@ std::pair<double, double> CDefaultLHAPDFFileReader::getBoundaryValues(
     switch (comp)
     {
     case PhaseSpaceComponent::X:
-        output = {m_pdfShape.x_vec.front(), m_pdfShape.x_vec.back()};
+        output = {std::exp(m_pdfShape.log_x_vec.front()), std::exp(m_pdfShape.log_x_vec.back())};
         break;
     case PhaseSpaceComponent::Q2:
-        output = {m_pdfShape.mu2_vec.front(), m_pdfShape.mu2_vec.back()};
+        output = {std::exp(m_pdfShape.log_mu2_vec.front()),
+                  std::exp(m_pdfShape.log_mu2_vec.back())};
         break;
     default:
         throw std::runtime_error("undefined Phase space component requested");
@@ -73,7 +74,6 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
     // Pre-allocate with typical sizes
     m_pdfShape.log_x_vec.reserve(100);
     m_pdfShape.log_mu2_vec.reserve(50);
-    m_pdfShape.flavors.reserve(13);
     std::string line;
     while (std::getline(file, line))
     {
@@ -93,6 +93,7 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
         processDataLine(line, m_pdfShape);
         m_blockLine++;
     }
+    m_pdfShape.finalizeXP2();
 }
 
 DefaultAllFlavorShape CDefaultLHAPDFFileReader::getData() const
@@ -106,10 +107,10 @@ void CDefaultLHAPDFFileReader::readXKnots(NumParser &parser, DefaultAllFlavorSha
     while (parser.hasMore())
     {
         parser >> value;
-        data.log_x_vec.push_back(std::log(value));
+        data.x_set.emplace(value);
     }
 
-    if (data.log_x_vec.empty())
+    if (data.x_set.empty())
     {
         throw std::runtime_error("No x knots found in grid");
     }
@@ -121,10 +122,10 @@ void CDefaultLHAPDFFileReader::readQ2Knots(NumParser &parser, DefaultAllFlavorSh
     while (parser.hasMore())
     {
         parser >> value;
-        data.log_mu2_vec.push_back(std::log(value * value)); // Store Q²
+        data.mu2_set.emplace(value * value); // Store Q²
     }
 
-    if (data.log_mu2_vec.empty())
+    if (data.mu2_set.empty())
     {
         throw std::runtime_error("No Q² knots found in grid");
     }
@@ -136,18 +137,17 @@ void CDefaultLHAPDFFileReader::readParticleIds(NumParser &parser, DefaultAllFlav
     while (parser.hasMore())
     {
         parser >> id;
-        data.flavors.push_back(static_cast<PartonFlavor>(id));
+        data.flavors.emplace(static_cast<PartonFlavor>(id));
     }
 
     if (data.flavors.empty())
     {
         throw std::runtime_error("No particle IDs found in grid");
     }
-    size_t gridSize = data.log_x_vec.size() * data.log_mu2_vec.size();
-    data.initializeXP2();
+    size_t gridSize = data.x_set.size() * data.mu2_set.size();
     for (const auto &flavor : data.flavors)
     {
-        data.grids[flavor].reserve(gridSize);
+        data.grids[flavor].reserve(data.grids[flavor].size() + gridSize);
     }
 }
 

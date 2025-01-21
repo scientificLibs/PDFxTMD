@@ -3,10 +3,10 @@
 #include "Common/Exception.h"
 #include "Common/PartonUtils.h"
 #include "Common/YamlInfoReader.h"
+#include "mlinterp/mlinterp.hpp"
 #include <array>
 #include <cmath>
 #include <fstream>
-#include <lib3/mlinterp/mlinterp.hpp>
 #include <set>
 
 namespace PDFxTMD
