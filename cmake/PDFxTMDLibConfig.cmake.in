@@ -3,4 +3,4 @@
 include(CMakeFindDependencyMacro)
 find_dependency(GSL REQUIRED)
 
-include("${CMAKE_CURRENT_LIST_DIR}/PDFLibTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/PDFxTMDLibTargets.cmake")
