@@ -6,7 +6,7 @@ For a comprehensive understanding of PDFxTMD, please refer to the full paper ava
 
 ## Installation
 
-To install PDFxTMD, please refer to the [INSTALL](INSTALL) file. Also, Check wiki for more information.
+To install PDFxTMD, please refer to the [INSTALL](INSTALL) file. Also, Check [site](https://raminkord92.github.io/PDFxTMD/) for more information.
 ## Quick Start
 
 ### 0. Requirements
