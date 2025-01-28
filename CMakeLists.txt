@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 include(cmake/version.cmake)
+include(CheckLanguage)
 project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} LANGUAGES CXX)
 add_definitions(-DPROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
 add_definitions(-DPROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR})
@@ -9,6 +10,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+check_language(Fortran)
+if(CMAKE_Fortran_COMPILER)
+  enable_language(Fortran OPTIONAL)
+endif()
 
 include(GNUInstallDirs)
 if(CMAKE_BUILD_TYPE MATCHES "Release")

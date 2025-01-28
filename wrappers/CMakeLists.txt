@@ -1,1 +1,6 @@
-add_subdirectory(python)
+find_package(Python3 COMPONENTS Interpreter Development QUIET)
+if (Python3_FOUND)
+    add_subdirectory(python)
+else()
+    message(WARNING "Python not found. Skipping python bindings.")
+endif()
