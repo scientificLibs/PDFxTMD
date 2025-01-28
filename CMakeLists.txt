@@ -38,7 +38,7 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include_directories(./include)
-include_directories(.)
+include_directories(./lib3)
 find_path(SYSTEM_INCLUDE_DIR gsl/gsl_interp.h)
 find_path(SYSTEM_INCLUDE_DIR gsl/gsl_interp2d.h)
 include_directories(${SYSTEM_INCLUDE_DIR})
@@ -103,9 +103,8 @@ target_include_directories(PDFxTMDLib
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib>
 )
 add_subdirectory(wrappers)
-
-if(UNIX)
 include(Install)
+if(UNIX)
 include(Format)
 Format(PDFxTMDLib include/)
 Format(PDFxTMDLib src/)

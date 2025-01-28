@@ -3,6 +3,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -30,26 +31,25 @@ struct DefaultAllFlavorShape
     DefaultAllFlavorShape() = default;
     std::vector<double> log_x_vec;
     std::vector<double> log_mu2_vec;
+    std::set<double> x_set;
+    std::set<double> mu2_set;
     std::vector<double> x_vec;
     std::vector<double> mu2_vec;
-    void initializeXP2()
+    void finalizeXP2()
     {
-        if (x_vec.size() == 0)
+        for (double mu2 : mu2_set)
         {
-            x_vec.resize(log_x_vec.size());
-            std::transform(log_x_vec.begin(), log_x_vec.end(), x_vec.begin(),
-                           [](const double &logX) { return std::exp(logX); });
+            mu2_vec.emplace_back(mu2);
+            log_mu2_vec.emplace_back(std::log(mu2));
         }
-        if (mu2_vec.size() == 0)
+        for (double x : x_set)
         {
-            mu2_vec.resize(log_mu2_vec.size());
-            // Transform log_p2 to p2_s
-            std::transform(log_mu2_vec.begin(), log_mu2_vec.end(), mu2_vec.begin(),
-                           [](const double &logQ2) { return std::exp(logQ2); });
+            x_vec.emplace_back(x);
+            log_x_vec.emplace_back(std::log(x));
         }
     }
 
-    std::vector<PartonFlavor> flavors;
+    std::set<PartonFlavor> flavors;
     std::unordered_map<PartonFlavor, std::vector<double>> grids;
 };
 
@@ -58,19 +58,6 @@ struct DefaultAllFlavorUPDFShape : DefaultAllFlavorShape
     DefaultAllFlavorUPDFShape() = default;
     std::vector<double> log_kt2_vec;
     std::vector<double> kt2_vec;
-    void initializeXKt2P2()
-    {
-        if (kt2_vec.size() == 0)
-        {
-            // Resize output vectors to match the size of input
-            // vectors
-            initializeXP2();
-            kt2_vec.resize(log_kt2_vec.size());
-            // Transform log_x to x_s
-            std::transform(log_kt2_vec.begin(), log_kt2_vec.end(), kt2_vec.begin(),
-                           [](const double &logKt2) { return std::exp(logKt2); });
-        }
-    }
 };
 struct FastDefaultAllFlavorShape : DefaultAllFlavorShape
 {
