@@ -1,15 +1,12 @@
 find_package(pybind11 REQUIRED)
 pybind11_add_module(pdfxtmd pyBindings.cpp)
 target_link_libraries(pdfxtmd PRIVATE PDFxTMDLibStatic)
-# Install Python wrapper
-find_package(Python3 REQUIRED COMPONENTS Interpreter)
-
-# Determine Python package directory
 set(PYTHON_SITE_PACKAGES 
-    "python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
+        "python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
+
 
 message(STATUS "Applying custom optimization flags for Release build.  ${CMAKE_INSTALL_LIBDIR}/${PYTHON_SITE_PACKAGES}")
 
 install(TARGETS pdfxtmd
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PYTHON_SITE_PACKAGES})
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PYTHON_SITE_PACKAGES})
 
