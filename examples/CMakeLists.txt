@@ -8,6 +8,7 @@ target_link_libraries(pdf_example PRIVATE PDFxTMDLibStatic  ${CURL_LIBRARIES})
 target_include_directories(pdf_example PRIVATE 
     ${CMAKE_SOURCE_DIR}/include
 )
+
 if (CMAKE_Fortran_COMPILER)
     add_subdirectory(Fortran)
 else()

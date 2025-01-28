@@ -138,13 +138,22 @@ void TDefaultAllFlavorReader::read(const std::string &pdfName, int setNumber)
     m_updfShape.log_kt2_vec.assign(log_q2Set.begin(), log_q2Set.end());
     auto log_pSetSize = log_pSet.size();
     m_updfShape.mu2_vec.reserve(log_pSetSize);
-    for (const auto &logP : log_pSet)
+    for (auto logP : log_pSet)
     {
         double mu = std::exp(logP);
         m_updfShape.mu2_vec.push_back(mu * mu);
         m_updfShape.log_mu2_vec.push_back(2 * logP);
     }
-    m_updfShape.initializeXKt2P2();
+    for (auto log_kt2 : log_q2Set)
+    {
+        m_updfShape.kt2_vec.emplace_back(std::exp(log_kt2));
+    }
+    for (auto log_x : log_xSet)
+    {
+        double x = std::exp(log_x);
+        m_updfShape.x_set.emplace(x);
+        m_updfShape.x_vec.emplace_back(x);
+    }
 }
 
 } // namespace PDFxTMD
