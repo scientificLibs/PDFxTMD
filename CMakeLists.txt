@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 include(cmake/version.cmake)
+include(CheckLanguage)
 project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} LANGUAGES CXX)
 add_definitions(-DPROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR})
 add_definitions(-DPROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR})
@@ -9,6 +10,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+check_language(Fortran)
+if(CMAKE_Fortran_COMPILER)
+  enable_language(Fortran OPTIONAL)
+endif()
 
 include(GNUInstallDirs)
 if(CMAKE_BUILD_TYPE MATCHES "Release")
@@ -32,7 +38,7 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include_directories(./include)
-include_directories(.)
+include_directories(./lib3)
 find_path(SYSTEM_INCLUDE_DIR gsl/gsl_interp.h)
 find_path(SYSTEM_INCLUDE_DIR gsl/gsl_interp2d.h)
 include_directories(${SYSTEM_INCLUDE_DIR})
@@ -97,9 +103,8 @@ target_include_directories(PDFxTMDLib
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib>
 )
 add_subdirectory(wrappers)
-
-if(UNIX)
 include(Install)
+if(UNIX)
 include(Format)
 Format(PDFxTMDLib include/)
 Format(PDFxTMDLib src/)

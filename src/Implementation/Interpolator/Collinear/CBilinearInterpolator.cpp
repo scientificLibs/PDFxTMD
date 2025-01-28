@@ -1,7 +1,7 @@
 #include "Implementation/Interpolator/Collinear/CBilinearInterpolator.h"
+#include "mlinterp/mlinterp.hpp"
 #include <cassert>
 #include <cmath>
-#include <lib3/mlinterp/mlinterp.hpp>
 #include <stdexcept>
 
 #include "Common/Exception.h"
