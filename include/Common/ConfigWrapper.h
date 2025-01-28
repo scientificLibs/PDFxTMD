@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "PartonUtils.h"
-#include "lib3/fkYAML/node.hpp"
+#include "fkYAML/node.hpp"
 
 namespace PDFxTMD
 {

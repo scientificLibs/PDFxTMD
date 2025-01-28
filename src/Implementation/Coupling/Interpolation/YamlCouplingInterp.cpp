@@ -1,4 +1,4 @@
-#include "include/Implementation/Coupling/Interpolation/YamlCouplingInterp.h"
+#include "Implementation/Coupling/Interpolation/YamlCouplingInterp.h"
 #include <algorithm>
 #include <cmath>
 namespace PDFxTMD
