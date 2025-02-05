@@ -19,5 +19,5 @@ cmake --install <temporary-directory>
 
 To generate the documentation run:
 
-cmake --build <temporary-directory> -t doxygen-calc
-cmake --build <temporary-directory> -t doxygen-calc_console
+cmake --build <temporary-directory> -t doxygen-pdfxtmd
+
