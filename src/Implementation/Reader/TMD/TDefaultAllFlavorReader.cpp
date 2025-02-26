@@ -150,9 +150,7 @@ void TDefaultAllFlavorReader::read(const std::string &pdfName, int setNumber)
     }
     for (auto log_x : log_xSet)
     {
-        double x = std::exp(log_x);
-        m_updfShape.x_set.emplace(x);
-        m_updfShape.x_vec.emplace_back(x);
+        m_updfShape.x_vec.emplace_back(std::exp(log_x));
     }
 }
 

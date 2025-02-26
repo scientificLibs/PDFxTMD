@@ -11,14 +11,21 @@ namespace PDFxTMD
 void CGSLBilinearInterpolator::initialize(const IReader<CDefaultLHAPDFFileReader> *reader)
 {
     m_reader = reader;
-    const auto &defaultShape = m_reader->getData();
-    auto m_gslCompatibleShapeData = std::move(ConvertDefaultShapeGrids(defaultShape));
-    for (const auto &partonFlavor : m_reader->getData().flavors)
+    const auto &defaultShapes = m_reader->getData();
+    for (auto &&defaultShape : defaultShapes)
     {
-        gsl2dObj.emplace(partonFlavor, GSLInterp2D(m_gslCompatibleShapeData.x_vec,
-                                                   m_gslCompatibleShapeData.mu2_vec,
-                                                   m_gslCompatibleShapeData.grids.at(partonFlavor),
-                                                   GSLInterp2D::InterpolationType::Bicubic));
+        auto m_gslCompatibleShapeData = std::move(ConvertDefaultShapeGrids(defaultShape));
+        std::pair<DefaultAllFlavorShape, std::unordered_map<PartonFlavor, GSLInterp2D>> gsl2dObj;
+        for (const auto &partonFlavor : defaultShape.flavors)
+        {
+            gsl2dObj.first = m_gslCompatibleShapeData;
+            gsl2dObj.second.emplace(partonFlavor,
+                                    GSLInterp2D(m_gslCompatibleShapeData.x_vec,
+                                                m_gslCompatibleShapeData.mu2_vec,
+                                                m_gslCompatibleShapeData.grids.at(partonFlavor),
+                                                GSLInterp2D::InterpolationType::Bilinear));
+        }
+        gsl2dObjVecPair.emplace_back(gsl2dObj);
     }
 
     m_isInitialized = true;
@@ -29,9 +36,16 @@ double CGSLBilinearInterpolator::interpolate(PartonFlavor flavor, double x, doub
 {
     if (!m_isInitialized)
     {
-        throw std::runtime_error("CGSLCBilinearInterpolator::interpolate is not "
+        throw std::runtime_error("GSLBilinearInterpolator::interpolate is not "
                                  "initialized");
     }
-    return gsl2dObj.at(flavor).interpolate(x, q);
+    for (auto &&gsl2dObj : gsl2dObjVecPair)
+    {
+        if (q >= gsl2dObj.first.mu2_vec.front() && q <= gsl2dObj.first.mu2_vec.back())
+        {
+            return gsl2dObj.second.at(flavor).interpolate(x, q);
+        }
+    }
+    throw std::runtime_error("q is out of range. Something is wrong in pdfxtmdlib");
 }
 }; // namespace PDFxTMD

@@ -14,10 +14,10 @@ std::vector<double> CDefaultLHAPDFFileReader::getValues(PhaseSpaceComponent comp
     switch (comp)
     {
     case PhaseSpaceComponent::X:
-        output = m_pdfShape.x_vec;
+        output = m_pdfShape.at(0).x_vec;
         break;
     case PhaseSpaceComponent::Q2:
-        output = m_pdfShape.mu2_vec;
+        output = m_mu2CompTotal;
         break;
     default:
         throw NotSupportError("undefined Phase space component requested");
@@ -32,11 +32,10 @@ std::pair<double, double> CDefaultLHAPDFFileReader::getBoundaryValues(
     switch (comp)
     {
     case PhaseSpaceComponent::X:
-        output = {std::exp(m_pdfShape.log_x_vec.front()), std::exp(m_pdfShape.log_x_vec.back())};
+        output = {m_pdfShape.at(0).x_vec.front(), m_pdfShape.at(0).x_vec.back()};
         break;
     case PhaseSpaceComponent::Q2:
-        output = {std::exp(m_pdfShape.log_mu2_vec.front()),
-                  std::exp(m_pdfShape.log_mu2_vec.back())};
+        output = {m_mu2CompTotal.front(), m_mu2CompTotal.back()};
         break;
     default:
         throw std::runtime_error("undefined Phase space component requested");
@@ -71,9 +70,6 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
         throw PDFxTMD::FileLoadException("Unable to open file: " + *filePathPair.first);
     }
 
-    // Pre-allocate with typical sizes
-    m_pdfShape.log_x_vec.reserve(100);
-    m_pdfShape.log_mu2_vec.reserve(50);
     std::string line;
     while (std::getline(file, line))
     {
@@ -84,20 +80,37 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
         {
             m_blockNumber++;
             m_blockLine = 0;
+            if (m_blockNumber > 0)
+            {
+                // Pre-allocate with typical sizes
+                DefaultAllFlavorShape data_;
+                data_.log_x_vec.reserve(100);
+                data_.log_mu2_vec.reserve(50);
+                data_.x_vec.reserve(100);
+                data_.mu2_vec.reserve(50);
+                m_pdfShape.emplace_back(data_);
+            }
             continue;
         }
 
         if (m_blockNumber == 0)
             continue;
 
-        processDataLine(line, m_pdfShape);
+        processDataLine(line, m_pdfShape[m_blockNumber - 1]);
         m_blockLine++;
     }
-    m_pdfShape.finalizeXP2();
+
+    for (auto &pdfData_ : m_pdfShape)
+    {
+        pdfData_.finalizeXP2();
+        m_mu2CompTotal.insert(m_mu2CompTotal.end(), pdfData_.mu2_vec.begin(),
+                              pdfData_.mu2_vec.end());
+    }
 }
 
-DefaultAllFlavorShape CDefaultLHAPDFFileReader::getData() const
+std::vector<DefaultAllFlavorShape> CDefaultLHAPDFFileReader::getData() const
 {
+
     return m_pdfShape;
 }
 
@@ -107,10 +120,10 @@ void CDefaultLHAPDFFileReader::readXKnots(NumParser &parser, DefaultAllFlavorSha
     while (parser.hasMore())
     {
         parser >> value;
-        data.x_set.emplace(value);
+        data.x_vec.emplace_back(value);
     }
 
-    if (data.x_set.empty())
+    if (data.x_vec.empty())
     {
         throw std::runtime_error("No x knots found in grid");
     }
@@ -122,10 +135,10 @@ void CDefaultLHAPDFFileReader::readQ2Knots(NumParser &parser, DefaultAllFlavorSh
     while (parser.hasMore())
     {
         parser >> value;
-        data.mu2_set.emplace(value * value); // Store Q²
+        data.mu2_vec.emplace_back(value * value); // Store Q²
     }
 
-    if (data.mu2_set.empty())
+    if (data.mu2_vec.empty())
     {
         throw std::runtime_error("No Q² knots found in grid");
     }
@@ -144,7 +157,7 @@ void CDefaultLHAPDFFileReader::readParticleIds(NumParser &parser, DefaultAllFlav
     {
         throw std::runtime_error("No particle IDs found in grid");
     }
-    size_t gridSize = data.x_set.size() * data.mu2_set.size();
+    size_t gridSize = data.x_vec.size() * data.mu2_vec.size();
     for (const auto &flavor : data.flavors)
     {
         data.grids[flavor].reserve(data.grids[flavor].size() + gridSize);
@@ -156,7 +169,7 @@ void CDefaultLHAPDFFileReader::readValues(NumParser &parser, DefaultAllFlavorSha
     double value;
     while (parser.hasMore())
     {
-        for (const auto &flavor : data.flavors)
+        for (auto flavor : data.flavors)
         {
             parser >> value;
             if (parser.hasMore())

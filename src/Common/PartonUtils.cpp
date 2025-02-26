@@ -1,10 +1,10 @@
 #include "Common/PartonUtils.h"
 #include "Common/Exception.h"
 #include "Common/FileUtils.h"
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <set>
-
 #if defined(_WIN32)
 #include <Windows.h>
 #endif
@@ -282,5 +282,14 @@ double _extrapolateLinear(double x, double xl, double xh, double yl, double yh)
         // Otherwise just extrapolate y itself.
         return yl + (std::log(x) - std::log(xl)) / (std::log(xh) - std::log(xl)) * (yh - yl);
     }
+}
+
+size_t indexbelow(double value, const std::vector<double> &knots)
+{
+    size_t i = std::upper_bound(knots.begin(), knots.end(), value) - knots.begin();
+    if (i == knots.size())
+        i -= 1; // can't return the last knot index
+    i -= 1;     // step back to get the knot <= x behaviour
+    return i;
 }
 } // namespace PDFxTMD
