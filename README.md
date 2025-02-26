@@ -2,7 +2,7 @@
 
 PDFxTMD is a library for parton distribution functions (PDFs) that integrates both collinear PDFs (cPDFs) and transverse momentum-dependent PDFs (TMDs). It is designed with modern C++ principles to achieve high performance and extensibility. The library provides interfaces for reading PDF grid files and supports standard formats from LHAPDF and TMDLib, while allowing adaptability to non-standard formats. 
 
-For a comprehensive understanding of PDFxTMD, please refer to the full paper available on https://arxiv.org/abs/2412.16680.
+For a comprehensive understanding of PDFxTMD, please refer to the full paper available on https://arxiv.org/abs/2412.16680. There's a <span style="color: red;">bug </span>in cPDF case when the grid file is comprised of multiple subgrids which is going to be fixed soon enough.
 
 ## Installation
 
