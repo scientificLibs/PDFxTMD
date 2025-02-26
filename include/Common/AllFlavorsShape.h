@@ -31,20 +31,16 @@ struct DefaultAllFlavorShape
     DefaultAllFlavorShape() = default;
     std::vector<double> log_x_vec;
     std::vector<double> log_mu2_vec;
-    std::set<double> x_set;
-    std::set<double> mu2_set;
     std::vector<double> x_vec;
     std::vector<double> mu2_vec;
     void finalizeXP2()
     {
-        for (double mu2 : mu2_set)
+        for (double mu2 : mu2_vec)
         {
-            mu2_vec.emplace_back(mu2);
             log_mu2_vec.emplace_back(std::log(mu2));
         }
-        for (double x : x_set)
+        for (double x : x_vec)
         {
-            x_vec.emplace_back(x);
             log_x_vec.emplace_back(std::log(x));
         }
     }
@@ -59,23 +55,10 @@ struct DefaultAllFlavorUPDFShape : DefaultAllFlavorShape
     std::vector<double> log_kt2_vec;
     std::vector<double> kt2_vec;
 };
-struct FastDefaultAllFlavorShape : DefaultAllFlavorShape
+inline double xf(const DefaultAllFlavorShape &shape, int ix, int iq2, PartonFlavor flavor)
 {
-    FastDefaultAllFlavorShape() = default;
-    std::vector<PartonFlavor> flavors;
-    std::vector<double> grids;
-    std::vector<size_t> shapes;
+    double test = shape.grids.at(flavor).at(ix * shape.mu2_vec.size() + iq2);
+    return test;
+}
 
-    void initializeShape()
-    {
-        shapes.resize(3);
-        shapes[0] = log_x_vec.size();
-        shapes[1] = log_mu2_vec.size();
-        shapes[2] = flavors.size();
-    }
-    double xf(int ix, int iq2, int ipid) const
-    {
-        return grids[ix * shapes[2] * shapes[1] + iq2 * shapes[2] + ipid];
-    }
-};
 } // namespace PDFxTMD

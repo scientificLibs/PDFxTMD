@@ -4,6 +4,7 @@
 #include "Implementation/Interpolator/Collinear/CBilinearInterpolator.h"
 #include "Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
 #include "Implementation/Interpolator/Collinear/GSL/CGSLBilinear.h"
+#include "Implementation/Interpolator/Collinear/GSL/CGSLBicubic.h"
 #include "Common/YamlInfoReader.h"
 #include "Common/PartonUtils.h"
 #include <string>
@@ -20,10 +21,14 @@ int main()
     auto CJ12min = cPDF.mkCPDF("MSHT20lo_as130", 0);
     std::cout << "Calculating PDF: " << std::endl;
     double x = 0.0001;
-    for (double mu2 = 2; mu2 < 100; mu2++)
-        std::cout << mu2 << ": " << CJ12min.pdf(PartonFlavor::u, x, mu2) << std::endl;
+    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBicubicInterpolator, CContinuationExtrapolator<CDefaultLHAPDFFileReader, CGSLBicubicInterpolator>> genCPDF("MSHT20lo_as130", 0);
 
-    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBilinearInterpolator, CContinuationExtrapolator<CDefaultLHAPDFFileReader, CBilinearInterpolator>> genCPDF("CJ12min", 0);
+    for (double mu2 = 2; mu2 < 100; mu2++)
+    {
+      std::cout << mu2 << ": " << CJ12min.pdf(PartonFlavor::d, x, mu2) ;
+        std::cout <<": " << genCPDF.pdf(PartonFlavor::d, x, mu2) << std::endl;
+    }
+
     auto info = genCPDF.getStdPDFInfo();
     std::cout << "X_min: " << info.XMin << " X_max: " << info.XMax << std::endl; 
     std::cout << "----------------" << std::endl;

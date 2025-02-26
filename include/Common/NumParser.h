@@ -44,7 +44,7 @@ class NumParser
         }
     }
 
-template <typename T> T parseNumber() noexcept
+    template <typename T> T parseNumber() noexcept
     {
         T value;
         auto [ptr, ec] = std::from_chars(_current, _end, value);

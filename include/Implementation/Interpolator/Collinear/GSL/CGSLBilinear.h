@@ -21,7 +21,9 @@ class CGSLBilinearInterpolator
     void initialize(const IReader<CDefaultLHAPDFFileReader> *reader);
 
   private:
-    mutable std::unordered_map<PartonFlavor, GSLInterp2D> gsl2dObj;
+    mutable std::vector<
+        std::pair<DefaultAllFlavorShape, std::unordered_map<PartonFlavor, GSLInterp2D>>>
+        gsl2dObjVecPair;
     const IReader<CDefaultLHAPDFFileReader> *m_reader;
     mutable bool m_isInitialized = false;
 };

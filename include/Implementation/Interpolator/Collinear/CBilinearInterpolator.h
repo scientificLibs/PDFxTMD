@@ -17,8 +17,7 @@ class CBilinearInterpolator
 
   private:
     const IReader<CDefaultLHAPDFFileReader> *m_reader;
-    mutable DefaultAllFlavorShape m_Shape;
+    mutable std::vector<DefaultAllFlavorShape> m_Shape;
     mutable bool m_isInitialized = false;
-    std::array<int, 2> m_dimensions;
 };
 } // namespace PDFxTMD
