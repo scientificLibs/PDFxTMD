@@ -51,3 +51,4 @@ build/**/*
 lib/*
 bin/*
 out/*
+.vs\*

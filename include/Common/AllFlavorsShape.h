@@ -21,11 +21,6 @@ inline bool isComment(const std::string &line)
     return !line.empty() && line[0] == '#';
 }
 
-inline size_t indexbelow(double value, const std::vector<double> &knots)
-{
-    auto it = std::upper_bound(knots.begin(), knots.end(), value);
-    return (it == knots.begin()) ? 0 : (it - knots.begin() - 1);
-}
 struct DefaultAllFlavorShape
 {
     DefaultAllFlavorShape() = default;
