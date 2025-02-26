@@ -1,6 +1,9 @@
 # CHANGELOG
+## [0.2.1] - 2025-2
+### Bug fix
+- Bug in reading multi subgrid lhapdf file fixed, also bilinear interpolation of the LHAPDF library is copied instead of my previous approach
 
-## [0.1.1] - 2024
+## [0.2.0] - 2024
 ### Added
 - Support for windows added
 
