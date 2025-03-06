@@ -31,10 +31,6 @@ double TTrilinearInterpolator::interpolate(PDFxTMD::PartonFlavor flavor, double 
     }
     using namespace mlinterp;
     double *selectedPdf = &m_updfShape.grids[flavor][0];
-    if (!selectedPdf)
-    {
-        throw NotSupportError("Invalid parton flavor specified.");
-    }
     double output[1];
     double logX = std::log(x);
     double logkt2 = std::log(kt2);
