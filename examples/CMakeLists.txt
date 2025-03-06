@@ -9,7 +9,7 @@ target_include_directories(pdf_example PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
-if (CMAKE_Fortran_COMPILER)
+if ((NOT WIN32) AND CMAKE_Fortran_COMPILER)
     add_subdirectory(Fortran)
 else()
     message(WARNING "Fortran not found. Fortran example is not going to be compiled")

@@ -45,4 +45,10 @@ double TTrilinearInterpolator::interpolate(PDFxTMD::PartonFlavor flavor, double 
     return output[0] / kt2; // Return the interpolated value
 }
 
+const IReader<TDefaultAllFlavorReader> *TTrilinearInterpolator::getReader() const
+{
+    return m_reader;
+}
+
+
 } // namespace PDFxTMD

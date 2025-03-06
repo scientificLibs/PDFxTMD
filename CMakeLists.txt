@@ -12,8 +12,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 check_language(Fortran)
+if (NOT WIN32)  
 if(CMAKE_Fortran_COMPILER)
   enable_language(Fortran OPTIONAL)
+endif()
 endif()
 
 include(GNUInstallDirs)
