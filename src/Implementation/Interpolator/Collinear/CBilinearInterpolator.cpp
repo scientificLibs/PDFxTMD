@@ -60,6 +60,10 @@ void CBilinearInterpolator::initialize(const IReader<CDefaultLHAPDFFileReader> *
     m_Shape = reader->getData();
     m_isInitialized = true;
 }
+const IReader<CDefaultLHAPDFFileReader> *CBilinearInterpolator::getReader() const
+{
+    return m_reader;
+}
 double CBilinearInterpolator::interpolate(PartonFlavor flavor, double x, double mu2) const
 {
     if (!m_isInitialized)

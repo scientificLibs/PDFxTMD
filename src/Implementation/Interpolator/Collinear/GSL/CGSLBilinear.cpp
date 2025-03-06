@@ -30,6 +30,10 @@ void CGSLBilinearInterpolator::initialize(const IReader<CDefaultLHAPDFFileReader
 
     m_isInitialized = true;
 }
+const IReader<CDefaultLHAPDFFileReader> *CGSLBilinearInterpolator::getReader() const
+{
+    return m_reader;
+}
 
 // Main interface method - hot path
 double CGSLBilinearInterpolator::interpolate(PartonFlavor flavor, double x, double q) const

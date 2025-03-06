@@ -19,6 +19,7 @@ class CGSLBicubicInterpolator
     // Main interface method - hot path
     double interpolate(PartonFlavor flavor, double x, double q) const;
     void initialize(const IReader<CDefaultLHAPDFFileReader> *reader);
+    const IReader<CDefaultLHAPDFFileReader> *getReader() const;
 
   private:
     mutable std::vector<

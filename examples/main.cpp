@@ -18,14 +18,14 @@ int main()
 
     using namespace PDFxTMD;
     GenericCPDFFactory cPDF;
-    auto CJ12min = cPDF.mkCPDF("MSHT20lo_as130", 0);
+    auto CJ12min = cPDF.mkCPDF("CJ12min", 0);
     std::cout << "Calculating PDF: " << std::endl;
     double x = 0.0001;
-    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBicubicInterpolator, CContinuationExtrapolator<CDefaultLHAPDFFileReader, CGSLBicubicInterpolator>> genCPDF("MSHT20lo_as130", 0);
+    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBicubicInterpolator, CContinuationExtrapolator<CGSLBicubicInterpolator>> genCPDF("MSHT20lo_as130", 0);
 
-    for (double mu2 = 2; mu2 < 100; mu2++)
+    for (double mu2 = 1; mu2 < 100; mu2++)
     {
-      std::cout << mu2 << ": " << CJ12min.pdf(PartonFlavor::d, x, mu2) ;
+       std::cout << mu2 << ": " << CJ12min.pdf(PartonFlavor::d, x, mu2) ;
         std::cout <<": " << genCPDF.pdf(PartonFlavor::d, x, mu2) << std::endl;
     }
 

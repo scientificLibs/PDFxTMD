@@ -31,7 +31,10 @@ void CGSLBicubicInterpolator::initialize(const IReader<CDefaultLHAPDFFileReader>
 
     m_isInitialized = true;
 }
-
+const IReader<CDefaultLHAPDFFileReader> *CGSLBicubicInterpolator::getReader() const
+{
+    return m_reader;
+}
 // Main interface method - hot path
 double CGSLBicubicInterpolator::interpolate(PartonFlavor flavor, double x, double q) const
 {

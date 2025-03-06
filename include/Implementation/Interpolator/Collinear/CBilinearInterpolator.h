@@ -14,7 +14,7 @@ class CBilinearInterpolator
     // Main interface method - hot path
     double interpolate(PartonFlavor flavor, double x, double q2) const;
     void initialize(const IReader<CDefaultLHAPDFFileReader> *reader);
-
+    const IReader<CDefaultLHAPDFFileReader> *getReader() const;
   private:
     const IReader<CDefaultLHAPDFFileReader> *m_reader;
     mutable std::vector<DefaultAllFlavorShape> m_Shape;

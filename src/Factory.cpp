@@ -182,13 +182,13 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
         {
             return ITMD(
                 GenericPDF<TMDPDFTag, TDefaultAllFlavorReader, TTrilinearInterpolator,
-                           TErrExtrapolator<TDefaultAllFlavorReader>>(pdfSetName, setMember));
+                           TErrExtrapolator>(pdfSetName, setMember));
         }
         else if (extrapolatorType == TExtrapolator::TZeroExtrapolator)
         {
             return ITMD(
                 GenericPDF<TMDPDFTag, TDefaultAllFlavorReader, TTrilinearInterpolator,
-                           TZeroExtrapolator<TDefaultAllFlavorReader>>(pdfSetName, setMember));
+                           TZeroExtrapolator>(pdfSetName, setMember));
         }
     }
     throw NotSupportError("Not known combination of Reader, Interpolator, "
@@ -248,21 +248,21 @@ ICPDF GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
                 return ICPDF(
                     GenericPDF<
                         CollinearPDFTag, CDefaultLHAPDFFileReader, CBilinearInterpolator,
-                        CContinuationExtrapolator<CDefaultLHAPDFFileReader, CBilinearInterpolator>>(
+                        CContinuationExtrapolator<CBilinearInterpolator>>(
                         pdfSetName, setMember));
             }
             else if (extrapolatorType == CExtrapolator::CErrExtrapolator)
             {
                 return ICPDF(
                     GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CBilinearInterpolator,
-                               CErrExtrapolator<CDefaultLHAPDFFileReader>>(pdfSetName, setMember));
+                               CErrExtrapolator>(pdfSetName, setMember));
             }
             else if (extrapolatorType == CExtrapolator::CNearestPointExtrapolator)
             {
                 return ICPDF(
                     GenericPDF<
                         CollinearPDFTag, CDefaultLHAPDFFileReader, CBilinearInterpolator,
-                        CNearestPointExtrapolator<CDefaultLHAPDFFileReader, CBilinearInterpolator>>(
+                        CNearestPointExtrapolator<CBilinearInterpolator>>(
                         pdfSetName, setMember));
             }
         }
@@ -273,21 +273,21 @@ ICPDF GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
                 return ICPDF(
                     GenericPDF<
                         CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBilinearInterpolator,
-                        CContinuationExtrapolator<CDefaultLHAPDFFileReader, CBilinearInterpolator>>(
+                        CContinuationExtrapolator<CBilinearInterpolator>>(
                         pdfSetName, setMember));
             }
             else if (extrapolatorType == CExtrapolator::CErrExtrapolator)
             {
                 return ICPDF(
                     GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBilinearInterpolator,
-                               CErrExtrapolator<CDefaultLHAPDFFileReader>>(pdfSetName, setMember));
+                               CErrExtrapolator>(pdfSetName, setMember));
             }
             else if (extrapolatorType == CExtrapolator::CNearestPointExtrapolator)
             {
                 return ICPDF(
                     GenericPDF<
                         CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBilinearInterpolator,
-                        CNearestPointExtrapolator<CDefaultLHAPDFFileReader, CBilinearInterpolator>>(
+                        CNearestPointExtrapolator<CBilinearInterpolator>>(
                         pdfSetName, setMember));
             }
         }
@@ -297,22 +297,21 @@ ICPDF GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
             {
                 return ICPDF(
                     GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBicubicInterpolator,
-                               CContinuationExtrapolator<CDefaultLHAPDFFileReader,
-                                                         CGSLBicubicInterpolator>>(pdfSetName,
+                               CContinuationExtrapolator<CGSLBicubicInterpolator>>(pdfSetName,
                                                                                    setMember));
             }
             else if (extrapolatorType == CExtrapolator::CErrExtrapolator)
             {
                 return ICPDF(
                     GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBicubicInterpolator,
-                               CErrExtrapolator<CDefaultLHAPDFFileReader>>(pdfSetName, setMember));
+                               CErrExtrapolator>(pdfSetName, setMember));
             }
             else if (extrapolatorType == CExtrapolator::CNearestPointExtrapolator)
             {
                 return ICPDF(
                     GenericPDF<
                         CollinearPDFTag, CDefaultLHAPDFFileReader, CGSLBicubicInterpolator,
-                        CNearestPointExtrapolator<CDefaultLHAPDFFileReader, CBilinearInterpolator>>(
+                        CNearestPointExtrapolator<CBilinearInterpolator>>(
                         pdfSetName, setMember));
             }
         }
