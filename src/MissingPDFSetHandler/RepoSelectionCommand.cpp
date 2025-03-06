@@ -51,7 +51,6 @@ bool CheckUrl(const std::string &url, StandardTypeMap &context)
     else
     {
         context["Error"] = "curl_easy_perform() failed: "s + curl_easy_strerror(res);
-        return false;
     }
 
     // Cleanup libcurl
