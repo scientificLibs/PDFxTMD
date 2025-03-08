@@ -169,7 +169,7 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
     TExtrapolator extrapolatorType;
     if ((*impelmentationInfo).extrapolator == "")
     {
-        extrapolatorType = TExtrapolator::TErrExtrapolator;
+        extrapolatorType = TExtrapolator::TZeroExtrapolator;
     }
     else
     {

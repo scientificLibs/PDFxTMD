@@ -10,14 +10,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-include(FetchContent)
-FetchContent_Declare(
-    PVS_CMakeModule
-    GIT_REPOSITORY "https://github.com/viva64/pvs-studio-cmake-module.git"
-    GIT_TAG        "master" 
-)
-FetchContent_MakeAvailable(PVS_CMakeModule)
-include("${pvs_cmakemodule_SOURCE_DIR}/PVS-Studio.cmake")
 check_language(Fortran)
 if (NOT WIN32)  
 if(CMAKE_Fortran_COMPILER)
@@ -81,10 +73,10 @@ src/FortranFactoryWrapper.cpp
 src/Common/FileUtils.cpp
 src/Common/EnvUtils.cpp
 )
-add_library(PDFxTMDLib SHARED  ${ALL_SOURCES})
+add_library(PDFxTMDLib SHARED  ${ALL_SOURCES}  )
 
 # Add static library
-add_library(PDFxTMDLibStatic STATIC  ${ALL_SOURCES})
+add_library(PDFxTMDLibStatic STATIC  ${ALL_SOURCES}  )
 
 if(UNIX)
     set(DEFAULT_ENV_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib")
@@ -111,13 +103,6 @@ target_include_directories(PDFxTMDLib
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib>
 )
-include("${pvs_cmakemodule_SOURCE_DIR}/PVS-Studio.cmake")
-pvs_studio_add_target(TARGET PDFxTMDLibStatic.analyze ALL
-                      OUTPUT FORMAT json
-                      ANALYZE PDFxTMDLibStatic
-                      MODE GA:1,2
-                      LOG target.err
-                      )
 add_subdirectory(wrappers)
 include(Install)
 if(UNIX)

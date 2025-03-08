@@ -172,14 +172,8 @@ void CDefaultLHAPDFFileReader::readValues(NumParser &parser, DefaultAllFlavorSha
         for (auto flavor : data.flavors)
         {
             parser >> value;
-            if (parser.hasMore())
-            {
-                data.grids[flavor].push_back(value);
-            }
-            else
-            {
-                continue;
-            }
+            data.grids[flavor].push_back(value);
+
         }
     }
 }
