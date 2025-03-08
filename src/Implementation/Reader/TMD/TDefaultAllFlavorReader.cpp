@@ -59,7 +59,10 @@ void TDefaultAllFlavorReader::read(const std::string &pdfName, int setNumber)
     {
         isSchemeSupported = true;
     }
-
+    if (standardUPDFInfo.TMDScheme == "PB TMD")
+    {
+        isSchemeSupported = true;
+    }
     if (standardUPDFInfo.Format == "allflavorUpdf")
     {
         isFormatSupported = true;
