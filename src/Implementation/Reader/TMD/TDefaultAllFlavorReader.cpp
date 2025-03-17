@@ -1,7 +1,7 @@
-#include "Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
-#include "Common/Exception.h"
-#include "Common/PartonUtils.h"
-#include "Common/YamlInfoReader.h"
+#include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
+#include "PDFxTMDLib/Common/Exception.h"
+#include "PDFxTMDLib/Common/PartonUtils.h"
+#include "PDFxTMDLib/Common/YamlInfoReader.h"
 #include <fstream>
 #include <set>
 

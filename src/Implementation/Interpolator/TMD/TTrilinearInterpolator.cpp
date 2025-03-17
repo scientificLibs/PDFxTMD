@@ -1,9 +1,9 @@
-#include "Implementation/Interpolator/TMD/TTrilinearInterpolator.h"
-#include "Common/AllFlavorsShape.h"
-#include "Common/Exception.h"
-#include "Common/PartonUtils.h"
-#include "Common/YamlInfoReader.h"
-#include "mlinterp/mlinterp.hpp"
+#include "PDFxTMDLib/Implementation/Interpolator/TMD/TTrilinearInterpolator.h"
+#include "PDFxTMDLib/Common/AllFlavorsShape.h"
+#include "PDFxTMDLib/Common/Exception.h"
+#include "PDFxTMDLib/Common/PartonUtils.h"
+#include "PDFxTMDLib/Common/YamlInfoReader.h"
+#include "PDFxTMDLib/external/mlinterp/mlinterp.hpp"
 #include <array>
 #include <cmath>
 #include <fstream>
@@ -26,7 +26,7 @@ double TTrilinearInterpolator::interpolate(PDFxTMD::PartonFlavor flavor, double 
 {
     if (!m_isInitialized)
     {
-        throw std::runtime_error("GSLBilinearInterpolator::interpolate is not "
+        throw std::runtime_error("TTrilinearInterpolator::interpolate is not "
                                  "initialized");
     }
     using namespace mlinterp;
@@ -45,6 +45,5 @@ const IReader<TDefaultAllFlavorReader> *TTrilinearInterpolator::getReader() cons
 {
     return m_reader;
 }
-
 
 } // namespace PDFxTMD

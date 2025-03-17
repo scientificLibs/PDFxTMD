@@ -1,6 +1,6 @@
-#include "Common/YamlInfoReader.h"
-#include "Common/Exception.h"
-#include "Common/StringUtils.h"
+#include "PDFxTMDLib/Common/YamlInfoReader.h"
+#include "PDFxTMDLib/Common/Exception.h"
+#include "PDFxTMDLib/Common/StringUtils.h"
 #include <iostream>
 
 namespace PDFxTMD

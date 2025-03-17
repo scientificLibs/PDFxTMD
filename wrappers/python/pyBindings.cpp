@@ -1,9 +1,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include "Factory.h"
-#include "ICPDF.h"
-#include "ITMD.h"
-#include "IQCDCoupling.h"
+#include "PDFxTMDLib/Factory.h"
+#include "PDFxTMDLib/ICPDF.h"
+#include "PDFxTMDLib/ITMD.h"
+#include "PDFxTMDLib/IQCDCoupling.h"
 
 namespace py = pybind11;
 
