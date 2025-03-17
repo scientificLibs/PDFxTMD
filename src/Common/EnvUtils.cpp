@@ -1,5 +1,5 @@
-#include "Common/EnvUtils.h"
-#include "Common/PartonUtils.h"
+#include "PDFxTMDLib/Common/EnvUtils.h"
+#include "PDFxTMDLib/Common/PartonUtils.h"
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>

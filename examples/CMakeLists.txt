@@ -3,14 +3,13 @@ project(Examples LANGUAGES CXX)
 
 add_executable(pdf_example main.cpp)
 
-target_link_libraries(pdf_example PRIVATE PDFxTMDLibStatic  ${CURL_LIBRARIES})
+target_link_libraries(pdf_example PRIVATE PDFxTMDLib)
+target_include_directories(pdf_example PRIVATE "../include")
 
-target_include_directories(pdf_example PRIVATE 
-    ${CMAKE_SOURCE_DIR}/include
-)
-
-if ((NOT WIN32) AND CMAKE_Fortran_COMPILER)
-    add_subdirectory(Fortran)
+if (NOT WIN32)
+    if (CMAKE_Fortran_COMPILER)
+        add_subdirectory(Fortran)
+    endif()
 else()
-    message(WARNING "Fortran not found. Fortran example is not going to be compiled")
+    message(STATUS "Fortran not found. Fortran example is not going to be compiled")
 endif()

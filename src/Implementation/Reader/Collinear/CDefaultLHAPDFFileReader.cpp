@@ -1,7 +1,7 @@
-#include "Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
-#include "Common/Exception.h"
-#include "Common/PartonUtils.h"
-#include "Common/YamlInfoReader.h"
+#include "PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
+#include "PDFxTMDLib/Common/Exception.h"
+#include "PDFxTMDLib/Common/PartonUtils.h"
+#include "PDFxTMDLib/Common/YamlInfoReader.h"
 #include <fstream>
 #include <string>
 
@@ -173,7 +173,6 @@ void CDefaultLHAPDFFileReader::readValues(NumParser &parser, DefaultAllFlavorSha
         {
             parser >> value;
             data.grids[flavor].push_back(value);
-
         }
     }
 }

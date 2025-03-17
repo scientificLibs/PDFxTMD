@@ -1,46 +1,22 @@
-# Install PDFLib library using default CMake paths
-install(TARGETS PDFxTMDLib 
-        EXPORT PDFxTMDLibTargets
+install(
+        TARGETS ${PROJECT_NAME} 
+        EXPORT pdfxtmdlib-config
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+        )
 
-# Install PDFLib static library using default CMake paths
-install(TARGETS PDFxTMDLibStatic
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
+install(
+        EXPORT pdfxtmdlib-config
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+        NAMESPACE PDFxTMD::
+        )
 # Install header files using default CMake paths
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib)
+message(STATUS "Items location to copy to install dir: ${CMAKE_SOURCE_DIR}/include/${PROJCET_NAME}")
+message(STATUS "Install dir is: ${CMAKE_INSTALL_INCLUDEDIR}/${PROJCET_NAME}")
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/${PROJCET_NAME} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJCET_NAME})
 
-# Install lib3 folder using default CMake paths
-install(DIRECTORY lib3/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PDFxTMDLib)
-
-# Create the directory during installation using default CMake paths
-install(DIRECTORY DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib)
-
-# Export targets for package config using default CMake paths
-install(EXPORT PDFxTMDLibTargets
-        FILE PDFxTMDLibTargets.cmake
-        NAMESPACE PDFxTMDLib::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PDFxTMDLib)
-
-# Configure package config files
-include(CMakePackageConfigHelpers)
-configure_package_config_file(
-    cmake/PDFxTMDLibConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/PDFxTMDLibConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PDFxTMDLib
-)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/PDFxTMDLibConfig.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PDFxTMDLib)
-
-# Add uninstall target
-configure_file(${CMAKE_SOURCE_DIR}/cmake/uninstall.cmake 
-               ${CMAKE_CURRENT_BINARY_DIR}/cmake/uninstall.cmake 
-               COPYONLY)
-add_custom_target(uninstall
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/uninstall.cmake
-    COMMENT "Uninstalling the project...")
+# Create PDFxTMD in shared folder
+install(DIRECTORY DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJCET_NAME})
 
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_CONTACT "Ramin Kord <raminkord92@gmail.com>")
