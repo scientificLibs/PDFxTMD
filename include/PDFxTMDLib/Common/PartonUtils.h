@@ -13,7 +13,6 @@
 #endif
 #define STD_PDF_INFO_EXTENSION ".info"
 #define STD_PDF_DATA_EXTENSION ".dat"
-#define ENV_PATH_VARIABLE "PDFxTMD_PATH"
 
 namespace PDFxTMD
 {
@@ -72,8 +71,9 @@ std::vector<std::string> splitPaths(const std::string &paths);
 bool hasWriteAccess(const std::string &path);
 double _extrapolateLinear(double x, double xl, double xh, double yl, double yh);
 std::string StandardPDFNaming(const std::string &pdfName, int set);
-std::vector<std::string> GetEnviormentalVariablePaths(
-    const std::string &envVariable = ENV_PATH_VARIABLE, char delimiter = ':');
+std::vector<std::string> GetPDFxTMDPathsAsVector();
+std::string GetPDFxTMDPaths();
+bool AddPathToEnvironment(const std::string &newPath);
 std::vector<std::string> split(const std::string &str, char delimiter);
 /// Format an integer @a val as a zero-padded string of length
 /// @a nchars
