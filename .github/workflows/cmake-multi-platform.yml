@@ -1,5 +1,4 @@
 name: CMake on multiple platforms
-
 on:
   push:
     branches: [ "main" ]
@@ -49,9 +48,7 @@ jobs:
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: ctest --build-config ${{ matrix.build_type }}
-      
-    - name: Upload build artifacts
+      run: ctest --build-config ${{ matrix.build_type }} 
       uses: actions/upload-artifact@v3
       with:
         name: build-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
