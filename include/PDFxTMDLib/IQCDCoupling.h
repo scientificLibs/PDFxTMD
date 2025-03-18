@@ -1,5 +1,4 @@
 #pragma once
-#include "PDFxTMDLib/Common/TypeErasureUtils.h"
 #include <array>
 #include <cstddef>
 #include <cstdlib>

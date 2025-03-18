@@ -1,6 +1,5 @@
 #pragma once
 #include "PDFxTMDLib/Common/PartonUtils.h"
-#include "PDFxTMDLib/Common/TypeErasureUtils.h"
 #include <array>
 #include <cstddef>
 #include <cstdlib>

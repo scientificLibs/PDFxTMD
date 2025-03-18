@@ -3,6 +3,10 @@ include(cmake/version.cmake)
 include(CheckLanguage)
 project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} LANGUAGES CXX)
 
+option(ENABLE_FORMATTING "Enable code formatting" OFF)
+option(ENABLE_DOCUMENTATION "Enable documentation generation" OFF)
+option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" OFF)
+
 set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -50,7 +54,6 @@ set(ALL_SOURCES
     src/Implementation/Coupling/Interpolation/YamlCouplingInterp.cpp
     src/FortranFactoryWrapper.cpp
     src/Common/FileUtils.cpp
-    src/Common/EnvUtils.cpp
     src/Common/AllFlavorsShape.cpp
 )
 
@@ -76,13 +79,19 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
-add_subdirectory(wrappers)
+if(ENABLE_BUILDING_WRAPPERS)
+    add_subdirectory(wrappers)
+endif()
 include(cmake/Install.cmake)
-if(UNIX)
+
+
+if(ENABLE_FORMATTING)
     include(cmake/Format.cmake)
     Format(${PROJECT_NAME} include/)
     Format(${PROJECT_NAME} src/)
-    include(cmake/Doxygen.cmake)
-    Doxygen(${PROJECT_NAME} include/)
 endif()
+    if(ENABLE_DOCUMENTATION)
+        include(cmake/Doxygen.cmake)
+        Doxygen(${PROJECT_NAME} include/)
+    endif()
 add_subdirectory(examples)

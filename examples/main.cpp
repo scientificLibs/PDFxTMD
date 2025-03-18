@@ -1,4 +1,3 @@
-
 #include "PDFxTMDLib/Factory.h"
 #include "PDFxTMDLib/GenericPDF.h"
 #include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBilinearInterpolator.h"
@@ -12,11 +11,12 @@
 #include <utility>
 #include <optional>
 #include <iostream>
+#include "PDFxTMDLib/Common/ConfigWrapper.h"
+#include <vector>
 
 
 int main()
 {
-
     using namespace PDFxTMD;
     GenericPDF<CollinearPDFTag,CDefaultLHAPDFFileReader, CLHAPDFBicubicInterpolator,  CErrExtrapolator> genPDF("MMHT2014lo68cl", 0);
     GenericCPDFFactory cPDF;
@@ -26,8 +26,8 @@ int main()
 
     for (double mu2 = 2; mu2 < 100; mu2++)
     {
-       std::cout << mu2 << ": " /*<< CJ12min.pdf(PartonFlavor::u, 0.0001, mu2) << "---" */<< genPDF.pdf(PartonFlavor::u, 0.0001, mu2) << std::endl;
-     }
+       std::cout << mu2 << ": " << CJ12min.pdf(PartonFlavor::u, 0.0001, mu2) << "---" << genPDF.pdf(PartonFlavor::u, 0.0001, mu2) << std::endl;
+    }
 
     std::cout << "----------------" << std::endl;
     for (double mu2 = 10; mu2 < 100; mu2++)
