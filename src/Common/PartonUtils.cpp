@@ -73,10 +73,8 @@ bool hasWriteAccess(const std::string &path)
 }
 std::vector<std::string> GetPDFxTMDPathsAsVector()
 {
-    std::cout << "[RAMIN] salam" << std::endl;
     std::vector<std::string> output;
     auto PDFxTMDPath = GetPDFxTMDPaths();
-    std::cout << "[RAMIN] GetPDFxTMDPathsAsVector " << PDFxTMDPath;
     if (!FileUtils::Exists(DEFAULT_ENV_PATH))
     {
         if (FileUtils::HasUserAccess(FileUtils::ParentDir(DEFAULT_ENV_PATH)))
@@ -200,7 +198,7 @@ std::string GetPDFxTMDPaths()
     {
         return false;
     }
-    rootPath = homeDir + "/.PDFxTMDLib";
+    rootPath = std::string(homeDir) + "/.PDFxTMDLib";
 #endif
     std::string configFilePath = rootPath + "/config.yaml";
     if (!std::filesystem::exists(rootPath) && !std::filesystem::create_directories(rootPath))
@@ -243,7 +241,7 @@ bool AddPathToEnvironment(const std::string &newPath)
     {
         return false;
     }
-    rootPath = homeDir + "/.PDFxTMDLib";
+    rootPath = std::string(homeDir) + "/.PDFxTMDLib";
 #endif
     std::string configFilePath = rootPath + "/config.yaml";
     std::string delimitedPaths = GetPDFxTMDPaths();
