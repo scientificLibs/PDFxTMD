@@ -196,7 +196,7 @@ std::string GetPDFxTMDPaths()
     const char *homeDir = std::getenv("HOME");
     if (!homeDir)
     {
-        return false;
+        return "";
     }
     rootPath = std::string(homeDir) + "/.PDFxTMDLib";
 #endif
