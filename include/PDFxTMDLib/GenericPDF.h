@@ -146,7 +146,6 @@ class GenericPDF
             throw;
         }
         m_dataLoaded = true;
-        std::cout << "Reader address inside GenericPDF: " << &m_reader << std::endl;
     }
 
     std::string m_pdfName;

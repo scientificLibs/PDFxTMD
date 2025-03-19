@@ -20,7 +20,6 @@ class CContinuationExtrapolator
     void setInterpolator(const Interpolator *interpolator)
     {
         m_interpolator = interpolator;
-        std::cout << "Interpolator set in Extrapolator: " << interpolator << std::endl;
     }
     double extrapolate(PartonFlavor flavor, double x, double mu) const
     {
