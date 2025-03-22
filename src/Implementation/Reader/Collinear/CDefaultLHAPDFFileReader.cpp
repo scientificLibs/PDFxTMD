@@ -28,20 +28,20 @@ std::vector<double> CDefaultLHAPDFFileReader::getValues(PhaseSpaceComponent comp
 std::pair<double, double> CDefaultLHAPDFFileReader::getBoundaryValues(
     PhaseSpaceComponent comp) const
 {
-    std::pair<double, double> output;
     switch (comp)
     {
     case PhaseSpaceComponent::X:
-        output = {m_pdfShape.at(0).x_vec.front(), m_pdfShape.at(0).x_vec.back()};
-        break;
+        return m_xMinMax;
+        
     case PhaseSpaceComponent::Q2:
-        output = {m_mu2CompTotal.front(), m_mu2CompTotal.back()};
-        break;
+        return m_q2MinMax;
+        
     default:
-        throw std::runtime_error("undefined Phase space component requested");
+        throw NotSupportError("undefined Phase space component requested");
     }
-    return output;
 }
+
+
 void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
 {
     auto filePathPair = StandardPDFSetPath(pdfName, setNumber);
@@ -99,19 +99,85 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
         processDataLine(line, m_pdfShape[m_blockNumber - 1]);
         m_blockLine++;
     }
-
+    // Remove any shape elements that have zero flavors
+    m_pdfShape.erase(
+        std::remove_if(m_pdfShape.begin(), m_pdfShape.end(), 
+            [](const DefaultAllFlavorShape& shape) {
+                return shape._pids.empty();
+            }),
+        m_pdfShape.end()
+    );
     for (auto &pdfData_ : m_pdfShape)
     {
         pdfData_.finalizeXP2();
         m_mu2CompTotal.insert(m_mu2CompTotal.end(), pdfData_.mu2_vec.begin(),
                               pdfData_.mu2_vec.end());
     }
+    // Flatten the PDF data for faster access
+    size_t n_x = m_pdfShape.at(0).x_vec.size();
+    size_t n_mu2 = m_mu2CompTotal.size();
+    size_t n_flavors = m_pdfShape.at(0)._pids.size();
+    m_pdfShape_flat.grids_flat.resize(n_mu2 * n_x * n_flavors, 0.0);
+    m_pdfShape_flat._pids = m_pdfShape.at(0)._pids;
+    m_pdfShape_flat.initPidLookup();
+    // Initialize the flat structure
+    m_pdfShape_flat.x_vec = m_pdfShape.at(0).x_vec;
+    m_pdfShape_flat.mu2_vec = m_mu2CompTotal;
+    m_pdfShape_flat.finalizeXP2();
+    m_pdfShape_flat.n_flavors = m_pdfShape_flat._pids.size();
+    // Copy data from the structured format to the flat array
+    for (size_t ix = 0; ix < n_x; ++ix) {
+        for (size_t iq2 = 0; iq2 < n_mu2; ++iq2) {
+            // Find which PDF shape contains this mu2 value
+            int shapeIndex = -1;
+            size_t local_iq2 = 0; // Local index within the specific shape
+            
+            for (size_t s_ = 0; s_ < m_pdfShape.size(); ++s_) {
+                // Find the mu2 value in this shape
+                auto it = std::find(m_pdfShape[s_].mu2_vec.begin(), m_pdfShape[s_].mu2_vec.end(), m_mu2CompTotal[iq2]);
+                if (it != m_pdfShape[s_].mu2_vec.end()) {
+                    shapeIndex = s_;
+                    local_iq2 = std::distance(m_pdfShape[s_].mu2_vec.begin(), it);
+                    break;
+                }
+            }
+            
+            if (shapeIndex == -1) {
+                continue; // Skip if we couldn't find this mu2 value in any shape
+            }
+            
+            // For each flavor, copy the value to the flat array
+            size_t iflavor = 0;
+            for (auto flavor : m_pdfShape_flat._pids) {
+                // Calculate flat index
+                size_t flat_index = ix * n_mu2 * n_flavors + iq2 * n_flavors + iflavor;
+                // Get value from the structured format if available
+                if (std::find(m_pdfShape[shapeIndex]._pids.begin(), m_pdfShape[shapeIndex]._pids.end(), flavor) != m_pdfShape[shapeIndex]._pids.end() &&
+                    ix < m_pdfShape[shapeIndex].x_vec.size()) {
+                    m_pdfShape_flat.grids_flat[flat_index] = 
+                        m_pdfShape[shapeIndex].getGridFromMap(static_cast<PartonFlavor>(flavor), ix, local_iq2);
+                }
+                
+                iflavor++;
+            }
+        }
+    }
+    m_pdfShape_flat.grids.clear();
+    // After processing all data, set the boundary values once
+    if (!m_pdfShape.empty() && !m_pdfShape[0].x_vec.empty()) {
+        m_xMinMax = {m_pdfShape[0].x_vec.front(), m_pdfShape[0].x_vec.back()};
+    }
+    
+    if (!m_mu2CompTotal.empty()) {
+        m_q2MinMax = {m_mu2CompTotal.front(), m_mu2CompTotal.back()};
+    }
+    m_mu2CompTotal.clear();
+    m_pdfShape.clear();
 }
 
-std::vector<DefaultAllFlavorShape> CDefaultLHAPDFFileReader::getData() const
+DefaultAllFlavorShape CDefaultLHAPDFFileReader::getData() const
 {
-
-    return m_pdfShape;
+    return m_pdfShape_flat;
 }
 
 void CDefaultLHAPDFFileReader::readXKnots(NumParser &parser, DefaultAllFlavorShape &data)
@@ -150,17 +216,20 @@ void CDefaultLHAPDFFileReader::readParticleIds(NumParser &parser, DefaultAllFlav
     while (parser.hasMore())
     {
         parser >> id;
-        data.flavors.emplace(static_cast<PartonFlavor>(id));
+        if (std::find(data._pids.begin(), data._pids.end(), id) == data._pids.end())
+        {
+            data._pids.emplace_back(id);
+        }
     }
 
-    if (data.flavors.empty())
+    if (data._pids.empty())
     {
         throw std::runtime_error("No particle IDs found in grid");
     }
     size_t gridSize = data.x_vec.size() * data.mu2_vec.size();
-    for (const auto &flavor : data.flavors)
+    for (const auto &flavor : data._pids)
     {
-        data.grids[flavor].reserve(data.grids[flavor].size() + gridSize);
+        data.grids[static_cast<PartonFlavor>(flavor)].reserve(data.grids[static_cast<PartonFlavor>(flavor)].size() + gridSize);
     }
 }
 
@@ -169,10 +238,10 @@ void CDefaultLHAPDFFileReader::readValues(NumParser &parser, DefaultAllFlavorSha
     double value;
     while (parser.hasMore())
     {
-        for (auto flavor : data.flavors)
+        for (auto flavor : data._pids)
         {
             parser >> value;
-            data.grids[flavor].push_back(value);
+            data.grids[static_cast<PartonFlavor>(flavor)].push_back(value);
         }
     }
 }

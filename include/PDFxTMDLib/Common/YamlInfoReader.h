@@ -15,7 +15,7 @@ struct YamlStandardPDFInfo
     double QMin = 0;
     double QMax = 0;
     int NumMembers = 0;
-    std::vector<int> Flvors;
+    std::vector<int> Flavors;
 };
 
 struct YamlStandardTMDInfo : YamlStandardPDFInfo
@@ -110,7 +110,7 @@ YamlStandardPDFInfoReader(const std::string &yamlInfoPath)
                   << std::endl;
         return {std::nullopt, errorFlavors};
     }
-    output.Flvors = *Flavors;
+    output.Flavors = *Flavors;
     //////xMin
     auto [XMin, errorXMin] = ConfigWrapper.get<double>("XMin");
     if (errorXMin != ErrorType::None)

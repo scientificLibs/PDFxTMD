@@ -11,10 +11,14 @@ namespace PDFxTMD
 class CErrExtrapolator : public IcPDFExtrapolator<CErrExtrapolator>
 {
   public:
-    double extrapolate(PartonFlavor flavor, double x, double mu) const
+    double extrapolate(PartonFlavor flavor, double x, double mu2) const
     {
-        double q2 = mu * mu;
-        throw std::runtime_error("Point x=" + std::to_string(x) + ", Q2=" + std::to_string(q2) +
+        throw std::runtime_error("Point x=" + std::to_string(x) + ", Q2=" + std::to_string(mu2) +
+                                 " is outside the PDF grid boundaries");
+    }
+    void extrapolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const
+    {
+        throw std::runtime_error("Point x=" + std::to_string(x) + ", Q2=" + std::to_string(mu2) +
                                  " is outside the PDF grid boundaries");
     }
 };

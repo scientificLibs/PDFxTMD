@@ -177,14 +177,7 @@ double _extrapolateLinear(double x, double xl, double xh, double yl, double yh)
     }
 }
 
-size_t indexbelow(double value, const std::vector<double> &knots)
-{
-    size_t i = std::upper_bound(knots.begin(), knots.end(), value) - knots.begin();
-    if (i == knots.size())
-        i -= 1; // can't return the last knot index
-    i -= 1;     // step back to get the knot <= x behaviour
-    return i;
-}
+
 
 std::string GetPDFxTMDPaths()
 {

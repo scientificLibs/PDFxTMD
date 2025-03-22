@@ -8,6 +8,7 @@
 #include "PDFxTMDLib/Implementation/Extrapolator/TMD/TErrExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/TMD/TZeroExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBilinearInterpolator.h"
+#include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.h"
 #include "PDFxTMDLib/Implementation/Interpolator/TMD/TTrilinearInterpolator.h"
 #include "PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
 #include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
@@ -39,7 +40,7 @@ TReader TReaderType(const std::string &type)
 
 CReader CReaderType(const std::string &type)
 {
-    if (type == "DefaultLHAPDFFileReader")
+    if (type == "CDefaultLHAPDFFileReader")
     {
         return CReader::CDefaultLHAPDFFileReader;
     }
@@ -56,14 +57,19 @@ enum class TInterpolator
 // collinear supported interpolator type
 enum class CInterpolator
 {
-    CBilinearInterpolator,
+    CLHAPDFBilinearInterpolator,
+    CLHAPDFBicubicInterpolator,
 };
 
 CInterpolator CInterpolatorType(const std::string &type)
 {
-    if (type == "CBilinearInterpolator")
+    if (type == "CLHAPDFBilinearInterpolator")
     {
-        return CInterpolator::CBilinearInterpolator;
+        return CInterpolator::CLHAPDFBilinearInterpolator;
+    }
+    else if (type == "CLHAPDFBicubicInterpolator")
+    {
+        return CInterpolator::CLHAPDFBicubicInterpolator;
     }
 
     throw NotSupportError("This interpolator is not supported");
@@ -199,7 +205,7 @@ ICPDF GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
     auto selectedInterpolator = (*impelmentationInfo).interpolator;
     if (selectedInterpolator == "")
     {
-        interpolatorType = CInterpolator::CBilinearInterpolator;
+        interpolatorType = CInterpolator::CLHAPDFBicubicInterpolator;
     }
     else
     {
@@ -218,26 +224,46 @@ ICPDF GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
 
     if (readerType == CReader::CDefaultLHAPDFFileReader)
     {
-        if (interpolatorType == CInterpolator::CBilinearInterpolator)
+        if (interpolatorType == CInterpolator::CLHAPDFBicubicInterpolator)
         {
             if (extrapolatorType == CExtrapolator::CContinuationExtrapolator)
             {
                 return ICPDF(
-                    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CBilinearInterpolator,
-                               CContinuationExtrapolator<CBilinearInterpolator>>(pdfSetName,
-                                                                                 setMember));
+                    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBicubicInterpolator,
+                               CContinuationExtrapolator<CLHAPDFBicubicInterpolator>>(pdfSetName,
+                                                                                    setMember));
             }
             else if (extrapolatorType == CExtrapolator::CErrExtrapolator)
             {
                 return ICPDF(
-                    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CBilinearInterpolator,
+                    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
                                CErrExtrapolator>(pdfSetName, setMember));
             }
             else if (extrapolatorType == CExtrapolator::CNearestPointExtrapolator)
             {
                 return ICPDF(
-                    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CBilinearInterpolator,
-                               CNearestPointExtrapolator<CBilinearInterpolator>>(pdfSetName,
+                    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
+                               CNearestPointExtrapolator<CLHAPDFBilinearInterpolator>>(pdfSetName,
+                                                                                 setMember));
+            }
+        }
+        else if (interpolatorType == CInterpolator::CLHAPDFBilinearInterpolator)
+        {
+            if (extrapolatorType == CExtrapolator::CContinuationExtrapolator)
+            {
+                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
+                               CContinuationExtrapolator<CLHAPDFBilinearInterpolator>>(pdfSetName,
+                                                                                    setMember));
+            }
+            else if (extrapolatorType == CExtrapolator::CErrExtrapolator)
+            {
+                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
+                               CErrExtrapolator>(pdfSetName, setMember));
+            }
+            else if (extrapolatorType == CExtrapolator::CNearestPointExtrapolator)
+            {
+                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
+                               CNearestPointExtrapolator<CLHAPDFBilinearInterpolator>>(pdfSetName,
                                                                                  setMember));
             }
         }

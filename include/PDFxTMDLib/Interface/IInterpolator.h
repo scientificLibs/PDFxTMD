@@ -14,9 +14,13 @@ class IInterpolator : public CRTPBase<Derived>
         this->derived().initialize(reader);
     }
 
-    double interpolate(InterpolateArgs... args) const
+    double interpolate(PartonFlavor flavor, InterpolateArgs... args) const
     {
-        return this->derived().interpolate(args...);
+        return this->derived().interpolate(flavor, args...);
+    }
+    void interpolate(InterpolateArgs... args, std::vector<double>& output) const
+    {
+        return this->derived().interpolate(args..., output);
     }
     const IReader<Reader> *getReader() const
     {
@@ -24,12 +28,12 @@ class IInterpolator : public CRTPBase<Derived>
     }
 };
 template <typename Reader, typename Derived>
-class IcPDFInterpolator : public IInterpolator<Derived, Reader, PartonFlavor, X_T, MU_T>
+class IcPDFInterpolator : public IInterpolator<Derived, Reader, X_T, MU_T>
 {
 };
 
 template <typename Reader, typename Derived>
-class ITMDInterpolator : public IInterpolator<Derived, Reader, PartonFlavor, X_T, KT_T, MU_T>
+class ITMDInterpolator : public IInterpolator<Derived, Reader, X_T, KT_T, MU_T>
 {
 };
 } // namespace PDFxTMD
