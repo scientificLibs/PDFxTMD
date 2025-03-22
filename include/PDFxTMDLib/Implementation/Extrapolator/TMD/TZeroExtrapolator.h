@@ -13,5 +13,9 @@ class TZeroExtrapolator : public ITMDExtrapolator<TZeroExtrapolator>
     {
         return 0.0;
     }
+    void extrapolate(double x, double kt2, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const 
+    {
+        output.fill(0);
+    }
 };
 } // namespace PDFxTMD

@@ -14,13 +14,12 @@ class CLHAPDFBicubicInterpolator
     ~CLHAPDFBicubicInterpolator() = default;
 
     double interpolate(PartonFlavor flavor, double x, double q2) const;
+    void interpolate(double x, double q2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const;
     void initialize(const IReader<CDefaultLHAPDFFileReader> *reader);
     const IReader<CDefaultLHAPDFFileReader> *getReader() const;
 
   private:
     const IReader<CDefaultLHAPDFFileReader> *m_reader;
-    mutable std::vector<DefaultAllFlavorShape> m_Shape;
-    std::vector<double> m_coefficients, m_shape;
-    mutable bool m_isInitialized = false;
+    mutable DefaultAllFlavorShape m_Shape;
 };
 } // namespace PDFxTMD

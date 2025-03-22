@@ -1,117 +1,124 @@
 #include "PDFxTMDLib/Common/AllFlavorsShape.h"
 
-namespace PDFxTMD
-{
-void DefaultAllFlavorShape::finalizeXP2()
-{
-    for (double mu2 : mu2_vec)
-    {
-        log_mu2_vec.emplace_back(std::log(mu2));
+namespace PDFxTMD {
+
+void DefaultAllFlavorShape::finalizeXP2() {
+    // Preallocate vectors to avoid repeated resizing
+    log_mu2_vec.reserve(mu2_vec.size());
+    log_x_vec.reserve(x_vec.size());
+
+    for (double mu2 : mu2_vec) {
+        log_mu2_vec.push_back(std::log(mu2));
     }
-    for (double x : x_vec)
-    {
-        log_x_vec.emplace_back(std::log(x));
+    for (double x : x_vec) {
+        log_x_vec.push_back(std::log(x));
     }
-    logXSize = log_x_vec.size();
-    logMu2Size = log_mu2_vec.size();
+    n_xs = log_x_vec.size();
+    n_mu2s = log_mu2_vec.size();
+    n_flavors = _pids.size();
+
+    // Precompute strides once
+    stride_iq2 = n_flavors;
+    stride_ix = n_mu2s * n_flavors;
+
+    // Reserve grids_flat to avoid reallocations
+    grids_flat.reserve(n_xs * n_mu2s * n_flavors);
 }
 
-double DefaultAllFlavorShape::xf(const DefaultAllFlavorShape &shape, int ix, int iq2,
-                                 PartonFlavor flavor)
+double DefaultAllFlavorShape::_ddxBicubic(size_t ix, size_t iq2, int flavorId) {
+    const size_t nxknots = n_xs;
+    double del1 = (ix == 0) ? 0 : log_x_vec[ix] - log_x_vec[ix - 1];
+    double del2 = (ix == nxknots - 1) ? 0 : log_x_vec[ix + 1] - log_x_vec[ix];
+
+    // Use precomputed differences where possible
+    if (ix > 0 && ix < nxknots - 1) {
+        const double lddx = (xf(ix, iq2, flavorId) - xf(ix - 1, iq2, flavorId)) / del1;
+        const double rddx = (xf(ix + 1, iq2, flavorId) - xf(ix, iq2, flavorId)) / del2;
+        return (lddx + rddx) * 0.5;  // Avoid division by 2
+    }
+    if (ix == 0) {
+        return (xf(ix + 1, iq2, flavorId) - xf(ix, iq2, flavorId)) / del2;
+    }
+    if (ix == nxknots - 1) {
+        return (xf(ix, iq2, flavorId) - xf(ix - 1, iq2, flavorId)) / del1;
+    }
+    throw std::runtime_error("Invalid index in _ddxBicubic");
+}
+double DefaultAllFlavorShape::getGridFromMap(PartonFlavor flavor, int ix, int iq2) const
 {
-    return shape.grids.at(flavor)[ix * shape.logMu2Size + iq2];
+    return grids.at(flavor)[ix * n_mu2s + iq2];
+}
+int findPidInPids(int pid, const std::vector<int>& pids) {
+    // Use std::find with hint for small vectors
+    auto it = std::find(pids.begin(), pids.end(), pid);
+    return (it == pids.end()) ? -1 : static_cast<int>(std::distance(pids.begin(), it));
 }
 
-double DefaultAllFlavorShape::_ddxBicubic(size_t ix, size_t iq2, PartonFlavor flavor)
-{
-    const size_t nxknots = logXSize;
-    double del1, del2;
-    del1 = (ix == 0) ? 0 : log_x_vec[ix] - log_x_vec[ix - 1];
-    del2 = (ix == nxknots - 1) ? 0 : log_x_vec[ix + 1] - log_x_vec[ix];
+void DefaultAllFlavorShape::initPidLookup() {
+    if (_pids.empty()) {
+        std::cerr << "Error: PID list empty during lookup initialization" << std::endl;
+        throw std::runtime_error("Empty PID list");
+    }
 
-    if (ix != 0 && ix != nxknots - 1)
-    { //< If central, use the central difference
-        const double lddx = (xf(*this, ix, iq2, flavor) - xf(*this, ix - 1, iq2, flavor)) / del1;
-        const double rddx = (xf(*this, ix + 1, iq2, flavor) - xf(*this, ix, iq2, flavor)) / del2;
-        return (lddx + rddx) / 2.0;
+    // Fill lookup table for -6 to 22
+    for (int i = -6; i <= 6; i++) {
+        _lookup[i + 6] = findPidInPids(i, _pids);
     }
-    else if (ix == 0)
-    { //< If at leftmost edge, use forward difference
-        return (xf(*this, ix + 1, iq2, flavor) - xf(*this, ix, iq2, flavor)) / del2;
-    }
-    else if (ix == nxknots - 1)
-    { //< If at rightmost edge, use backward difference
-        return (xf(*this, ix, iq2, flavor) - xf(*this, ix - 1, iq2, flavor)) / del1;
-    }
-    else
-    {
-        throw std::runtime_error("We shouldn't be able to get here!");
-    }
+    _lookup[0 + 6] = findPidInPids(21, _pids);  // Gluon (21) mapped to index 6
+    _lookup[13 + 6] = findPidInPids(22, _pids); // Photon (22) mapped to index 19
 }
 
-void DefaultAllFlavorShape::_computePolynomialCoefficients()
-{
-    const size_t nxknots = logXSize;
-    if (nxknots < 2)
-    {
-        throw std::invalid_argument("log_x_vec must have at least 2 elements");
-    }
+void DefaultAllFlavorShape::_computePolynomialCoefficients() {
+    const size_t nxknots = n_xs;
+    coefficients_flat.resize((nxknots - 1) * n_mu2s * n_flavors * 4);
 
-    std::vector<size_t> shape{nxknots - 1, logMu2Size, 4};
-    for (auto flavor : flavors)
-    {
-        coefficients[flavor].resize(shape[0] * shape[1] * shape[2]);
-    }
+    // Precompute strides for coefficients_flat
+    size_t stride_coeff_ix = n_mu2s * n_flavors * 4;
+    size_t stride_coeff_iq2 = n_flavors * 4;
+    size_t stride_coeff_id = 4;
 
-    for (size_t ix = 0; ix < nxknots - 1; ++ix)
-    {
-        for (size_t iq2 = 0; iq2 < logMu2Size; ++iq2)
-        {
-            for (auto flavor : flavors)
-            {
-                double dlogx = log_x_vec[ix + 1] - log_x_vec[ix];
-                double VL = xf(*this, ix, iq2, flavor);
-                double VH = xf(*this, ix + 1, iq2, flavor);
-                double VDL = _ddxBicubic(ix, iq2, flavor) * dlogx;
-                double VDH = _ddxBicubic(ix + 1, iq2, flavor) * dlogx;
+    for (size_t ix = 0; ix < nxknots - 1; ++ix) {
+        double dlogx = log_x_vec[ix + 1] - log_x_vec[ix];
+        for (size_t iq2 = 0; iq2 < n_mu2s; ++iq2) {
+            for (size_t id = 0; id < n_flavors; ++id) {
+                double VL = xf(ix, iq2, id);
+                double VH = xf(ix + 1, iq2, id);
+                double VDL = _ddxBicubic(ix, iq2, id) * dlogx;
+                double VDH = _ddxBicubic(ix + 1, iq2, id) * dlogx;
 
-                // Calculate polynomial coefficients
+                // Polynomial coefficients
                 double a = VDH + VDL - 2 * VH + 2 * VL;
                 double b = 3 * VH - 3 * VL - 2 * VDL - VDH;
                 double c = VDL;
                 double d = VL;
 
-                // Correct index calculation
-                size_t base_index = ix * shape[1] * shape[2] + iq2 * shape[2];
-                coefficients[flavor][base_index + 0] = a;
-                coefficients[flavor][base_index + 1] = b;
-                coefficients[flavor][base_index + 2] = c;
-                coefficients[flavor][base_index + 3] = d;
+                size_t base = ix * stride_coeff_ix + iq2 * stride_coeff_iq2 + id * stride_coeff_id;
+                coefficients_flat[base + 0] = a;
+                coefficients_flat[base + 1] = b;
+                coefficients_flat[base + 2] = c;
+                coefficients_flat[base + 3] = d;
             }
         }
     }
-    return;
 }
 
-void DefaultAllFlavorShape::initializeBicubicCoeficient()
-{
-    _shape = {(int)logXSize, (int)logMu2Size, (int)flavors.size()};
+void DefaultAllFlavorShape::initializeBicubicCoeficient() {
+    _shape = {static_cast<int>(n_xs), static_cast<int>(n_mu2s), static_cast<int>(n_flavors)};
     _computePolynomialCoefficients();
-    dlogx.resize(logXSize - 1);
 
-    for (size_t i = 0; i < logXSize - 1; ++i)
-    {
+    dlogx.resize(n_xs - 1);
+    for (size_t i = 0; i < n_xs - 1; ++i) {
         dlogx[i] = log_x_vec[i + 1] - log_x_vec[i];
     }
-    dlogq.resize(logMu2Size - 1);
-    for (size_t i = 0; i < logMu2Size - 1; ++i)
-    {
+    dlogq.resize(n_mu2s - 1);
+    for (size_t i = 0; i < n_mu2s - 1; ++i) {
         dlogq[i] = log_mu2_vec[i + 1] - log_mu2_vec[i];
     }
 }
 
-const double &DefaultAllFlavorShape::coeff(int ix, int iq2, PartonFlavor pid, int in) const
-{
-    return coefficients.at(pid)[ix * (_shape[1]) * 4 + iq2 * 4 + in];
+const double& DefaultAllFlavorShape::coeff(int ix, int iq2, int flavorId, int in) const {
+    // Use precomputed shape strides
+    return coefficients_flat[ix * n_mu2s * n_flavors * 4 + iq2 * n_flavors * 4 + flavorId * 4 + in];
 }
-} // namespace PDFxTMD
+
+}  // namespace PDFxTMD

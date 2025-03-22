@@ -1,53 +1,40 @@
 #include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.h"
 #include <cassert>
+#include <immintrin.h> // For AVX intrinsics
 #include <vector>
-
 namespace PDFxTMD
 {
 namespace
 { // Unnamed namespace
 struct shared_data
 {
-    // Pre-calculate parameters
     double logx, logq2, dlogx_1, dlogq_0, dlogq_1, dlogq_2, tlogq;
-    double tlogx;
-    // bools to find out if at grid edges
+    double tlogx, tlogx2, tlogx3, tlogq2, tlogq3;
     bool q2_lower, q2_upper;
+    int q2_edge; // 0 = normal, 1 = lower, 2 = upper, 3 = both
 };
-
-shared_data fill(const DefaultAllFlavorShape &grid, double x, double q2, size_t ix, size_t iq2)
-{
+inline shared_data fill(const DefaultAllFlavorShape& grid, double x, double q2, size_t ix, size_t iq2) {
     shared_data shared;
-
-    // Compute logarithms of inputs
     shared.logx = std::log(x);
     shared.logq2 = std::log(q2);
-
-    // Determine if we're at the grid edges for q2
     shared.q2_lower = (iq2 == 0) || (grid.log_mu2_vec[iq2] == grid.log_mu2_vec[iq2 - 1]);
-    shared.q2_upper = (iq2 + 1 == grid.log_mu2_vec.size() - 1) || 
+    shared.q2_upper = (iq2 + 1 == grid.log_mu2_vec.size() - 1) ||
                       (grid.log_mu2_vec[iq2 + 1] == grid.log_mu2_vec[iq2 + 2]);
+    shared.q2_edge = shared.q2_lower + (shared.q2_upper << 1); // 0, 1, 2, or 3
 
-    // Assign precomputed differences
-    shared.dlogx_1 = grid.dlogx[ix];    // Difference at ix in x-direction
-    shared.dlogq_1 = grid.dlogq[iq2];   // Difference at iq2 in q2-direction
+    shared.dlogx_1 = grid.dlogx[ix];
+    shared.dlogq_1 = grid.dlogq[iq2];
+    shared.dlogq_0 = (shared.q2_edge & 1) ? 0.0 : 1.0 / grid.dlogq[iq2 - 1];
+    shared.dlogq_2 = (shared.q2_edge & 2) ? 0.0 : 1.0 / grid.dlogq[iq2 + 1];
 
-    // Compute inverse differences for q2, only if not at edges
-    if (!shared.q2_lower) {
-        shared.dlogq_0 = 1.0 / grid.dlogq[iq2 - 1];  // 1 / (log_mu2_vec[iq2] - log_mu2_vec[iq2 - 1])
-    }
-    if (!shared.q2_upper) {
-        shared.dlogq_2 = 1.0 / grid.dlogq[iq2 + 1];  // 1 / (log_mu2_vec[iq2 + 2] - log_mu2_vec[iq2 + 1])
-    }
-
-    // Compute fractional positions using precomputed differences
     shared.tlogx = (shared.logx - grid.log_x_vec[ix]) / shared.dlogx_1;
+    shared.tlogx2 = shared.tlogx * shared.tlogx;
+    shared.tlogx3 = shared.tlogx2 * shared.tlogx;
     shared.tlogq = (shared.logq2 - grid.log_mu2_vec[iq2]) / shared.dlogq_1;
-
+    shared.tlogq2 = shared.tlogq * shared.tlogq;
+    shared.tlogq3 = shared.tlogq2 * shared.tlogq;
     return shared;
 }
-
-
 /// One-dimensional linear interpolation for y(x)
 /// @todo Expose for re-use
 inline double _interpolateLinear(double x, double xl, double xh, double yl, double yh)
@@ -69,158 +56,131 @@ inline double _interpolateLinear(double x, double xl, double xh, double yl, doub
 /// http://www.it.uom.gr/teaching/linearalgebra/NumericalRecipiesInC/c3-6.pdf
 ///
 /// @todo Expose for re-use
+/// One-dimensional cubic interpolation
 inline double _interpolateCubic(double t, double vl, double vdl, double vh, double vdh)
 {
-    // Pre-calculate powers of t
     const double t2 = t * t;
     const double t3 = t * t2;
-
-    // Calculate polynomial (grouped by input param rather than powers of t for efficiency)
     const double p0 = (2 * t3 - 3 * t2 + 1) * vl;
     const double m0 = (t3 - 2 * t2 + t) * vdl;
     const double p1 = (-2 * t3 + 3 * t2) * vh;
     const double m1 = (t3 - t2) * vdh;
-
     return p0 + m0 + p1 + m1;
 }
-
+inline double _interpolateCubic(double t, double t2, double t3, double vl, double vdl, double vh, double vdh)
+{
+    const double p0 = (2 * t3 - 3 * t2 + 1) * vl;
+    const double m0 = (t3 - 2 * t2 + t) * vdl;
+    const double p1 = (-2 * t3 + 3 * t2) * vh;
+    const double m1 = (t3 - t2) * vdh;
+    return p0 + m0 + p1 + m1;
+}
 /// Cubic interpolation using a passed array of coefficients
 ///
 /// @todo Expose for re-use
 
-inline double _interpolateCubic(double t, double t2, double t3, const double *coeffs) {
+inline double _interpolateCubic(double t, double t2, double t3, const double *coeffs)
+{
     return coeffs[0] * t3 + coeffs[1] * t2 + coeffs[2] * t + coeffs[3];
 }
-inline double _interpolateCubic(double t, const double *coeffs)
-{
-    const double x = t;
-    const double x2 = x * x;
-    const double x3 = x2 * x;
-    return coeffs[0] * x3 + coeffs[1] * x2 + coeffs[2] * x + coeffs[3];
+/// Cubic interpolation using a passed array of coefficients
+inline double _interpolateCubic(double t, const double* coeffs) {
+    double t2 = t * t;
+    double t3 = t2 * t;
+    return coeffs[0] * t3 + coeffs[1] * t2 + coeffs[2] * t + coeffs[3];
 }
-double _interpolate(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2, PartonFlavor pid,
-                    shared_data &_share)
-{
-    // Precompute t powers
-    double t_x = _share.tlogx;
-    double t_x2 = t_x * t_x;
-    double t_x3 = t_x2 * t_x;
 
-    // X-interpolation for q2 points
-    double vl = _interpolateCubic(t_x, t_x2, t_x3, &grid.coeff(ix, iq2, pid, 0));
-    double vh = _interpolateCubic(t_x, t_x2, t_x3, &grid.coeff(ix, iq2 + 1, pid, 0));
+inline double _interpolate(const DefaultAllFlavorShape& grid, size_t ix, size_t iq2, PartonFlavor pid, shared_data& _share) {
+    int flavorId = grid.get_pid(static_cast<int>(pid));
+    if (flavorId == -1) return 0.0;
 
-    // Derivatives (optimized)
+    // Prefetch coefficients for next iteration
+    _mm_prefetch((const char*)&grid.coeff(ix, iq2 + 1, flavorId, 0), _MM_HINT_T0);
+
+  double vl = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2, flavorId, 0));
+    double vh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 + 1, flavorId, 0));
+
     double vdiff = vh - vl;
     double vdl, vdh;
-    if (_share.q2_lower)
-    {
+    if (_share.q2_lower) {
         vdl = vdiff;
-        double vhh = _interpolateCubic(t_x, t_x2, t_x3, &grid.coeff(ix, iq2 + 2, pid, 0));
+        double vhh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 + 2, flavorId, 0));
         vdh = (vdiff + (vhh - vh) * _share.dlogq_1 * _share.dlogq_2) * 0.5;
-    }
-    else if (_share.q2_upper)
-    {
+    } else if (_share.q2_upper) {
         vdh = vdiff;
-        double vll = _interpolateCubic(t_x, t_x2, t_x3, &grid.coeff(ix, iq2 - 1, pid, 0));
+        double vll = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 - 1, flavorId, 0));
         vdl = (vdiff + (vl - vll) * _share.dlogq_1 * _share.dlogq_0) * 0.5;
-    }
-    else
-    {
-        double vll = _interpolateCubic(t_x, t_x2, t_x3, &grid.coeff(ix, iq2 - 1, pid, 0));
-        double vhh = _interpolateCubic(t_x, t_x2, t_x3, &grid.coeff(ix, iq2 + 2, pid, 0));
+    } else {
+        double vll = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 - 1, flavorId, 0));
         vdl = (vdiff + (vl - vll) * _share.dlogq_1 * _share.dlogq_0) * 0.5;
+        double vhh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 + 2, flavorId, 0));
         vdh = (vdiff + (vhh - vh) * _share.dlogq_1 * _share.dlogq_2) * 0.5;
     }
 
-    return _interpolateCubic(_share.tlogq, vl, vdl, vh, vdh);
+    return _interpolateCubic(_share.tlogq, _share.tlogq2, _share.tlogq3, vl, vdl, vh, vdh);
 }
 
-double _interpolateFallback(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2,
-                            PartonFlavor flavor, shared_data &_share)
-{
-    // First interpolate in x
-    const double logx0 = grid.log_x_vec[ix];
-    const double logx1 = grid.log_x_vec[ix + 1];
-    const double f_ql = _interpolateLinear(_share.logx, logx0, logx1,
-                                           DefaultAllFlavorShape::xf(grid, ix, iq2, flavor),
-                                           DefaultAllFlavorShape::xf(grid, ix + 1, iq2, flavor));
-    const double f_qh = _interpolateLinear(
-        _share.logx, logx0, logx1, DefaultAllFlavorShape::xf(grid, ix, iq2 + 1, flavor),
-        DefaultAllFlavorShape::xf(grid, ix + 1, iq2 + 1, flavor));
-    // Then interpolate in Q2, using the x-ipol results as anchor points
-    return _interpolateLinear(_share.logq2, grid.log_mu2_vec[iq2], grid.log_mu2_vec[iq2 + 1],
-                              f_ql, f_qh);
-}
+inline double _interpolateFallback(const DefaultAllFlavorShape& grid, size_t ix, size_t iq2, PartonFlavor flavor, shared_data& _share) {
+    int flavorId = grid.get_pid(static_cast<int>(flavor));
+    if (flavorId == -1) return 0.0;
 
-void _checkGridSize(const DefaultAllFlavorShape &grid, const size_t ix, const size_t iq2)
-{
-    // Raise an error if there are too few knots even for a linear fall-back
-    const size_t nxknots = grid.logXSize;
-    const size_t nq2knots = grid.logMu2Size;
-
-    /// @todo MK: do you really need different number of knots in the directions?
-    ///   Probably should be <2 for both methods, and fall back to linear in both cases.
-    if (nxknots < 4)
-        throw std::runtime_error("PDF subgrids are required to have at least 4 x-knots for use "
-                                 "with CLHAPDFBicubicInterpolator");
-    if (nq2knots < 2)
-        throw std::runtime_error("PDF subgrids are required to have at least 2 Q-knots for use "
-                                 "with CLHAPDFBicubicInterpolator");
-
-    // Check x and q index ranges -- we always need i and i+1 indices to be valid
-    const size_t ixmax = nxknots - 1;
-    const size_t iq2max = nq2knots - 1;
-    if (ix + 1 > ixmax) // also true if ix is off the end
-        throw std::runtime_error("Attempting to access an x-knot index past the end of the array, "
-                                 "in linear fallback mode");
-    if (iq2 + 1 > iq2max) // also true if iq2 is off the end
-        throw std::runtime_error("Attempting to access an Q-knot index past the end of the array, "
-                                 "in linear fallback mode");
+    double f_ql = grid.xf(ix, iq2, flavorId) + (_share.tlogx * (grid.xf(ix + 1, iq2, flavorId) - grid.xf(ix, iq2, flavorId)));
+    double f_qh = grid.xf(ix, iq2 + 1, flavorId) + (_share.tlogx * (grid.xf(ix + 1, iq2 + 1, flavorId) - grid.xf(ix, iq2 + 1, flavorId)));
+    return f_ql + (_share.tlogq * (f_qh - f_ql));
 }
 
 } // namespace
+
 void CLHAPDFBicubicInterpolator::initialize(const IReader<CDefaultLHAPDFFileReader> *reader)
 {
     m_reader = reader;
     m_Shape = reader->getData();
-    for (auto &shape : m_Shape)
-    {
-        if (shape.flavors.size() == 0)
-            break;
-        shape.initializeBicubicCoeficient();
-    }
-    m_isInitialized = true;
+    m_Shape.initializeBicubicCoeficient();
+    m_Shape.grids.clear();
 }
+
 const IReader<CDefaultLHAPDFFileReader> *CLHAPDFBicubicInterpolator::getReader() const
 {
     return m_reader;
 }
 
-double CLHAPDFBicubicInterpolator::interpolate(PartonFlavor flavor, double x, double mu2) const
+void _checkGridSize(const DefaultAllFlavorShape &grid, const size_t ix, const size_t iq2)
 {
-    if (!m_isInitialized)
+    if (grid.n_xs < 4 || grid.n_mu2s < 2 || ix + 1 >= grid.n_xs || iq2 + 1 >= grid.n_mu2s)
     {
-        throw std::runtime_error("CBilinearInterpolator::interpolate is not "
-                                 "initialized");
+        throw std::runtime_error("Invalid grid size or index out of bounds");
     }
-    int selectedIndex = -1;
+}
 
-    const size_t ix = indexbelow(x, m_Shape[0].x_vec);
+void CLHAPDFBicubicInterpolator::interpolate(double x, double mu2,
+                                             std::array<double, 13> &output) const
+{
+    const size_t ix = indexbelow(x, m_Shape.x_vec);
+    const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);
+    shared_data shared = fill(m_Shape, x, mu2, ix, imu2);
+    _checkGridSize(m_Shape, ix, imu2);
+    size_t i = 0;
+    for (i = 0; i < DEFAULT_TOTAL_PDFS; i++)
     {
-        for (auto &&shape_ : m_Shape)
+        if (!shared.q2_lower || !shared.q2_upper)
         {
-            selectedIndex++;
-            if (mu2 >= shape_.mu2_vec.front() && mu2 <= shape_.mu2_vec.back())
-            {
-                break;
-            }
+            output[i] = _interpolate(m_Shape, ix, imu2, standardPartonFlavors[i], shared);
+        }
+        else
+        {
+            output[i] = _interpolateFallback(m_Shape, ix, imu2, standardPartonFlavors[i], shared);
         }
     }
+}
 
-    const size_t imu2 = indexbelow(mu2, m_Shape[selectedIndex].mu2_vec);
-    shared_data shared = fill(m_Shape[selectedIndex], x, mu2, ix, imu2);
-    return _interpolate(m_Shape[selectedIndex], ix, imu2, flavor, shared);
+double CLHAPDFBicubicInterpolator::interpolate(PartonFlavor flavor, double x, double mu2) const
+{
+    const size_t ix = indexbelow(x, m_Shape.x_vec);
+    const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);
+    _checkGridSize(m_Shape, ix, imu2);
+    shared_data shared = fill(m_Shape, x, mu2, ix, imu2);
+    return (shared.q2_edge == 0) ? _interpolate(m_Shape, ix, imu2, flavor, shared)
+                                 : _interpolateFallback(m_Shape, ix, imu2, flavor, shared);
 }
 
 } // namespace PDFxTMD

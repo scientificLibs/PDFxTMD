@@ -5,21 +5,21 @@
 namespace PDFxTMD
 {
 // taken from lhapdf library!
-class CBilinearInterpolator
-    : public IcPDFInterpolator<CBilinearInterpolator, CDefaultLHAPDFFileReader>
+class CLHAPDFBilinearInterpolator
+    : public IcPDFInterpolator<CLHAPDFBilinearInterpolator, CDefaultLHAPDFFileReader>
 {
   public:
-    CBilinearInterpolator() = default;
-    ~CBilinearInterpolator() = default;
+    CLHAPDFBilinearInterpolator() = default;
+    ~CLHAPDFBilinearInterpolator() = default;
 
     // Main interface method - hot path
-    double interpolate(PartonFlavor flavor, double x, double q2) const;
+    double interpolate(PartonFlavor flavor, double x, double mu2) const;
+    void interpolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const;
     void initialize(const IReader<CDefaultLHAPDFFileReader> *reader);
     const IReader<CDefaultLHAPDFFileReader> *getReader() const;
 
   private:
     const IReader<CDefaultLHAPDFFileReader> *m_reader;
-    mutable std::vector<DefaultAllFlavorShape> m_Shape;
-    mutable bool m_isInitialized = false;
+    mutable DefaultAllFlavorShape m_Shape;
 };
 } // namespace PDFxTMD

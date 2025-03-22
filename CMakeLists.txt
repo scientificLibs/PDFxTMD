@@ -7,7 +7,6 @@ option(ENABLE_FORMATTING "Enable code formatting" OFF)
 option(ENABLE_DOCUMENTATION "Enable documentation generation" OFF)
 option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" OFF)
 
-set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -20,18 +19,24 @@ if (NOT WIN32)
 endif()
 
 include(GNUInstallDirs)
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-    message(STATUS "Applying custom optimization flags for Release build.")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -DNDEBUG -ffast-math -march=native -funroll-loops")
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11)
-            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto=auto")
-        else()
-            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
-        endif()
+# Compiler flags
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    # Base flags for all builds (SIMD support)
+    add_compile_options(-mavx2 -mfma)
+
+    # Build-type specific flags
+    add_compile_options("$<$<CONFIG:Release>:-O3>")
+    add_compile_options("$<$<CONFIG:Debug>:-O0;-g>")
+    # Link-time optimization (LTO)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11)
+        add_compile_options("$<$<CONFIG:Release>:-flto=auto>")
     else()
-        message(WARNING "Custom optimization flags not defined for compiler: ${CMAKE_CXX_COMPILER_ID}")
+        add_compile_options("$<$<CONFIG:Release>:-flto>")
     endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    add_compile_options(/arch:AVX2 /O2) # AVX2 and optimization
+else()
+    message(WARNING "Compiler ${CMAKE_CXX_COMPILER_ID} not fully optimized. Add SIMD flags if needed.")
 endif()
 
 option(PDFxTMDLib_STATIC "PDFxTMDLib static type library" ON)
@@ -95,3 +100,6 @@ endif()
         Doxygen(${PROJECT_NAME} include/)
     endif()
 add_subdirectory(examples)
+
+
+

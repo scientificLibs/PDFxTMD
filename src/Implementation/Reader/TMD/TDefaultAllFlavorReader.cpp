@@ -90,8 +90,22 @@ void TDefaultAllFlavorReader::read(const std::string &pdfName, int setNumber)
     }
 
     std::set<double> log_xSet, log_q2Set, log_pSet;
-    double log_x, log_q2, log_p, tbar, bbar, cbar, sbar, ubar, dbar, g, d, u, s, c, b, t, photon,
-        z0, wplus, wminus, higgs;
+    double log_x = 0, log_q2 = 0, log_p = 0, tbar = 0, bbar = 0, cbar = 0, sbar = 0, ubar = 0,
+           dbar = 0, g = 0, d = 0, u = 0, s = 0, c = 0, b = 0, t = 0, photon = 0, z0 = 0, wplus = 0,
+           wminus = 0, higgs = 0;
+    m_updfShape.grids[PartonFlavor::tbar].reserve(1000);
+    m_updfShape.grids[PartonFlavor::bbar].reserve(1000);
+    m_updfShape.grids[PartonFlavor::cbar].reserve(1000);
+    m_updfShape.grids[PartonFlavor::sbar].reserve(1000);
+    m_updfShape.grids[PartonFlavor::dbar].reserve(1000);
+    m_updfShape.grids[PartonFlavor::ubar].reserve(1000);
+    m_updfShape.grids[PartonFlavor::g].reserve(1000);
+    m_updfShape.grids[PartonFlavor::t].reserve(1000);
+    m_updfShape.grids[PartonFlavor::b].reserve(1000);
+    m_updfShape.grids[PartonFlavor::c].reserve(1000);
+    m_updfShape.grids[PartonFlavor::s].reserve(1000);
+    m_updfShape.grids[PartonFlavor::d].reserve(1000);
+    m_updfShape.grids[PartonFlavor::u].reserve(1000);
 
     while (file >> log_x >> log_q2 >> log_p >> tbar >> bbar >> cbar >> sbar >> ubar >> dbar >> g >>
            d >> u >> s >> c >> b >> t >> photon)
@@ -118,9 +132,11 @@ void TDefaultAllFlavorReader::read(const std::string &pdfName, int setNumber)
         m_updfShape.grids[PartonFlavor::tbar].push_back(tbar);
         m_updfShape.grids[PartonFlavor::bbar].push_back(bbar);
         m_updfShape.grids[PartonFlavor::cbar].push_back(cbar);
+        m_updfShape.grids[PartonFlavor::sbar].push_back(sbar);
         m_updfShape.grids[PartonFlavor::ubar].push_back(ubar);
         m_updfShape.grids[PartonFlavor::dbar].push_back(dbar);
         m_updfShape.grids[PartonFlavor::g].push_back(g);
+        m_updfShape.grids[PartonFlavor::gNS].push_back(g);
         m_updfShape.grids[PartonFlavor::d].push_back(d);
         m_updfShape.grids[PartonFlavor::u].push_back(u);
         m_updfShape.grids[PartonFlavor::s].push_back(s);

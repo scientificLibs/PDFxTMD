@@ -5,6 +5,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <map>
+#include <array>
 
 #define FOLDER_SEP "/"
 
@@ -13,6 +16,7 @@
 #endif
 #define STD_PDF_INFO_EXTENSION ".info"
 #define STD_PDF_DATA_EXTENSION ".dat"
+#define DEFAULT_TOTAL_PDFS 13
 
 namespace PDFxTMD
 {
@@ -66,6 +70,12 @@ enum PartonFlavor
     wminus,
     higgs
 };
+constexpr std::array<PartonFlavor, DEFAULT_TOTAL_PDFS> standardPartonFlavors = {
+    PartonFlavor::tbar, PartonFlavor::bbar,  PartonFlavor::cbar, PartonFlavor::sbar,
+    PartonFlavor::ubar, PartonFlavor::dbar,  PartonFlavor::gNS,    PartonFlavor::d,
+    PartonFlavor::u,    PartonFlavor::s,     PartonFlavor::c,    PartonFlavor::b,
+    PartonFlavor::t};
+
 
 std::vector<std::string> splitPaths(const std::string &paths);
 bool hasWriteAccess(const std::string &path);
@@ -83,6 +93,10 @@ std::pair<std::optional<std::string>, ErrorType> StandardInfoFilePath(
 std::pair<std::optional<std::string>, ErrorType> StandardPDFSetPath(const std::string &pdfSetName,
                                                                     int set);
 // taken from the lhapdf
-size_t indexbelow(double value, const std::vector<double> &knots);
-
+inline size_t indexbelow(double value, const std::vector<double>& knots) {
+    size_t i = std::upper_bound(knots.begin(), knots.end(), value) - knots.begin();
+    if (i == knots.size()) i -= 1; // can't return the last knot index
+    i -= 1;                // step back to get the knot <= x behaviour
+    return i;
+  }
 } // namespace PDFxTMD

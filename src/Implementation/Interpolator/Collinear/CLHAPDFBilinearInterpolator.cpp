@@ -21,7 +21,7 @@ struct shared_data
     double logx1;
 };
 
-shared_data fill(const DefaultAllFlavorShape &grid, double x, double q2, size_t ix)
+inline shared_data fill(const DefaultAllFlavorShape &grid, double x, double q2, size_t ix)
 {
     // manual cache some values
     shared_data share;
@@ -40,54 +40,48 @@ inline double _interpolateLinear(double x, double xl, double xh, double yl, doub
     return yl + (x - xl) / (xh - xl) * (yh - yl);
 }
 
-double _interpolate(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2, PartonFlavor flavor,
+inline double _interpolate(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2, PartonFlavor flavor,
                     shared_data _share)
 {
     const double f_ql = _interpolateLinear(_share.logx, _share.logx0, _share.logx1,
-                                           DefaultAllFlavorShape::xf(grid, ix, iq2, flavor),
-                                           DefaultAllFlavorShape::xf(grid, ix + 1, iq2, flavor));
+                                           grid.xf(ix, iq2, flavor),
+                                           grid.xf(ix + 1, iq2, flavor));
     const double f_qh =
         _interpolateLinear(_share.logx, _share.logx0, _share.logx1,
-                           DefaultAllFlavorShape::xf(grid, ix, iq2 + 1, flavor),
-                           DefaultAllFlavorShape::xf(grid, ix + 1, iq2 + 1, flavor));
+                           grid.xf(ix, iq2 + 1, flavor),
+                           grid.xf(ix + 1, iq2 + 1, flavor));
     // Then interpolate in Q2, using the x-ipol results as anchor points
     return _interpolateLinear(_share.logq2, grid.log_mu2_vec.at(iq2), grid.log_mu2_vec.at(iq2 + 1),
                               f_ql, f_qh);
 }
 } // namespace
-void CBilinearInterpolator::initialize(const IReader<CDefaultLHAPDFFileReader> *reader)
+
+void CLHAPDFBilinearInterpolator::initialize(const IReader<CDefaultLHAPDFFileReader> *reader)
 {
     m_reader = reader;
     m_Shape = reader->getData();
-    m_isInitialized = true;
 }
-const IReader<CDefaultLHAPDFFileReader> *CBilinearInterpolator::getReader() const
+const IReader<CDefaultLHAPDFFileReader> *CLHAPDFBilinearInterpolator::getReader() const
 {
     return m_reader;
 }
-double CBilinearInterpolator::interpolate(PartonFlavor flavor, double x, double mu2) const
+
+void CLHAPDFBilinearInterpolator::interpolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const
 {
-    if (!m_isInitialized)
+    const size_t ix = indexbelow(x, m_Shape.x_vec);
+    const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);   
+    shared_data shared = fill(m_Shape, x, mu2, ix);
+    for (int i = 0; i < DEFAULT_TOTAL_PDFS; i++)
     {
-        throw std::runtime_error("CBilinearInterpolator::interpolate is not "
-                                 "initialized");
+       output[i] = _interpolate(m_Shape, ix, imu2, standardPartonFlavors[i], shared);
     }
-    int selectedIndex = -1;
+}
 
-    const size_t ix = indexbelow(x, m_Shape.at(0).x_vec);
-    {
-        for (auto &&shape_ : m_Shape)
-        {
-            selectedIndex++;
-            if (mu2 >= shape_.mu2_vec.front() && mu2 <= shape_.mu2_vec.back())
-            {
-                break;
-            }
-        }
-    }
-
-    const size_t imu2 = indexbelow(mu2, m_Shape.at(selectedIndex).mu2_vec);
-    shared_data shared = fill(m_Shape.at(selectedIndex), x, mu2, ix);
-    return _interpolate(m_Shape.at(selectedIndex), ix, imu2, flavor, shared);
+double CLHAPDFBilinearInterpolator::interpolate(PartonFlavor flavor, double x, double mu2) const
+{
+    const size_t ix = indexbelow(x, m_Shape.x_vec);
+    const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);   
+    shared_data shared = fill(m_Shape, x, mu2, ix);
+    return _interpolate(m_Shape, ix, imu2, flavor, shared);
 }
 } // namespace PDFxTMD
