@@ -1,0 +1,24 @@
+Performance Analysis: Performance Distribution for TMD Methods
+==================================
+
+Analysis with outliers removed
+
+Performance Statistical Summary:
+                   count         mean         std     min     25%     50%     75%     max
+method                                                                                   
+PDFxTMD (TMDPDF)  1389.0   865.463643   72.293597   671.0   815.0   866.0   915.0  1074.0
+PDFxTMD (mkTMD)   1384.0  1024.908237   67.977652   838.0   979.0  1027.0  1070.0  1218.0
+TMDLib            1367.0  3907.466715  166.856077  3575.0  3795.0  3863.0  3981.5  4383.0
+
+
+Conclusions:
+-------------
+1. Fastest method (on average): PDFxTMD (TMDPDF)
+2. Most consistent method: PDFxTMD (mkTMD)
+
+Methods sorted by average performance (fastest to slowest):
+                         mean         std  median
+method                                           
+PDFxTMD (TMDPDF)   865.463643   72.293597   866.0
+PDFxTMD (mkTMD)   1024.908237   67.977652  1027.0
+TMDLib            3907.466715  166.856077  3863.0

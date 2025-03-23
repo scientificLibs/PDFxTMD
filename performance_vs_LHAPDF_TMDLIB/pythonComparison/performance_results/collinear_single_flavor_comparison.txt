@@ -1,0 +1,24 @@
+Performance Analysis: Performance Distribution for Single-flavors PDF methods
+==================================
+
+Analysis with all data points
+
+Performance Statistical Summary:
+                        count        mean         std   min   25%   50%   75%     max
+method                                                                               
+LHAPDF                  121.0  113.793388  266.807856  83.0  86.0  87.0  90.0  3023.0
+PDFxTMD (CollinearPDF)  121.0   63.297521   14.095889  48.0  59.0  61.0  63.0   197.0
+PDFxTMD (mkCPDF)        121.0   66.355372   14.164427  47.0  63.0  65.0  67.0   196.0
+
+
+Conclusions:
+-------------
+1. Fastest method (on average): PDFxTMD (CollinearPDF)
+2. Most consistent method: PDFxTMD (CollinearPDF)
+
+Methods sorted by average performance (fastest to slowest):
+                              mean         std  median
+method                                                
+PDFxTMD (CollinearPDF)   63.297521   14.095889    61.0
+PDFxTMD (mkCPDF)         66.355372   14.164427    65.0
+LHAPDF                  113.793388  266.807856    87.0
