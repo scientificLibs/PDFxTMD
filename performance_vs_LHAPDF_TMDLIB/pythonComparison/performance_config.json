@@ -1,0 +1,78 @@
+{
+  "output_directory": "performance_results",
+  "analyses": [
+    {
+      "name": "collinear_single",
+      "data_files": [
+        "LHAPDF_Single/performance_resultsLHAPDFSingle.csv",
+        "PDFxTMD_mkCPDFSingle/performance_resultsPDFxTMD_mkCPDFSingle.csv",
+        "PDFxTMD_CollinearPDFSingle/performance_resultsPDFxTMD_CollinearPDFSingle.csv"
+      ],
+      "methods": [
+        "LHAPDF",
+        "PDFxTMD (mkCPDF)",
+        "PDFxTMD (CollinearPDF)"
+      ],
+      "title": "Performance Distribution for Single-flavors PDF methods",
+      "xlabel": "",
+      "ylabel": "Time per Call (ns)",
+      "log_scale": true,
+      "figure_size": [20, 15],
+      "plot_style": {
+        "palette": "Set3",
+        "width": 0.6,
+        "fliersize": 5,
+        "linewidth": 1.5
+      },
+      "outlier_settings": {
+        "remove_outliers": true,
+        "method": "iqr",
+        "threshold": 1.5
+      },
+      "output_base": "collinear_single_flavor_comparison"
+    },
+    {
+      "name": "collinear_all",
+      "data_files": [
+        "LHAPDF/performance_resultsLHAPDF.csv",
+        "PDFxTMD-mkCPDF/performance_resultsPDFxTMD_mkCPDF.csv",
+        "PDFxTMD_CollinearPDF/performance_resultsPDFxTMD_CollinearPDF.csv"
+      ],
+      "methods": [
+        "LHAPDF",
+        "PDFxTMD (mkCPDF)",
+        "PDFxTMD (CollinearPDF)"
+      ],
+      "title": "Performance Distribution for All-flavors PDF methods",
+      "ylabel": "Time per Call (ns)",
+      "log_scale": true,
+      "outlier_settings": {
+        "remove_outliers": true,
+        "method": "iqr",
+        "threshold": 1.5
+      },
+      "output_base": "collinear_all_flavor_comparison"
+    },
+    {
+      "name": "tmd",
+      "data_files": [
+        "TMDLib/perf-res-TMDLIB_KTAPI2.csv",
+        "PDFxTMD_mkTMD/perf-res-PDFxTMD_mkTMD.csv",
+        "PDFxTMD_TMDPDF/perf-res-PDFxTMD_TMDPDF.csv"
+      ],
+      "methods": [
+        "TMDLib",
+        "PDFxTMD (mkTMD)",
+        "PDFxTMD (TMDPDF)"
+      ],
+      "title": "Performance Distribution for TMD Methods",
+      "log_scale": true,
+      "outlier_settings": {
+        "remove_outliers": true,
+        "method": "iqr",
+        "threshold": 1.5
+      },
+      "output_base": "tmd_comparison"
+    }
+  ]
+} 
