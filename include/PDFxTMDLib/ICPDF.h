@@ -16,6 +16,7 @@ namespace PDFxTMD
  * This class provides a type-erased interface for accessing CPDFs.
  * The class handles:
  * - Single flavor CPDF evaluation with pdf(flavor, x, mu2)
+ * - All flavors TMD evaluation with tmd(x, kt2, mu2, cPDFs)
  */
 class ICPDF
 {
@@ -62,6 +63,16 @@ class ICPDF
     {
         return pdfOperation_(pimpl_.get(), parton, x, mu2);
     }
+    /**
+     * @brief Evaluate the array of Collinear PDF values for {tbar, bbar, cbar, sbar, ubar, dbar,
+     * g, d, u, s, c, b, t}
+     * 
+     * This function evaluates the CPDF for all flavors given x and mu2, and stores the results in the output array.
+     * 
+     * @param x The momentum fraction of the parton.
+     * @param mu2 The factorization scale squared.
+     * @param output The array to store the CPDF values for all flavors.
+     */
 
     void pdf(double x, double mu2, std::array<double, 13>& output) const 
     {
