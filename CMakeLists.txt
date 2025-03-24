@@ -61,18 +61,15 @@ if (UNIX)
 endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
 target_sources(${PROJECT_NAME} PRIVATE  ${ALL_SOURCES})
-target_include_directories(PDFxTMDLib
-    PUBLIC 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
-)
-if (UNIX)
-    target_include_directories(PDFxTMDLibStatic
-        PUBLIC 
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
-    )
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    message(STATUS "BUILD INTERFACE")
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+else()
+    include_directories(${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+
 endif()
+
+
 if(UNIX)
     set(DEFAULT_ENV_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib")
 elseif(WIN32)
