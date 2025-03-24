@@ -245,7 +245,7 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
         }
         else if (AlphaS_Type == "analytic")
         {
-            output.alphaCalcMethod = AlphasType::analytic;
+            output.alphaCalcMethod = AlphasType::ipol;
         }
         else
         {

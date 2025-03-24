@@ -229,9 +229,9 @@ ICPDF GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
             if (extrapolatorType == CExtrapolator::CContinuationExtrapolator)
             {
                 return ICPDF(
-                    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBicubicInterpolator,
+                    std::move(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBicubicInterpolator,
                                CContinuationExtrapolator<CLHAPDFBicubicInterpolator>>(pdfSetName,
-                                                                                    setMember));
+                                                                                    setMember)));
             }
             else if (extrapolatorType == CExtrapolator::CErrExtrapolator)
             {

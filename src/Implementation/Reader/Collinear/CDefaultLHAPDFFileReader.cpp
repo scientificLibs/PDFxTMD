@@ -14,10 +14,10 @@ std::vector<double> CDefaultLHAPDFFileReader::getValues(PhaseSpaceComponent comp
     switch (comp)
     {
     case PhaseSpaceComponent::X:
-        output = m_pdfShape.at(0).x_vec;
+        output = m_pdfShape_flat.x_vec;
         break;
     case PhaseSpaceComponent::Q2:
-        output = m_mu2CompTotal;
+        output = m_pdfShape_flat.mu2_vec;
         break;
     default:
         throw NotSupportError("undefined Phase space component requested");

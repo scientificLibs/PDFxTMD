@@ -19,24 +19,33 @@ class IExtrapolator : public CRTPBase<Derived>
     }
 };
 
-template <typename Derived, typename Interpolator, typename... ExtrapolateArgs>
+template <typename Derived, typename... ExtrapolateArgs>
 class IAdvancedExtrapolator : public IExtrapolator<Derived, ExtrapolateArgs...>
 {
-  public:
-    void setInterpolator(const Interpolator *interpolator)
+  protected:
+    // The interpolator is now a member rather than a template parameter
+    // Each derived class can use the appropriate interpolator type
+    template <typename InterpolatorType>
+    void setInterpolator(const InterpolatorType* interpolator)
     {
         this->derived().setInterpolator(interpolator);
     }
+    
+    // template <typename InterpolatorType>
+    // const InterpolatorType* getInterpolator() const
+    // {
+    //     return this->derived().getInterpolator();
+    // }
 };
 
 template <typename Derived>
-class IcPDFExtrapolator : public IExtrapolator<Derived,  X_T, MU_T>
+class IcPDFExtrapolator : public IExtrapolator<Derived, X_T, MU_T>
 {
 };
 
-template <typename Derived, typename Interpolator>
+template <typename Derived>
 class IcAdvancedPDFExtrapolator
-    : public IAdvancedExtrapolator<Interpolator,  X_T, MU_T>
+    : public IAdvancedExtrapolator<Derived, X_T, MU_T>
 {
 };
 
@@ -45,9 +54,9 @@ class ITMDExtrapolator : public IExtrapolator<Derived, X_T, KT_T, MU_T>
 {
 };
 
-template <typename Derived, typename Interpolator>
-class IcAdvancedTMDExtrapolator
-    : public IAdvancedExtrapolator<Derived, Interpolator, X_T, KT_T, MU_T>
+template <typename Derived>
+class ITMDAdvancedTMDExtrapolator
+    : public IAdvancedExtrapolator<Derived, X_T, KT_T, MU_T>
 {
 };
 

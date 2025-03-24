@@ -24,7 +24,7 @@ inline double _findClosestMatch(const std::vector<double> &cands, double target)
 
 template <typename Interpolator>
 class CNearestPointExtrapolator
-    : public IcAdvancedPDFExtrapolator<CNearestPointExtrapolator<Interpolator>, Interpolator>
+    : public IcAdvancedPDFExtrapolator<CNearestPointExtrapolator<Interpolator>>
 {
   public:
     void setInterpolator(const Interpolator *interpolator)

@@ -4,15 +4,15 @@
 #include "PDFxTMDLib/Common/PDFUtils.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
 #include "PDFxTMDLib/Common/YamlInfoReader.h"
+#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
+#include "PDFxTMDLib/Implementation/Extrapolator/TMD/TZeroExtrapolator.h"
+#include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.h"
+#include "PDFxTMDLib/Implementation/Interpolator/TMD/TTrilinearInterpolator.h"
+#include "PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
+#include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
 #include "PDFxTMDLib/Interface/IExtrapolator.h"
 #include "PDFxTMDLib/Interface/IInterpolator.h"
 #include "PDFxTMDLib/Interface/IReader.h"
-#include "PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
-#include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.h"
-#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
-#include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
-#include "PDFxTMDLib/Implementation/Interpolator/TMD/TTrilinearInterpolator.h"
-#include "PDFxTMDLib/Implementation/Extrapolator/TMD/TZeroExtrapolator.h"
 
 #include <algorithm>
 #include <array>
@@ -49,27 +49,25 @@ struct CollinearPDFTag
  */
 
 // Type trait to get default implementations based on tag
-template <typename Tag>
-struct DefaultPDFImplementations;
+template <typename Tag> struct DefaultPDFImplementations;
 
 // Specialization for TMDPDFTag
-template <>
-struct DefaultPDFImplementations<TMDPDFTag> {
+template <> struct DefaultPDFImplementations<TMDPDFTag>
+{
     using Reader = TDefaultAllFlavorReader;
     using Interpolator = TTrilinearInterpolator;
     using Extrapolator = TZeroExtrapolator;
 };
 
 // Specialization for CollinearPDFTag
-template <>
-struct DefaultPDFImplementations<CollinearPDFTag> {
+template <> struct DefaultPDFImplementations<CollinearPDFTag>
+{
     using Reader = CDefaultLHAPDFFileReader;
     using Interpolator = CLHAPDFBicubicInterpolator;
     using Extrapolator = CContinuationExtrapolator<CLHAPDFBicubicInterpolator>;
 };
 
-template <typename Tag, 
-          typename Reader = typename DefaultPDFImplementations<Tag>::Reader,
+template <typename Tag, typename Reader = typename DefaultPDFImplementations<Tag>::Reader,
           typename Interpolator = typename DefaultPDFImplementations<Tag>::Interpolator,
           typename Extrapolator = typename DefaultPDFImplementations<Tag>::Extrapolator>
 class GenericPDF
@@ -97,7 +95,8 @@ class GenericPDF
         {
             if (isInRange(m_reader, x, mu2))
                 return m_interpolator.interpolate(flavor, x, mu2);
-            return m_extrapolator.extrapolate(flavor, x, mu2);;
+            return m_extrapolator.extrapolate(flavor, x, mu2);
+            ;
         }
         else
         {
@@ -123,12 +122,44 @@ class GenericPDF
         {
             if (isInRange(m_reader, x, mu2))
                 return m_interpolator.interpolate(x, mu2, output);
-            m_extrapolator.extrapolate(x, mu2, output);
+            return m_extrapolator.extrapolate(x, mu2, output);
         }
         else
         {
-            throw std::logic_error(
-                "pdf(double, double, std::array<double, DEFAULT_TOTAL_PDFS>&) is not supported for this tag.");
+            throw std::logic_error("pdf(double, double, std::array<double, DEFAULT_TOTAL_PDFS>&) "
+                                   "is not supported for this tag.");
+        }
+    }
+    GenericPDF(GenericPDF&& other) noexcept
+        : m_pdfName(std::move(other.m_pdfName)),
+        m_setNumber(other.m_setNumber),
+        m_reader(std::move(other.m_reader)),
+        m_interpolator(std::move(other.m_interpolator)),
+        m_extrapolator(std::move(other.m_extrapolator)),
+        m_stdInfo(std::move(other.m_stdInfo))
+    {
+        // Update the interpolator's reader pointer to the new reader
+        m_interpolator.initialize(&m_reader);
+        // Update the extrapolator's interpolator pointer
+        if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
+        {
+            m_extrapolator.setInterpolator(&m_interpolator);
+        }
+    }
+    GenericPDF(const GenericPDF& other)
+        : m_pdfName(other.m_pdfName),
+        m_setNumber(other.m_setNumber),
+        m_reader(other.m_reader),
+        m_interpolator(other.m_interpolator),
+        m_extrapolator(other.m_extrapolator),
+        m_stdInfo(other.m_stdInfo)
+    {
+        // Update the interpolator's reader pointer to the new reader
+        m_interpolator.initialize(&m_reader);
+        // Update the extrapolator's interpolator pointer
+        if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
+        {
+            m_extrapolator.setInterpolator(&m_interpolator);
         }
     }
     /**
@@ -220,15 +251,14 @@ class GenericPDF
         auto &reader = const_cast<Reader &>(m_reader);
         reader.read(m_pdfName, m_setNumber);
         auto &interpolator = const_cast<Interpolator &>(m_interpolator);
-        interpolator.initialize(&reader);
+        interpolator.initialize(&m_reader);
         // Update the extrapolator's interpolator pointer based on the tag type.
         if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
         {
-            if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator, Interpolator>,
-                                            Extrapolator>)
+            if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
             {
                 auto &extrapolator = const_cast<Extrapolator &>(m_extrapolator);
-                extrapolator.setInterpolator(&interpolator);
+                extrapolator.setInterpolator(&m_interpolator);
             }
         }
     }
