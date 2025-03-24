@@ -61,13 +61,12 @@ if (UNIX)
 endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
 target_sources(${PROJECT_NAME} PRIVATE  ${ALL_SOURCES})
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    message(STATUS "BUILD INTERFACE")
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-else()
-    include_directories(${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
-endif()
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+
+
 
 
 if(UNIX)
