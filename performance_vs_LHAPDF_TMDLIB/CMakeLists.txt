@@ -25,7 +25,9 @@ target_link_libraries(LHAPDF_PDFxTMDmkCPDF PRIVATE -lLHAPDF PDFxTMD::PDFxTMDLib)
 add_executable(LHAPDF_PDFxTMDmkCPDFSingle LHAPDF_PDFxTMDmkCPDFSingle.cpp)
 target_include_directories(LHAPDF_PDFxTMDmkCPDFSingle PUBLIC /usr/local/include/LHAPDF)
 target_link_directories(LHAPDF_PDFxTMDmkCPDFSingle PUBLIC /usr/local/lib)
-target_link_libraries(LHAPDF_PDFxTMDmkCPDFSingle PRIVATE -lLHAPDF PDFxTMD::PDFxTMDLib)
+target_link_libraries(LHAPDF_PDFxTMDmkCPDFSingle PRIVATE
+	/usr/local/lib/libLHAPDF.a       
+	PDFxTMD::PDFxTMDLib)
 
 
 add_executable(PDFxTMDCollinearPDFSingle PDFxTMDCollinearPDFSingle.cpp)

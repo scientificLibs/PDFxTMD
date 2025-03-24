@@ -14,10 +14,10 @@ namespace PDFxTMD
 
 template <typename Interpolator>
 class CContinuationExtrapolator
-    : public IcAdvancedPDFExtrapolator<CContinuationExtrapolator<Interpolator>, Interpolator>
+    : public IcAdvancedPDFExtrapolator<CContinuationExtrapolator<Interpolator>>
 {
   public:
-    void setInterpolator(const Interpolator *interpolator)
+    void setInterpolator(const Interpolator* interpolator)
     {
         m_interpolator = interpolator;
     }

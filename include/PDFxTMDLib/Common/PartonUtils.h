@@ -7,7 +7,6 @@
 #include <vector>
 #include <algorithm>
 #include <map>
-#include <array>
 
 #define FOLDER_SEP "/"
 

@@ -32,7 +32,6 @@ struct YamlImpelemntationInfo
 };
 enum class AlphasType
 {
-    analytic,
     ipol
 };
 enum class AlphasFlavorScheme
@@ -43,7 +42,7 @@ enum class AlphasFlavorScheme
 
 struct YamlCouplingInfo
 {
-    AlphasType alphasOrder = AlphasType::analytic;
+    AlphasType alphasOrder = AlphasType::ipol;
     OrderQCD alphsOrder = OrderQCD::NLO;
     std::vector<double> mu_vec;
     std::vector<double> alphas_vec;
@@ -55,7 +54,7 @@ struct YamlCouplingInfo
     std::map<PartonFlavor, double> quarkMasses;
     AlphasFlavorScheme flavorScheme = AlphasFlavorScheme::variable;
     int numFlavors = DEFULT_NUM_FLAVORS;
-    AlphasType alphaCalcMethod = AlphasType::analytic;
+    AlphasType alphaCalcMethod = AlphasType::ipol;
 };
 std::pair<std::optional<YamlImpelemntationInfo>, ErrorType> YamlImpelemntationInfoReader(
     const std::string &yamlInfoPath);

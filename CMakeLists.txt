@@ -6,7 +6,6 @@ project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${P
 option(ENABLE_FORMATTING "Enable code formatting" OFF)
 option(ENABLE_DOCUMENTATION "Enable documentation generation" OFF)
 option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" OFF)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -23,27 +22,17 @@ include(GNUInstallDirs)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     # Base flags for all builds (SIMD support)
     add_compile_options(-mavx2 -mfma)
-
-    # Build-type specific flags
     add_compile_options("$<$<CONFIG:Release>:-O3>")
     add_compile_options("$<$<CONFIG:Debug>:-O0;-g>")
-    # Link-time optimization (LTO)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11)
         add_compile_options("$<$<CONFIG:Release>:-flto=auto>")
     else()
         add_compile_options("$<$<CONFIG:Release>:-flto>")
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    add_compile_options(/arch:AVX2 /O2) # AVX2 and optimization
+    add_compile_options(/arch:AVX2 /O2)
 else()
     message(WARNING "Compiler ${CMAKE_CXX_COMPILER_ID} not fully optimized. Add SIMD flags if needed.")
-endif()
-
-option(PDFxTMDLib_STATIC "PDFxTMDLib static type library" ON)
-
-set(PDFxTMDLib_Type SHARED)
-if (PDFxTMDLib_STATIC)
-    set(PDFxTMDLib_Type STATIC)
 endif()
 
 
@@ -62,7 +51,11 @@ set(ALL_SOURCES
     src/Common/AllFlavorsShape.cpp
 )
 
-add_library(${PROJECT_NAME} ${PDFxTMDLib_Type})
+add_library(${PROJECT_NAME}Static STATIC ${ALL_SOURCES})
+if (UNIX)
+    add_library(${PROJECT_NAME} SHARED ${ALL_SOURCES})
+    set_target_properties(${PROJECT_NAME}Static PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
 target_sources(${PROJECT_NAME} PRIVATE  ${ALL_SOURCES})
 target_include_directories(${PROJECT_NAME} 
@@ -84,6 +77,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
+target_compile_definitions(${PROJECT_NAME}Static PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
 if(ENABLE_BUILDING_WRAPPERS)
     add_subdirectory(wrappers)
 endif()
@@ -100,6 +94,4 @@ endif()
         Doxygen(${PROJECT_NAME} include/)
     endif()
 add_subdirectory(examples)
-
-
 
