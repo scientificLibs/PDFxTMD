@@ -28,7 +28,7 @@ For a comprehensive understanding of PDFxTMDLib, please refer to the full paper 
 1. Download the `.deb` file from the [Releases](https://github.com/Raminkord92/PDFxTMD/releases) section of GitHub. For example, download the current release: `PDFxTMDLib-0.1.1-Linux.deb`.
 2. Install with:
    ```bash
-   sudo dpkg -i PDFxTMDLib-0.1.1-Linux.deb
+   sudo dpkg -i PDFxTMDLib-0.3.0-Linux.deb
    ```
 
 ### Option 2: Building from Source
