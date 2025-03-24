@@ -50,8 +50,11 @@ set(ALL_SOURCES
     src/Common/FileUtils.cpp
     src/Common/AllFlavorsShape.cpp
 )
-
-add_library(${PROJECT_NAME}Static STATIC ${ALL_SOURCES})
+if (WIN32)
+	add_library(${PROJECT_NAME} STATIC ${ALL_SOURCES})
+else()
+	add_library(${PROJECT_NAME}Static STATIC ${ALL_SOURCES})
+endif()
 if (UNIX)
     add_library(${PROJECT_NAME} SHARED ${ALL_SOURCES})
     set_target_properties(${PROJECT_NAME}Static PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
@@ -77,7 +80,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
-target_compile_definitions(${PROJECT_NAME}Static PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
+if(UNIX)
+	target_compile_definitions(${PROJECT_NAME}Static PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
+endif()
 if(ENABLE_BUILDING_WRAPPERS)
     add_subdirectory(wrappers)
 endif()
