@@ -23,19 +23,12 @@ template <typename Derived, typename... ExtrapolateArgs>
 class IAdvancedExtrapolator : public IExtrapolator<Derived, ExtrapolateArgs...>
 {
   protected:
-    // The interpolator is now a member rather than a template parameter
-    // Each derived class can use the appropriate interpolator type
     template <typename InterpolatorType>
     void setInterpolator(const InterpolatorType* interpolator)
     {
         this->derived().setInterpolator(interpolator);
     }
-    
-    // template <typename InterpolatorType>
-    // const InterpolatorType* getInterpolator() const
-    // {
-    //     return this->derived().getInterpolator();
-    // }
+
 };
 
 template <typename Derived>

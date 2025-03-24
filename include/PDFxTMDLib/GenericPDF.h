@@ -105,12 +105,12 @@ class GenericPDF
         }
     }
     /**
-     * @brief Retrieves the vector of Collinear PDF values for {tbar, bbar, cbar, sbar, ubar, dbar,
+     * @brief Evaluate the array of Collinear PDF values for {tbar, bbar, cbar, sbar, ubar, dbar,
      * g, d, u, s, c, b, t}
      *
      * @param x Bjorken x variable (momentum fraction)
-     * @param kt2 Transverse momentum squared
      * @param mu2 Factorization scale squared
+     * @param output The array to store the Collinear PDF values for all flavors.
      *
      * @return std::array<double, 13> The vector of Collinear PDF values
      *
@@ -138,9 +138,7 @@ class GenericPDF
         m_extrapolator(std::move(other.m_extrapolator)),
         m_stdInfo(std::move(other.m_stdInfo))
     {
-        // Update the interpolator's reader pointer to the new reader
         m_interpolator.initialize(&m_reader);
-        // Update the extrapolator's interpolator pointer
         if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
         {
             m_extrapolator.setInterpolator(&m_interpolator);
@@ -154,16 +152,14 @@ class GenericPDF
         m_extrapolator(other.m_extrapolator),
         m_stdInfo(other.m_stdInfo)
     {
-        // Update the interpolator's reader pointer to the new reader
         m_interpolator.initialize(&m_reader);
-        // Update the extrapolator's interpolator pointer
         if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
         {
             m_extrapolator.setInterpolator(&m_interpolator);
         }
     }
     /**
-     * @brief Retrieves the TMD PDF value for a specific parton flavor
+     * @brief Evaluates the TMD PDF value for a specific parton flavor
      *
      * @param flavor The parton flavor
      * @param x Bjorken x variable (momentum fraction)
@@ -185,7 +181,7 @@ class GenericPDF
         }
     }
     /**
-     * @brief Retrieves the vector of TMD PDF values for {tbar, bbar, cbar, sbar, ubar, dbar, g, d,
+     * @brief Evaluates the vector of TMD PDF values for {tbar, bbar, cbar, sbar, ubar, dbar, g, d,
      * u, s, c, b, t}
      *
      * @param x Bjorken x variable (momentum fraction)
@@ -252,7 +248,6 @@ class GenericPDF
         reader.read(m_pdfName, m_setNumber);
         auto &interpolator = const_cast<Interpolator &>(m_interpolator);
         interpolator.initialize(&m_reader);
-        // Update the extrapolator's interpolator pointer based on the tag type.
         if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
         {
             if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)

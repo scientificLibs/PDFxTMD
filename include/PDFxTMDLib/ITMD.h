@@ -17,7 +17,7 @@ namespace PDFxTMD
  *
  * The class handles:
  * - Single flavor TMD evaluation with tmd(flavor, x, kt2, mu2)
- * - All flavors TMD evaluation with tmd(x, kt2, mu2)
+ * - All flavors TMD evaluation with tmd(x, kt2, mu2, tmds)
  */
 class ITMD
 {
@@ -122,11 +122,33 @@ class ITMD
         OwningModel(TMDApproachT tmdApproach) : m_tmdApproach(std::move(tmdApproach))
         {
         }
+        /**
+         * @brief Evaluate the TMD PDF for a specific flavor.
+         * 
+         * This function evaluates the TMD PDF for a given flavor, x, kt2, and mu2.
+         * 
+         * @param flavor The parton flavor to evaluate the TMD PDF for.
+         * @param x The momentum fraction of the parton.
+         * @param kt2 The transverse momentum squared of the parton.
+         * @param mu2 The factorization scale squared.
+         * @return The value of the TMD PDF for the given flavor, x, kt2, and mu2.
+         */
 
         double tmd(PartonFlavor flavor, double x, double kt2, double mu2)
         {
             return m_tmdApproach.tmd(flavor, x, kt2, mu2);
         }
+        /**
+         * @brief Evaluate the array of TMD PDF values for {tbar, bbar, cbar, sbar, ubar, dbar,
+         * g, d, u, s, c, b, t}
+         * 
+         * This function evaluates the TMD PDF for all flavors at once, given x, kt2, and mu2.
+         * 
+         * @param x The momentum fraction of the parton.
+         * @param kt2 The transverse momentum squared of the parton.
+         * @param mu2 The factorization scale squared.
+         * @param output The array to store the TMD PDF values for all flavors.
+         */
         void tmd(double x, double kt2, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output)
         {
             return m_tmdApproach.tmd(x, kt2, mu2, output);
