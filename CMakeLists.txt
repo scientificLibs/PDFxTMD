@@ -6,6 +6,7 @@ project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${P
 option(ENABLE_FORMATTING "Enable code formatting" OFF)
 option(ENABLE_DOCUMENTATION "Enable documentation generation" OFF)
 option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -18,9 +19,7 @@ if (NOT WIN32)
 endif()
 
 include(GNUInstallDirs)
-# Compiler flags
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    # Base flags for all builds (SIMD support)
     add_compile_options(-mavx2 -mfma)
     add_compile_options("$<$<CONFIG:Release>:-O3>")
     add_compile_options("$<$<CONFIG:Debug>:-O0;-g>")
@@ -34,7 +33,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 else()
     message(WARNING "Compiler ${CMAKE_CXX_COMPILER_ID} not fully optimized. Add SIMD flags if needed.")
 endif()
-
 
 set(ALL_SOURCES
     src/Common/YamlInfoReader.cpp 
@@ -50,24 +48,38 @@ set(ALL_SOURCES
     src/Common/FileUtils.cpp
     src/Common/AllFlavorsShape.cpp
 )
-if (WIN32)
-	add_library(${PROJECT_NAME} STATIC ${ALL_SOURCES})
-elseif(UNIX)
-	add_library(${PROJECT_NAME}Static STATIC ${ALL_SOURCES})
+
+if(WIN32)
+    add_library(${PROJECT_NAME} STATIC)
+    set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
+    target_sources(${PROJECT_NAME} PRIVATE ${ALL_SOURCES})
+    target_include_directories(${PROJECT_NAME} 
+        PUBLIC 
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
+    )
 endif()
-if (UNIX)
+
+if(UNIX AND NOT APPLE) 
     add_library(${PROJECT_NAME} SHARED ${ALL_SOURCES})
-    set_target_properties(${PROJECT_NAME}Static PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+    set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
+    target_include_directories(${PROJECT_NAME} 
+        PUBLIC 
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
+    )
+
+    add_library(${PROJECT_NAME}_static STATIC ${ALL_SOURCES})
+    set_target_properties(${PROJECT_NAME}_static PROPERTIES 
+        OUTPUT_NAME ${PROJECT_NAME}
+        DEBUG_POSTFIX "d"
+    )
+    target_include_directories(${PROJECT_NAME}_static 
+        PUBLIC 
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
+    )
 endif()
-set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
-target_sources(${PROJECT_NAME} PRIVATE  ${ALL_SOURCES})
-
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
-
-
-
 
 if(UNIX)
     set(DEFAULT_ENV_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib")
@@ -75,31 +87,47 @@ elseif(WIN32)
     set(DEFAULT_ENV_PATH "C:/ProgramData/PDFxTMDLib")
 endif()
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE 
-    PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
-    PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR}
-    PROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH}
-    PROJECT_VERSION="${PROJECT_VERSION}"
-)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
-if(UNIX)
-	target_compile_definitions(${PROJECT_NAME}Static PRIVATE DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}")
+if(WIN32)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE 
+        PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+        PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+        PROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+        PROJECT_VERSION="${PROJECT_VERSION}"
+        DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}"
+    )
 endif()
+
+if(UNIX AND NOT APPLE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE 
+        PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+        PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+        PROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+        PROJECT_VERSION="${PROJECT_VERSION}"
+        DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}"
+    )
+    target_compile_definitions(${PROJECT_NAME}_static PRIVATE 
+        PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+        PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+        PROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+        PROJECT_VERSION="${PROJECT_VERSION}"
+        DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}"
+    )
+endif()
+
 if(ENABLE_BUILDING_WRAPPERS)
     add_subdirectory(wrappers)
 endif()
 include(cmake/Install.cmake)
-
 
 if(ENABLE_FORMATTING)
     include(cmake/Format.cmake)
     Format(${PROJECT_NAME} include/)
     Format(${PROJECT_NAME} src/)
 endif()
-    if(ENABLE_DOCUMENTATION)
-        include(cmake/Doxygen.cmake)
-        Doxygen(${PROJECT_NAME} include/)
-    endif()
-add_subdirectory(examples)
 
+if(ENABLE_DOCUMENTATION)
+    include(cmake/Doxygen.cmake)
+    Doxygen(${PROJECT_NAME} include/)
+endif()
+
+add_subdirectory(examples)
