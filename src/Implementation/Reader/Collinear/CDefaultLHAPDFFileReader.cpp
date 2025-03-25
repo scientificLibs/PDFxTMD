@@ -240,7 +240,9 @@ void CDefaultLHAPDFFileReader::readValues(NumParser &parser, DefaultAllFlavorSha
     {
         for (auto flavor : data._pids)
         {
-            parser >> value;
+            if (!parser >> value) {
+                continue;
+            }
             data.grids[static_cast<PartonFlavor>(flavor)].push_back(value);
         }
     }
