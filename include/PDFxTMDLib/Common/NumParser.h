@@ -20,11 +20,11 @@ class NumParser
         _end = input.data() + input.size();
     }
 
-    template <typename T> NumParser &operator>>(T &value) noexcept
+    template <typename T> bool operator>>(T &value) noexcept
     {
         skipSpaces();
-        value = parseNumber<T>();
-        return *this;
+        auto result = parseNumber<T>(value);
+        return result;
     }
 
     [[nodiscard]] bool hasMore() const noexcept
@@ -44,16 +44,15 @@ class NumParser
         }
     }
 
-    template <typename T> T parseNumber() noexcept
+    template <typename T> bool parseNumber(T &value) noexcept
     {
-        T value;
         auto [ptr, ec] = std::from_chars(_current, _end, value);
         if (ec == std::errc::invalid_argument || ec == std::errc::result_out_of_range)
         {
-            value = T{};
+            return false;
         }
         _current = ptr;
-        return value;
+        return true;
     }
 };
 
