@@ -158,7 +158,7 @@ Example configuration:
 paths: "/home/user/pdfs|/usr/share/PDFxTMDLib/pdfs"
 ```
 
-Multiple paths can be specified with the `|` separator. By default, the current directory and standard installation paths are already included.
+Multiple paths can be specified with the `|` separator. By default, the current directory and \usr\local\share\PDFxTMD (linux) or C:\ProgramData\PDFxTMDLib\ (Windows) are already included.
 
 ## Performance
 
