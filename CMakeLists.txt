@@ -6,6 +6,7 @@ project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${P
 option(ENABLE_FORMATTING "Enable code formatting" OFF)
 option(ENABLE_DOCUMENTATION "Enable documentation generation" OFF)
 option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" OFF)
+option(ENABLE_BUILDING_EXAMPLES "Enable building examples" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -59,9 +60,7 @@ if(WIN32)
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
-endif()
-
-if(UNIX AND NOT APPLE) 
+else()
     add_library(${PROJECT_NAME} SHARED ${ALL_SOURCES})
     set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
     target_include_directories(${PROJECT_NAME} 
@@ -82,10 +81,10 @@ if(UNIX AND NOT APPLE)
     )
 endif()
 
-if(UNIX)
-    set(DEFAULT_ENV_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib")
-elseif(WIN32)
+if(WIN32)
     set(DEFAULT_ENV_PATH "C:/ProgramData/PDFxTMDLib")
+else()
+    set(DEFAULT_ENV_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/PDFxTMDLib")
 endif()
 
 if(WIN32)
@@ -96,9 +95,7 @@ if(WIN32)
         PROJECT_VERSION="${PROJECT_VERSION}"
         DEFAULT_ENV_PATH="${DEFAULT_ENV_PATH}"
     )
-endif()
-
-if(UNIX AND NOT APPLE)
+else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE 
         PROJECT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
         PROJECT_VERSION_MINOR=${PROJECT_VERSION_MINOR}
@@ -131,4 +128,6 @@ if(ENABLE_DOCUMENTATION)
     Doxygen(${PROJECT_NAME} include/)
 endif()
 
-#add_subdirectory(examples)
+if(ENABLE_BUILDING_EXAMPLES)
+    add_subdirectory(examples)
+endif()
