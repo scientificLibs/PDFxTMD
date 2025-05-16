@@ -3,7 +3,7 @@ version: '{build}'
 image:
   - Visual Studio 2019
   - Ubuntu2204
-  - macos-ventura
+  - macos-sonoma
 
 configuration:
   - Release
@@ -27,8 +27,7 @@ for:
 
   - matrix:
       only:
-        - image: macos-ventura
-
+        - image: macos-sonoma
     before_build:
       - sh: cmake -DCMAKE_BUILD_TYPE=$CONFIGURATION -B build
     build_script:
