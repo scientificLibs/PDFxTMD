@@ -1,0 +1,34 @@
+version: '{build}'
+
+image:
+  - Visual Studio 2019
+  - Ubuntu2204
+  - macOS
+
+configuration:
+  - Release
+
+for:
+  - matrix:
+      only:
+        - image: Visual Studio 2019
+    before_build:
+      - cmake -G "Visual Studio 16 2019" -A x64 -B build
+    build_script:
+      - cmake --build build --config %CONFIGURATION%
+
+  - matrix:
+      only:
+        - image: Ubuntu2204
+    before_build:
+      - sh: cmake -DCMAKE_BUILD_TYPE=$CONFIGURATION -B build
+    build_script:
+      - sh: cmake --build build
+
+  - matrix:
+      only:
+        - image: macOS
+    before_build:
+      - sh: cmake -DCMAKE_BUILD_TYPE=$CONFIGURATION -B build
+    build_script:
+      - sh: cmake --build build
