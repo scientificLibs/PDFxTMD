@@ -57,7 +57,7 @@ if(WIN32)
     target_include_directories(${PROJECT_NAME} 
         PUBLIC 
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 endif()
 
@@ -67,7 +67,7 @@ if(UNIX AND NOT APPLE)
     target_include_directories(${PROJECT_NAME} 
         PUBLIC 
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 
     add_library(${PROJECT_NAME}_static STATIC ${ALL_SOURCES})
@@ -78,7 +78,7 @@ if(UNIX AND NOT APPLE)
     target_include_directories(${PROJECT_NAME}_static 
         PUBLIC 
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 endif()
 
@@ -131,4 +131,4 @@ if(ENABLE_DOCUMENTATION)
     Doxygen(${PROJECT_NAME} include/)
 endif()
 
-add_subdirectory(examples)
+#add_subdirectory(examples)
