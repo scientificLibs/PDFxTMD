@@ -3,7 +3,7 @@ version: '{build}'
 image:
   - Visual Studio 2019
   - Ubuntu2204
-  - macos-monterey
+  - macos-ventura
 
 configuration:
   - Release
@@ -27,7 +27,8 @@ for:
 
   - matrix:
       only:
-        - image: macos-monterey
+        - image: macos-ventura
+
     before_build:
       - sh: cmake -DCMAKE_BUILD_TYPE=$CONFIGURATION -B build
     build_script:
