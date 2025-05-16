@@ -74,9 +74,9 @@ class ITMD
      * @param x The momentum fraction of the parton.
      * @param kt2 The transverse momentum squared of the parton.
      * @param mu2 The factorization scale squared.
-     * @return A vector containing the TMD PDF values for all flavors {tbar [0], bbar [1], cbar [2], sbar [3], ubar [4], dbar[5], g [6], d [7], u [8], s [9], c [10], b [11], t [12], photon [13]}.
+     * @return A vector containing the TMD PDF values for all flavors {tbar [0], bbar [1], cbar [2], sbar [3], ubar [4], dbar[5], g [6], d [7], u [8], s [9], c [10], b [11], t [12]}.
      */
-    void tmd(double x, double kt2, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output)
+    void tmd(double x, double kt2, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const
     {
         return tmdOperation1_(pimpl_.get(), x, kt2, mu2, output);
     }
