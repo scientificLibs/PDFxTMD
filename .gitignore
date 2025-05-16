@@ -56,3 +56,4 @@ out/*
 *.ipch
 *.db-wal
 /.vs
+*.whl
