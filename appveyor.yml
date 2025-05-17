@@ -5,15 +5,33 @@ image:
   - Ubuntu2204
   - macOS
 
+platform:
+  - x64
+  - ARM64
+
 configuration:
   - Release
+
+matrix:
+  exclude:
+    - image: Ubuntu2204
+      platform: ARM64
+    - image: macOS
+      platform: ARM64
 
 for:
   - matrix:
       only:
         - image: Visual Studio 2019
+          platform: ARM64
+    install:
+      - ps: Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList 'modify --installPath "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community" --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --quiet' -Wait
+
+  - matrix:
+      only:
+        - image: Visual Studio 2019
     before_build:
-      - cmake -G "Visual Studio 16 2019" -A x64 -B build
+      - cmake -G "Visual Studio 16 2019" -A %PLATFORM% -B build
     build_script:
       - cmake --build build --config %CONFIGURATION%
 
