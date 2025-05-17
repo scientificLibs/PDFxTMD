@@ -1,6 +1,8 @@
 #include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.h"
 #include <cassert>
+#if defined(_M_X64) || defined(_M_IX86)
 #include <immintrin.h> // For AVX intrinsics
+#endif
 #include <vector>
 namespace PDFxTMD
 {
@@ -94,9 +96,10 @@ inline double _interpolate(const DefaultAllFlavorShape& grid, size_t ix, size_t 
     int flavorId = grid.get_pid(static_cast<int>(pid));
     if (flavorId == -1) return 0.0;
 
+#if defined(_M_X64) || defined(_M_IX86)
     // Prefetch coefficients for next iteration
     _mm_prefetch((const char*)&grid.coeff(ix, iq2 + 1, flavorId, 0), _MM_HINT_T0);
-
+#endif
   double vl = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2, flavorId, 0));
     double vh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 + 1, flavorId, 0));
 
