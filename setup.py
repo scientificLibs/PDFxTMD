@@ -59,7 +59,7 @@ elif sys.platform == "darwin":  # macOS
     extra_objects = [lib_path]
     libraries = []
     extra_link_args = []
-else:  # Linux and others
+else:
     lib_path = find_linux_lib("PDFxTMDLib")
     extra_objects = [lib_path]
     libraries = []
