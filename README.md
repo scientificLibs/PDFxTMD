@@ -9,6 +9,45 @@ PDFxTMDLib is a high-performance C++ library for parton distribution functions (
 
 For a comprehensive understanding of PDFxTMDLib, please refer to the full paper available on [https://arxiv.org/abs/2412.16680](https://arxiv.org/abs/2412.16680).
 
+## Python Bindings
+
+PDFxTMDLib provides easy-to-use Python bindings, allowing you to access all major features directly from Python.
+
+### Installation
+
+You can install the Python package directly from PyPI:
+
+```bash
+pip install pdfxtmd
+```
+
+### Quick Python Example
+
+```python
+import pdfxtmd
+
+# Create a collinear PDF object
+cpdf_factory = pdfxtmd.GenericCPDFFactory()
+cpdf = cpdf_factory.mkCPDF("CT18NLO", 0)
+x = 0.01
+mu2 = 100
+up_pdf = cpdf.pdf(pdfxtmd.PartonFlavor.u, x, mu2)
+print("Up quark PDF:", up_pdf)
+
+# Create a TMD PDF object
+tmd_factory = pdfxtmd.GenericTMDFactory()
+tmd = tmd_factory.mkTMD("PB-NLO-HERAI+II-2023-set2-qs=0.74", 0)
+kt2 = 10
+gluon_tmd = tmd.tmd(pdfxtmd.PartonFlavor.g, x, kt2, mu2)
+print("Gluon TMD:", gluon_tmd)
+
+# Compute all flavors at once
+all_flavors = [0.0] * 13
+cpdf.pdf(x, mu2, all_flavors)
+print("All flavors:", all_flavors)
+```
+
+For a more detailed tutorial, see [python_tutorial.py](examples/python_tutorial.py).
 
 ## Features
 
@@ -54,7 +93,7 @@ make
 sudo make install
 ```
 
-## Quick Start
+## Quick Start (C++)
 
 ### 1. Write Your Program
 Create a `main.cpp` file with the following code:
@@ -109,6 +148,13 @@ auto ct18Obj_ = ct18Obj.mkCPDF("CT18NLO", 0);
 double gCt18Obj_ = ct18Obj_.pdf(PartonFlavor::g, x, mu2);
 std::cout << "Gluon PDF of CT18 is: " << gCt18Obj_ << std::endl;
 ```
+
+## Python Tutorial
+
+A full Python tutorial is available in [examples/python_tutorial.py](examples/python_tutorial.py).  
+It demonstrates how to load PDF sets, evaluate PDFs and TMDs, and retrieve all flavors at once.
+
+---
 
 ## Advanced Usage
 
