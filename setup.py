@@ -54,7 +54,7 @@ if sys.platform == "win32":
     extra_objects = [lib_path]
     libraries = []
     extra_link_args = []
-elif sys.platform == "darwin":  # macOS
+elif sys.platform == "darwin":
     lib_path = find_macos_lib("PDFxTMDLib")
     extra_objects = [lib_path]
     libraries = []
