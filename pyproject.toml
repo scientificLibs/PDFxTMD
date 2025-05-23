@@ -1,3 +1,22 @@
+[project]
+name = "pdfxtmd"
+version = "0.3.9"
+description = "PDFxTMD is a library for parton distribution functions (PDFs) that integrates both collinear PDFs (cPDFs) and transverse momentum-dependent PDFs (TMDs)."
+authors = [
+    {name = "Ramin Kord Valeshabadi", email = "raminkord92@gmail.com"}
+]
+license = {text = "GPL-3.0"}
+readme = "examples/python/readme-pyversion.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/Raminkord92/PDFxTMD"
+
 [build-system]
 requires = ["setuptools", "wheel", "pybind11"]
 build-backend = "setuptools.build_meta"
