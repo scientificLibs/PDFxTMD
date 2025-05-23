@@ -80,6 +80,16 @@ ext_modules = [
 setup(
     name="pdfxtmd",
     version="0.3.9",
+    author="Ramin Kord Valeshabadi",
+    author_email="raminkord92@gmail.com",
+    description="PDFxTMD is a library for parton distribution functions (PDFs) that integrates both collinear PDFs (cPDFs) and transverse momentum-dependent PDFs (TMDs).",
+    url="https://github.com/Raminkord92/PDFxTMD",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: GNU General Public License v3.0",
+        "Operating System :: OS Independent",
+    ],
+    python_requires=">=3.6",
     ext_modules=ext_modules,
     cmdclass={"build_ext": build_ext},
     zip_safe=False,

@@ -37,7 +37,7 @@ def main():
     print("Gluon PDF:", cpdf.pdf(pdfxtmd.PartonFlavor.g, x, mu2))
 
     # 3. Evaluate all flavors at once (output is modified in-place)
-    all_flavors = [0.0] * 13
+    all_flavors = [0.0]
     cpdf.pdf(x, mu2, all_flavors)
     print("All flavors (CPDF):", all_flavors)
 
@@ -53,7 +53,7 @@ def main():
     print("Up quark TMD:", tmd.tmd(pdfxtmd.PartonFlavor.u, x, kt2, mu2))
 
     # 6. Evaluate all TMD flavors at once (output is modified in-place)
-    all_tmd_flavors = [0.0] * 13
+    all_tmd_flavors = [0.0]
     tmd.tmd(x, kt2, mu2, all_tmd_flavors)
     print("All flavors (TMD):", all_tmd_flavors)
 
