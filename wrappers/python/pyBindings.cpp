@@ -109,13 +109,12 @@ PYBIND11_MODULE(pdfxtmd, m) {
                 if (mu2 <= 0) {
                     throw std::invalid_argument("Factorization scale squared mu2 must be positive");
                 }
-                output.attr("clear")();
-                // Call C++ method
                 std::array<double, 13> temp;
                 self.tmd(x, kt2, mu2, temp);
                 // Copy results to Python list
-                for (size_t i = 0; i < temp.size(); ++i) {
-                    output[i] = temp[i];
+                for (size_t i = 0; i < temp.size(); ++i)
+                {
+                    output.append(temp[i]);
                 }
             } catch (const std::exception& e) {
                 throw py::value_error("Error evaluating TMD for all flavors at x=" + std::to_string(x) +
@@ -190,13 +189,10 @@ PYBIND11_MODULE(pdfxtmd, m) {
                 if (mu2 <= 0) {
                     throw std::invalid_argument("Factorization scale squared mu2 must be positive");
                 }
-                // Ensure list elements can hold floats
-                output.attr("clear")();
                 std::array<double, 13> temp;
                 self.pdf(x, mu2, temp);
-                // Copy results to Python list
                 for (size_t i = 0; i < temp.size(); ++i) {
-                    output[i] = temp[i];
+                    output.append(temp[i]);
                 }
             } catch (const std::exception& e) {
                 throw py::value_error("Error evaluating CPDF for all flavors at x=" + std::to_string(x) +
