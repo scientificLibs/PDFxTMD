@@ -13,12 +13,9 @@
 #include "PDFxTMDLib/Interface/IExtrapolator.h"
 #include "PDFxTMDLib/Interface/IInterpolator.h"
 #include "PDFxTMDLib/Interface/IReader.h"
-
 #include <algorithm>
 #include <array>
-#include <execution>
 #include <iostream>
-#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <type_traits>

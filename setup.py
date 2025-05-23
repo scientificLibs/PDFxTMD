@@ -15,8 +15,19 @@ include_dirs = [os.path.join(install_dir, "include")]
 
 def find_linux_lib(basename):
     """
-    Look for lib{basename}.a under installed/lib64 or installed/lib.
-    Returns the full path to the .a or raises if not found.
+    Look for lib{basename}.a under installed/lib64 or installed/lib (for Linux).
+    """
+    for sub in ("lib64", "lib"):
+        candidate = os.path.join(install_dir, sub, f"lib{basename}.a")
+        if os.path.isfile(candidate):
+            return candidate
+    raise FileNotFoundError(
+        f"static library lib{basename}.a not found under {install_dir}/lib64 or {install_dir}/lib"
+    )
+
+def find_macos_lib(basename):
+    """
+    Look for lib{basename}.a under installed/lib64 or installed/lib (for macOS).
     """
     for sub in ("lib64", "lib"):
         candidate = os.path.join(install_dir, sub, f"lib{basename}.a")
@@ -40,6 +51,11 @@ def find_windows_lib(basename):
 
 if sys.platform == "win32":
     lib_path = find_windows_lib("PDFxTMDLib")
+    extra_objects = [lib_path]
+    libraries = []
+    extra_link_args = []
+elif sys.platform == "darwin":
+    lib_path = find_macos_lib("PDFxTMDLib")
     extra_objects = [lib_path]
     libraries = []
     extra_link_args = []
