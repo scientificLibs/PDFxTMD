@@ -65,3 +65,4 @@ out/*
 /build32
 /.vscode
 CMakeSettings.json
+*.whl
