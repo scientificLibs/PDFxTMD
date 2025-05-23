@@ -10,10 +10,6 @@
 #include <array>
 
 #define FOLDER_SEP "/"
-
-#if defined(_WIN32)
-#define PDF_X_TMD_REGISTRY_PATH "Software\\PDFxTMD"
-#endif
 #define STD_PDF_INFO_EXTENSION ".info"
 #define STD_PDF_DATA_EXTENSION ".dat"
 #define DEFAULT_TOTAL_PDFS 13
