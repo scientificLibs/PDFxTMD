@@ -16,8 +16,5 @@ before-all = [
 
 [tool.cibuildwheel.windows]
 before-all = [
-    "if exist build rmdir /s /q build",
-    "cmake -S . -B build -DCMAKE_INSTALL_PREFIX=installed -DCMAKE_BUILD_TYPE=Release -DENABLE_BUILDING_WRAPPERS=OFF",
-    "cmake --build build --config Release",
-    "cmake --install build"
+    "build_libs.bat"
 ]

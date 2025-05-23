@@ -57,3 +57,12 @@ out/*
 *.db-wal
 /.vs
 *.whl
+*.tlog
+/installed
+/installed32
+/installed64
+/pdfxtmd.egg-info
+/build64
+/build32
+/.vscode
+CMakeSettings.json
