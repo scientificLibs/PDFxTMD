@@ -23,7 +23,7 @@ before-all = [
 before-all = [
     "brew install cmake",
     "rm -rf build",
-    "cmake -S . -B build -DCMAKE_INSTALL_PREFIX=installed -DCMAKE_BUILD_TYPE=Release -DENABLE_BUILDING_WRAPPERS=OFF -DCMAKE_OSX_ARCHITECTURES=arm64",
+"cmake -S . -B build -DCMAKE_INSTALL_PREFIX=installed -DCMAKE_BUILD_TYPE=Release -DENABLE_BUILDING_WRAPPERS=OFF -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0",
     "cmake --build build --config Release",
     "cmake --install build"
 ]
