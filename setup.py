@@ -86,6 +86,8 @@ setup(
     url="https://github.com/Raminkord92/PDFxTMD",
     long_description=open("examples/python/readme-pyversion.md").read(),
     long_description_content_type="text/markdown",
+    license="GPL-3.0",
+    platforms=["any"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: GNU General Public License v3.0",
