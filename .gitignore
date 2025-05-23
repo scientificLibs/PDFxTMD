@@ -56,7 +56,6 @@ out/*
 *.ipch
 *.db-wal
 /.vs
-*.whl
 *.tlog
 /installed
 /installed32
