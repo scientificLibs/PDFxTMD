@@ -18,3 +18,11 @@ before-all = [
 before-all = [
     "build_libs.bat"
 ]
+
+[tool.cibuildwheel.macos]
+before-all = [
+    "rm -rf build",
+    "cmake -S . -B build -DCMAKE_INSTALL_PREFIX=installed -DCMAKE_BUILD_TYPE=Release -DENABLE_BUILDING_WRAPPERS=OFF -DCMAKE_OSX_ARCHITECTURES=arm64",
+    "cmake --build build --config Release",
+    "cmake --install build"
+]
