@@ -56,7 +56,6 @@ out/*
 *.ipch
 *.db-wal
 /.vs
-*.whl
 *.tlog
 /installed
 /installed32
@@ -66,3 +65,4 @@ out/*
 /build32
 /.vscode
 CMakeSettings.json
+*.whl
