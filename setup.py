@@ -84,6 +84,8 @@ setup(
     author_email="raminkord92@gmail.com",
     description="PDFxTMD is a library for parton distribution functions (PDFs) that integrates both collinear PDFs (cPDFs) and transverse momentum-dependent PDFs (TMDs).",
     url="https://github.com/Raminkord92/PDFxTMD",
+    long_description=open("examples/python/readme-pyversion.md").read(),
+    long_description_content_type="text/markdown",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: GNU General Public License v3.0",
