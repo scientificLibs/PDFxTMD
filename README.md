@@ -244,7 +244,7 @@ gluon_tmd = tmd.tmd(pdfxtmd.PartonFlavor.g, x, kt2, mu2)
 print("Gluon TMD:", gluon_tmd)
 
 # Compute all flavors at once
-all_flavors = [0.0] * 13
+all_flavors = []
 cpdf.pdf(x, mu2, all_flavors)
 print("All flavors:", all_flavors)
 ```
