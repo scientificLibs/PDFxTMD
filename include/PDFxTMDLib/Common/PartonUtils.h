@@ -8,12 +8,21 @@
 #include <algorithm>
 #include <map>
 #include <array>
+#include <cmath>
 
 #define FOLDER_SEP "/"
 #define STD_PDF_INFO_EXTENSION ".info"
 #define STD_PDF_DATA_EXTENSION ".dat"
 #define DEFAULT_TOTAL_PDFS 13
-
+#define DEFULT_NUM_FLAVORS 5
+#define DOWN_DEFAULT_MASS 0.005
+#define UP_DEFAULT_MASS 0.002
+#define STRANGE_DEFAULT_MASS 0.10
+#define CHARM_DEFAULT_MASS 1.29
+#define BOTTOM_DEFAULT_MASS 4.19
+#define TOP_DEFAULT_MASS 172.9
+#define SQR(x) ((x) * (x))
+#define NO_REQUESTED_CONFIDENCE_LEVEL -1
 namespace PDFxTMD
 {
 // https://www.modernescpp.com/index.php/from-variadic-templates-to-fold-expressions/
@@ -66,6 +75,7 @@ enum PartonFlavor
     wminus,
     higgs
 };
+
 constexpr std::array<PartonFlavor, DEFAULT_TOTAL_PDFS> standardPartonFlavors = {
     PartonFlavor::tbar, PartonFlavor::bbar,  PartonFlavor::cbar, PartonFlavor::sbar,
     PartonFlavor::ubar, PartonFlavor::dbar,  PartonFlavor::gNS,    PartonFlavor::d,
@@ -95,4 +105,6 @@ inline size_t indexbelow(double value, const std::vector<double>& knots) {
     i -= 1;                // step back to get the knot <= x behaviour
     return i;
   }
+    /// Check if a number is in a range (closed-open) (from lhapdf)
+  inline int in_range(double x, double low, double high) { return x >= low && x < high; }
 } // namespace PDFxTMD

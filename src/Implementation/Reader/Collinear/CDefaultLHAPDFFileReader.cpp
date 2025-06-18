@@ -1,7 +1,7 @@
 #include "PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
 #include "PDFxTMDLib/Common/Exception.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
-#include "PDFxTMDLib/Common/YamlInfoReader.h"
+#include "PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h"
 #include <fstream>
 #include <string>
 
@@ -56,7 +56,7 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
         throw FileLoadException("Unable to find info file of PDF set " + pdfName);
     }
 
-    auto pdfStandardInfo = YamlStandardPDFInfoReader<YamlStandardPDFInfo>(*infoPathPair.first);
+    auto pdfStandardInfo = YamlStandardPDFInfoReader(*infoPathPair.first);
     if (pdfStandardInfo.second != ErrorType::None)
     {
         throw InvalidFormatException("File " + *infoPathPair.first +
