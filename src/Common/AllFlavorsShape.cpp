@@ -56,7 +56,9 @@ int findPidInPids(int pid, const std::vector<int>& pids) {
 
 void DefaultAllFlavorShape::initPidLookup() {
     if (_pids.empty()) {
+        #if defined(ENABLE_LOG) && (ENABLE_LOG == 1)
         std::cerr << "Error: PID list empty during lookup initialization" << std::endl;
+        #endif
         throw std::runtime_error("Empty PID list");
     }
 

@@ -54,7 +54,7 @@ bool AddPathToEnvironment(const std::string &newPath)
         delimitedPaths += "|" + newPath;
 
     config.set("paths", delimitedPaths.c_str());
-    std::cout << "delimitedPaths " << delimitedPaths << std::endl;
+    PDFxTMDLOG << "delimitedPaths " << delimitedPaths << std::endl;
     return config.saveToFile(configFilePath);
 }
 

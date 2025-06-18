@@ -1,7 +1,7 @@
 #include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
 #include "PDFxTMDLib/Common/Exception.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
-#include "PDFxTMDLib/Common/YamlInfoReader.h"
+#include "PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h"
 #include <fstream>
 #include <set>
 
@@ -45,7 +45,7 @@ void TDefaultAllFlavorReader::read(const std::string &pdfName, int setNumber)
         throw FileLoadException("Unable to find info file of PDF set " + pdfName);
     }
 
-    auto updfStandardInfo = YamlStandardPDFInfoReader<YamlStandardTMDInfo>(*infoPathPair.first);
+    auto updfStandardInfo = YamlStandardPDFInfoReader(*infoPathPair.first);
     if (updfStandardInfo.second != ErrorType::None)
     {
         throw InvalidFormatException("File " + *infoPathPair.first +
