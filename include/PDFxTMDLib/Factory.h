@@ -3,6 +3,7 @@
 #include "PDFxTMDLib/ICPDF.h"
 #include "PDFxTMDLib/IQCDCoupling.h"
 #include "PDFxTMDLib/ITMD.h"
+#include "PDFxTMDLib/Common/YamlMetaInfo/YamlCouplingInfo.h"
 
 namespace PDFxTMD
 {

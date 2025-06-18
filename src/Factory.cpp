@@ -1,5 +1,5 @@
 #include "PDFxTMDLib/Factory.h"
-#include "PDFxTMDLib/Common/YamlInfoReader.h"
+#include "PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h"
 #include "PDFxTMDLib/GenericPDF.h"
 #include "PDFxTMDLib/Implementation/Coupling/Interpolation/YamlCouplingInterp.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
@@ -12,6 +12,7 @@
 #include "PDFxTMDLib/Implementation/Interpolator/TMD/TTrilinearInterpolator.h"
 #include "PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
 #include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
+#include "PDFxTMDLib/Common/YamlMetaInfo/YamlImpelemntationInfo.h"
 #include <memory>
 
 namespace PDFxTMD
