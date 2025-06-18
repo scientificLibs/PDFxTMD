@@ -2,7 +2,7 @@
 #include "PDFxTMDLib/Common/AllFlavorsShape.h"
 #include "PDFxTMDLib/Common/Exception.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
-#include "PDFxTMDLib/Common/YamlInfoReader.h"
+#include "PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h"
 #include "PDFxTMDLib/external/mlinterp/mlinterp.hpp"
 #include <array>
 #include <cmath>

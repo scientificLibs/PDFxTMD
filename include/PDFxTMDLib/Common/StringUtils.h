@@ -55,4 +55,10 @@ inline std::string ToUpper(const std::string &str)
     std::transform(upperStr.begin(), upperStr.end(), upperStr.begin(), ::toupper);
     return upperStr;
 }
+inline bool StartsWith(const std::string& str, const std::string& prefix) {
+    if (str.length() < prefix.length()) {
+        return false;
+    }
+    return str.compare(0, prefix.length(), prefix) == 0;
+}
 } // namespace PDFxTMD
