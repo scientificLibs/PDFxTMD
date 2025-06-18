@@ -7,6 +7,7 @@
 #include <iostream>
 #include <set>
 #include <fstream>
+#include <PDFxTMDLib/Common/Logger.h>
 
 namespace fs = std::filesystem;
 namespace PDFxTMD
@@ -38,7 +39,7 @@ bool hasWriteAccess(const std::string &path)
         // Check if the file exists
         if (!std::filesystem::exists(file_status))
         {
-            std::cout << "File does not exist." << std::endl;
+            PDFxTMDLOG << "File does not exist." << std::endl;
             return false;
         }
 
@@ -62,12 +63,16 @@ bool hasWriteAccess(const std::string &path)
     }
     catch (const std::filesystem::filesystem_error &e)
     {
+        #if defined(ENABLE_LOG) && (ENABLE_LOG == 1)
         std::cerr << "Filesystem error: " << e.what() << std::endl;
+        #endif
         return false;
     }
     catch (const std::exception &e)
     {
+        #if defined(ENABLE_LOG) && (ENABLE_LOG == 1)
         std::cerr << "Error: " << e.what() << std::endl;
+        #endif
         return false;
     }
 }

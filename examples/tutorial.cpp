@@ -1,3 +1,4 @@
+#define PDFxTMD_ENABLE_LOG 1
 #include <iostream>
 #include <PDFxTMDLib/Factory.h>
 #include <array>
@@ -6,6 +7,8 @@
 #include <PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBilinearInterpolator.h>
 #include <PDFxTMDLib/Implementation/Extrapolator/Collinear/CErrExtrapolator.h>
 #include <PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h>
+#include <PDFxTMDLib/PDFSet.h>
+#include <PDFxTMDLib/Common/Logger.h>
 
 constexpr const char* PartonFlavorToString(const int flavorIndex)
 {
@@ -45,7 +48,34 @@ constexpr const char* PartonFlavorToString(const int flavorIndex)
 
 int main()
 {
-    //calculating cPDFs with factory method
+    // calculatig cPDFs with PDFSet approach. It gives a vector of all PDFSet members.
+    PDFxTMD::PDFSet<PDFxTMD::CollinearPDFTag> PDFSet("MMHT2014lo68cl");
+    //Calculating PDF uncertainty is easily done via Uncertainty method. 
+    //There is also an overload similar to LHAPDF: void Uncertainty(const std::vector<double> &values, double cl, PDFUncertainty &resUncertainty). 
+    PDFxTMD::PDFUncertainty uncertainty;
+    /*
+    it can also be calculated using this overload:
+    uncertainty = PDFSet.Uncertainty(PDFxTMD::PartonFlavor::g, 0.1, 10000, NO_REQUESTED_CONFIDENCE_LEVEL)
+    or
+    uncertainty = PDFSet.Uncertainty(PDFxTMD::PartonFlavor::g, 0.1, 10000)
+    */
+    PDFSet.Uncertainty(PDFxTMD::PartonFlavor::g, 0.1, 10000, NO_REQUESTED_CONFIDENCE_LEVEL, uncertainty);
+    std::cout << "PDF uncertainties on g computed with MMHT2014lo68cl  at its default CL" << std::endl;
+    std::cout << " xg= " << uncertainty.central << " +" << uncertainty.errplus << " -" << uncertainty.errminus << " (+-" << uncertainty.errsymm << ")" << std::endl;
+    ////////////////////////////////////////////////////////////////////////////////////
+    PDFxTMD::PDFUncertainty uncertainty90PerCent = PDFSet.Uncertainty(PDFxTMD::PartonFlavor::g, 0.1, 10000, 90);
+    std::cout << "PDF uncertainties on g computed with MMHT2014lo68cl  at CL = 90%" << std::endl;
+    std::cout << " xg= " << uncertainty90PerCent.central << " +" << uncertainty90PerCent.errplus << " -" << uncertainty90PerCent.errminus << " (+-" << uncertainty90PerCent.errsymm << ")" << std::endl;
+    //////////////////////////////////////////////////////////////////////////////////////
+    /*
+    correlation between two PDFSets are easily calculable using:
+    double Correlation(PartonFlavor flavorA, double xA, double mu2A, PartonFlavor flavorB, double xB, double mu2B)
+    there is also similar method to LHAPDF:
+    double Correlation(const std::vector<double>& valuesA, const std::vector<double>& valuesB) const
+    */
+    double correlation = PDFSet.Correlation(PDFxTMD::PartonFlavor::g, 1e-1, 10000, PDFxTMD::PartonFlavor::g, 1e-1, 10000);
+    std::cout << "correlation between g and g at same scale and momentum fraction: " << correlation << std::endl;
+    // calculating cPDFs with factory method
     auto PDFFactory = PDFxTMD::GenericCPDFFactory();
     auto MMHT2014LO68cl = PDFFactory.mkCPDF("MMHT2014lo68cl", 0);
     double x = 0.0001;
