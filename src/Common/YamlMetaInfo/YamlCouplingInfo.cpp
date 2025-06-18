@@ -1,38 +1,11 @@
-#include "PDFxTMDLib/Common/YamlInfoReader.h"
-#include "PDFxTMDLib/Common/Exception.h"
-#include "PDFxTMDLib/Common/StringUtils.h"
-#include <iostream>
+#include <PDFxTMDLib/Common/YamlMetaInfo/YamlCouplingInfo.h>
+#include <PDFxTMDLib/Common/ConfigWrapper.h>
+#include <PDFxTMDLib/Common/StringUtils.h>
+#include <PDFxTMDLib/Common/Exception.h>
 
 namespace PDFxTMD
 {
-std::pair<std::optional<YamlImpelemntationInfo>, ErrorType> YamlImpelemntationInfoReader(
-    const std::string &yamlInfoPath)
-{
-    ConfigWrapper ConfigWrapper;
-    YamlImpelemntationInfo output;
-    if (!ConfigWrapper.loadFromFile(yamlInfoPath, ConfigWrapper::Format::YAML))
-    {
-        return {std::nullopt, ErrorType::FILE_NOT_FOUND};
-    }
-    auto [reader, errorReader] = ConfigWrapper.get<std::string>("Reader");
-    if (errorReader == ErrorType::None)
-    {
-        output.reader = *reader;
-    }
-    auto [interpolator, errorInterpolator] = ConfigWrapper.get<std::string>("Interpolator");
-    if (errorInterpolator == ErrorType::None)
-    {
-        output.interpolator = *interpolator;
-    }
-    auto [extrapolator_, errExtrapolator] = ConfigWrapper.get<std::string>("Extrapolator");
-    if (errExtrapolator == ErrorType::None)
-    {
-        output.extrapolator = *extrapolator_;
-    }
-    return {output, ErrorType::None};
-}
-
-std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
+    std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
     const std::string &yamlInfoPath)
 {
     ConfigWrapper ConfigWrapper;
@@ -168,12 +141,12 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
 
     if (!isMasssObtained)
     {
-        output.quarkMasses[PartonFlavor::d] = 0.005;
-        output.quarkMasses[PartonFlavor::u] = 0.002;
-        output.quarkMasses[PartonFlavor::s] = 0.10;
-        output.quarkMasses[PartonFlavor::c] = 1.29;
-        output.quarkMasses[PartonFlavor::b] = 4.19;
-        output.quarkMasses[PartonFlavor::t] = 172.9;
+        output.quarkMasses[PartonFlavor::d] = DOWN_DEFAULT_MASS;
+        output.quarkMasses[PartonFlavor::u] = UP_DEFAULT_MASS;
+        output.quarkMasses[PartonFlavor::s] = STRANGE_DEFAULT_MASS;
+        output.quarkMasses[PartonFlavor::c] = CHARM_DEFAULT_MASS;
+        output.quarkMasses[PartonFlavor::b] = BOTTOM_DEFAULT_MASS;
+        output.quarkMasses[PartonFlavor::t] = TOP_DEFAULT_MASS;
     }
 
     bool isFlavorSchemeObtained = false;
@@ -255,4 +228,4 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
     }
     return {output, ErrorType::None};
 }
-} // namespace PDFxTMD
+}

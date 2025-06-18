@@ -3,7 +3,7 @@
 #include "PDFxTMDLib/Common/Exception.h"
 #include "PDFxTMDLib/Common/PDFUtils.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
-#include "PDFxTMDLib/Common/YamlInfoReader.h"
+#include <PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h>
 #include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/TMD/TZeroExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.h"
@@ -221,7 +221,7 @@ class GenericPDF
         if constexpr (std::is_same_v<Tag, TMDPDFTag>)
         {
             auto pdfStandardInfo =
-                YamlStandardPDFInfoReader<YamlStandardTMDInfo>(*infoPathPair.first);
+                YamlStandardPDFInfoReader(*infoPathPair.first);
             if (pdfStandardInfo.second != ErrorType::None)
                 throw InvalidFormatException("Invalid standard info file " + *infoPathPair.first);
             m_stdInfo = *pdfStandardInfo.first;
@@ -229,7 +229,7 @@ class GenericPDF
         else if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
         {
             auto pdfStandardInfo =
-                YamlStandardPDFInfoReader<YamlStandardPDFInfo>(*infoPathPair.first);
+                YamlStandardPDFInfoReader(*infoPathPair.first);
             if (pdfStandardInfo.second != ErrorType::None)
                 throw InvalidFormatException("Invalid standard info file " + *infoPathPair.first);
             m_stdInfo = *pdfStandardInfo.first;

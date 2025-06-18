@@ -6,7 +6,7 @@ project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${P
 option(ENABLE_FORMATTING "Enable code formatting" OFF)
 option(ENABLE_DOCUMENTATION "Enable documentation generation" OFF)
 option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" OFF)
-option(ENABLE_BUILDING_EXAMPLES "Enable building examples" OFF)
+option(ENABLE_BUILDING_EXAMPLES "Enable building examples" ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -51,8 +51,13 @@ else()
 endif()
 
 set(ALL_SOURCES
-    src/Common/YamlInfoReader.cpp 
+    src/Common/MathUtils.cpp
     src/Common/PartonUtils.cpp 
+    src/Common/YamlMetaInfo/YamlCouplingInfo.cpp
+    src/Common/YamlMetaInfo/YamlImpelemntationInfo.cpp
+    src/Common/YamlMetaInfo/YamlStandardPDFInfo.cpp
+    src/Common/YamlMetaInfo/YamlErrorInfo.cpp
+    src/Common/PDFErrInfo.cpp
     src/Implementation/Interpolator/Collinear/CLHAPDFBilinearInterpolator.cpp
     src/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.cpp
     src/Implementation/Interpolator/TMD/TTrilinearInterpolator.cpp
@@ -63,6 +68,11 @@ set(ALL_SOURCES
     src/FortranFactoryWrapper.cpp
     src/Common/FileUtils.cpp
     src/Common/AllFlavorsShape.cpp
+    src/Uncertainty/HessianStrategy.cpp
+    src/Uncertainty/ReplicasPercentileStrategy.cpp
+    src/Uncertainty/ReplicasStdDevStrategy.cpp
+    src/Uncertainty/SymmHessianStrategy.cpp
+    src/PDFSet.cpp
 )
 
 if(WIN32)
