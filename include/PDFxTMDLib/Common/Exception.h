@@ -84,4 +84,13 @@ class NotSupportError : public PDFxTMDException
     {
     }
 };
+class NotImplementedError : public PDFxTMDException
+{
+  public:
+    explicit NotImplementedError(const std::string &message)
+        : PDFxTMDException("Not implemented error: " + message)
+    {
+    }
+};
+
 } // namespace PDFxTMD

@@ -66,6 +66,7 @@ int main()
     PDFxTMD::PDFUncertainty uncertainty90PerCent = PDFSet.Uncertainty(PDFxTMD::PartonFlavor::g, 0.1, 10000, 90);
     std::cout << "PDF uncertainties on g computed with MMHT2014lo68cl  at CL = 90%" << std::endl;
     std::cout << " xg= " << uncertainty90PerCent.central << " +" << uncertainty90PerCent.errplus << " -" << uncertainty90PerCent.errminus << " (+-" << uncertainty90PerCent.errsymm << ")" << std::endl;
+    PDFSet.alphasQ2(100);
     //////////////////////////////////////////////////////////////////////////////////////
     /*
     correlation between two PDFSets are easily calculable using:
