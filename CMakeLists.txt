@@ -72,7 +72,6 @@ set(ALL_SOURCES
     src/Uncertainty/ReplicasPercentileStrategy.cpp
     src/Uncertainty/ReplicasStdDevStrategy.cpp
     src/Uncertainty/SymmHessianStrategy.cpp
-    src/PDFSet.cpp
 )
 
 if(WIN32)
