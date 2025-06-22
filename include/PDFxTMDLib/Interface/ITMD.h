@@ -88,9 +88,11 @@ class ITMD
      * 
      * @param other The ITMD object to copy.
      */
-    ITMD(const ITMD &other)
-        : pimpl_(other.clone_(other.pimpl_.get()), other.pimpl_.get_deleter()),
-          clone_(other.clone_), tmdOperation_(other.tmdOperation_)
+    ITMD(const ITMD &other):
+    pimpl_(other.clone_(other.pimpl_.get()), other.pimpl_.get_deleter()),
+    clone_(other.clone_),
+    tmdOperation_(other.tmdOperation_),
+    tmdOperation1_(other.tmdOperation1_)
     {
     }
 
@@ -109,6 +111,7 @@ class ITMD
         swap(pimpl_, copy.pimpl_);
         swap(clone_, copy.clone_);
         swap(tmdOperation_, copy.tmdOperation_);
+        swap(tmdOperation1_, copy.tmdOperation1_);
         return *this;
     }
 

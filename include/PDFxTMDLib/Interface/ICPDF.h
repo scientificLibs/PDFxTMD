@@ -85,9 +85,12 @@ class ICPDF
      * 
      * @param other The ICPDF object to copy.   
      */
-    ICPDF(const ICPDF &other)
-        : pimpl_(other.clone_(other.pimpl_.get()), other.pimpl_.get_deleter()),
-          clone_(other.clone_), pdfOperation_(other.pdfOperation_)
+    ICPDF(const ICPDF &other):
+        pimpl_(other.clone_(other.pimpl_.get()), other.pimpl_.get_deleter()),
+        clone_(other.clone_),
+        pdfOperation_(other.pdfOperation_),
+        pdfOperation1_(other.pdfOperation1_)
+        
     {
     }
 
@@ -106,6 +109,7 @@ class ICPDF
         swap(pimpl_, copy.pimpl_);
         swap(clone_, copy.clone_);
         swap(pdfOperation_, copy.pdfOperation_);
+        swap(pdfOperation1_, copy.pdfOperation1_);
         return *this;
     }
 
