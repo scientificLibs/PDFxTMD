@@ -108,7 +108,6 @@ class ConfigWrapper
         return {std::nullopt, ErrorType::CONFIG_KeyNotFound};
     }
 
-    // New method to set a value for a key
     template <typename T>
     bool set(const std::string& key, const T& value)
     {
@@ -142,11 +141,11 @@ class ConfigWrapper
             auto serializedContent = fkyaml::node::serialize(data.yaml);
             ofs << serializedContent;
             ofs.close();
-            return true; // Successfully wrote to file
+            return true;
         }
         catch (const std::exception&)
         {
-            return false; // Serialization failed
+            return false; 
         }
     }
 

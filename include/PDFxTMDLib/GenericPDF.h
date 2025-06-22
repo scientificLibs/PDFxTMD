@@ -93,7 +93,6 @@ class GenericPDF
             if (isInRange(m_reader, x, mu2))
                 return m_interpolator.interpolate(flavor, x, mu2);
             return m_extrapolator.extrapolate(flavor, x, mu2);
-            ;
         }
         else
         {
@@ -239,18 +238,15 @@ class GenericPDF
             static_assert(!std::is_same_v<Tag, Tag>, "Unsupported Tag");
         }
     }
-    void loadData() const
+    void loadData()
     {
-        auto &reader = const_cast<Reader &>(m_reader);
-        reader.read(m_pdfName, m_setNumber);
-        auto &interpolator = const_cast<Interpolator &>(m_interpolator);
-        interpolator.initialize(&m_reader);
+        m_reader.read(m_pdfName, m_setNumber);
+        m_interpolator.initialize(&m_reader);
         if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
         {
             if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
             {
-                auto &extrapolator = const_cast<Extrapolator &>(m_extrapolator);
-                extrapolator.setInterpolator(&m_interpolator);
+                m_extrapolator.setInterpolator(&m_interpolator);
             }
         }
     }
