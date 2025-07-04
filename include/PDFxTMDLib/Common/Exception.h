@@ -93,4 +93,21 @@ class NotImplementedError : public PDFxTMDException
     }
 };
 
+class MetadataError : public PDFxTMDException
+{
+  public:
+    explicit MetadataError(const std::string &message)
+        : PDFxTMDException("MetadataError error: " + message)
+    {
+    }
+};
+
+class AlphaQCDError : public PDFxTMDException
+{
+  public:
+    explicit AlphaQCDError(const std::string &message)
+        : PDFxTMDException("AlphaQCD error: " + message)
+    {
+    }
+};
 } // namespace PDFxTMD

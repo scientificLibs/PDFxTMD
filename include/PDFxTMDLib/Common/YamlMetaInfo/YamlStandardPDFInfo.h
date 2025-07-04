@@ -1,9 +1,9 @@
 #pragma once
+#include <PDFxTMDLib/Common/ConfigWrapper.h>
+#include <PDFxTMDLib/Common/PartonUtils.h>
 #include <map>
 #include <optional>
 #include <type_traits>
-#include <PDFxTMDLib/Common/PartonUtils.h>
-#include <PDFxTMDLib/Common/ConfigWrapper.h>
 
 namespace PDFxTMD
 {
@@ -28,5 +28,6 @@ struct YamlStandardTMDInfo : YamlStandardPDFInfo
     std::string TMDScheme = "";
 };
 
-std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoReader(const std::string &yamlInfoPath);
-}
+std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoReader(
+    const std::string &yamlInfoPath);
+} // namespace PDFxTMD

@@ -45,7 +45,7 @@ class CNearestPointExtrapolator
         return this->m_interpolator->interpolate(flavor, closestX, closestQ2);
     }
 
-    void extrapolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const
+    void extrapolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS> &output) const
     {
         /// Find the closest valid x and Q2 points, either on- or
         /// off-grid, and use the current interpolator
@@ -58,9 +58,11 @@ class CNearestPointExtrapolator
         const double closestQ2 = (isInRangeQ2(*reader, mu2)) ? mu2 : _findClosestMatch(q2Vals, mu2);
         for (int i = 0; i < DEFAULT_TOTAL_PDFS; i++)
         {
-            output[i] = this->m_interpolator->interpolate(standardPartonFlavors[i], closestX, closestQ2);
+            output[i] =
+                this->m_interpolator->interpolate(standardPartonFlavors[i], closestX, closestQ2);
         }
     }
+
   private:
     const Interpolator *m_interpolator = nullptr;
 };

@@ -16,7 +16,7 @@ class CErrExtrapolator : public IcPDFExtrapolator<CErrExtrapolator>
         throw std::runtime_error("Point x=" + std::to_string(x) + ", Q2=" + std::to_string(mu2) +
                                  " is outside the PDF grid boundaries");
     }
-    void extrapolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const
+    void extrapolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS> &output) const
     {
         throw std::runtime_error("Point x=" + std::to_string(x) + ", Q2=" + std::to_string(mu2) +
                                  " is outside the PDF grid boundaries");

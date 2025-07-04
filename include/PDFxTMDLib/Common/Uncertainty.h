@@ -1,6 +1,6 @@
 #pragma once
-#include <vector>
 #include <cmath>
+#include <vector>
 namespace PDFxTMD
 {
 /// @brief Structure for storage of uncertainty info calculated over a PDF error set
@@ -32,18 +32,12 @@ struct PDFUncertainty
 };
 const PDFUncertainty NULL_PDF_UNCERTAINTY = []() {
     PDFUncertainty temp(
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN(),
-        std::numeric_limits<double>::quiet_NaN() 
-    );
+        std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::quiet_NaN());
     temp.errparts = {};
     return temp;
 }();

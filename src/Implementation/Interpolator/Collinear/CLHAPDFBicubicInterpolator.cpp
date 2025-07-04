@@ -15,7 +15,9 @@ struct shared_data
     bool q2_lower, q2_upper;
     int q2_edge; // 0 = normal, 1 = lower, 2 = upper, 3 = both
 };
-inline shared_data fill(const DefaultAllFlavorShape& grid, double x, double q2, size_t ix, size_t iq2) {
+inline shared_data fill(const DefaultAllFlavorShape &grid, double x, double q2, size_t ix,
+                        size_t iq2)
+{
     shared_data shared;
     shared.logx = std::log(x);
     shared.logq2 = std::log(q2);
@@ -69,7 +71,8 @@ inline double _interpolateCubic(double t, double vl, double vdl, double vh, doub
     const double m1 = (t3 - t2) * vdh;
     return p0 + m0 + p1 + m1;
 }
-inline double _interpolateCubic(double t, double t2, double t3, double vl, double vdl, double vh, double vdh)
+inline double _interpolateCubic(double t, double t2, double t3, double vl, double vdl, double vh,
+                                double vdh)
 {
     const double p0 = (2 * t3 - 3 * t2 + 1) * vl;
     const double m0 = (t3 - 2 * t2 + t) * vdl;
@@ -86,49 +89,70 @@ inline double _interpolateCubic(double t, double t2, double t3, const double *co
     return coeffs[0] * t3 + coeffs[1] * t2 + coeffs[2] * t + coeffs[3];
 }
 /// Cubic interpolation using a passed array of coefficients
-inline double _interpolateCubic(double t, const double* coeffs) {
+inline double _interpolateCubic(double t, const double *coeffs)
+{
     double t2 = t * t;
     double t3 = t2 * t;
     return coeffs[0] * t3 + coeffs[1] * t2 + coeffs[2] * t + coeffs[3];
 }
 
-inline double _interpolate(const DefaultAllFlavorShape& grid, size_t ix, size_t iq2, PartonFlavor pid, shared_data& _share) {
+inline double _interpolate(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2,
+                           PartonFlavor pid, shared_data &_share)
+{
     int flavorId = grid.get_pid(static_cast<int>(pid));
-    if (flavorId == -1) return 0.0;
+    if (flavorId == -1)
+        return 0.0;
 
 #if defined(_M_X64) || defined(_M_IX86)
     // Prefetch coefficients for next iteration
-    _mm_prefetch((const char*)&grid.coeff(ix, iq2 + 1, flavorId, 0), _MM_HINT_T0);
+    _mm_prefetch((const char *)&grid.coeff(ix, iq2 + 1, flavorId, 0), _MM_HINT_T0);
 #endif
-  double vl = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2, flavorId, 0));
-    double vh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 + 1, flavorId, 0));
+    double vl = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3,
+                                  &grid.coeff(ix, iq2, flavorId, 0));
+    double vh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3,
+                                  &grid.coeff(ix, iq2 + 1, flavorId, 0));
 
     double vdiff = vh - vl;
     double vdl, vdh;
-    if (_share.q2_lower) {
+    if (_share.q2_lower)
+    {
         vdl = vdiff;
-        double vhh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 + 2, flavorId, 0));
+        double vhh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3,
+                                       &grid.coeff(ix, iq2 + 2, flavorId, 0));
         vdh = (vdiff + (vhh - vh) * _share.dlogq_1 * _share.dlogq_2) * 0.5;
-    } else if (_share.q2_upper) {
+    }
+    else if (_share.q2_upper)
+    {
         vdh = vdiff;
-        double vll = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 - 1, flavorId, 0));
+        double vll = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3,
+                                       &grid.coeff(ix, iq2 - 1, flavorId, 0));
         vdl = (vdiff + (vl - vll) * _share.dlogq_1 * _share.dlogq_0) * 0.5;
-    } else {
-        double vll = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 - 1, flavorId, 0));
+    }
+    else
+    {
+        double vll = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3,
+                                       &grid.coeff(ix, iq2 - 1, flavorId, 0));
         vdl = (vdiff + (vl - vll) * _share.dlogq_1 * _share.dlogq_0) * 0.5;
-        double vhh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3, &grid.coeff(ix, iq2 + 2, flavorId, 0));
+        double vhh = _interpolateCubic(_share.tlogx, _share.tlogx2, _share.tlogx3,
+                                       &grid.coeff(ix, iq2 + 2, flavorId, 0));
         vdh = (vdiff + (vhh - vh) * _share.dlogq_1 * _share.dlogq_2) * 0.5;
     }
 
     return _interpolateCubic(_share.tlogq, _share.tlogq2, _share.tlogq3, vl, vdl, vh, vdh);
 }
 
-inline double _interpolateFallback(const DefaultAllFlavorShape& grid, size_t ix, size_t iq2, PartonFlavor flavor, shared_data& _share) {
+inline double _interpolateFallback(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2,
+                                   PartonFlavor flavor, shared_data &_share)
+{
     int flavorId = grid.get_pid(static_cast<int>(flavor));
-    if (flavorId == -1) return 0.0;
+    if (flavorId == -1)
+        return 0.0;
 
-    double f_ql = grid.xf(ix, iq2, flavorId) + (_share.tlogx * (grid.xf(ix + 1, iq2, flavorId) - grid.xf(ix, iq2, flavorId)));
-    double f_qh = grid.xf(ix, iq2 + 1, flavorId) + (_share.tlogx * (grid.xf(ix + 1, iq2 + 1, flavorId) - grid.xf(ix, iq2 + 1, flavorId)));
+    double f_ql = grid.xf(ix, iq2, flavorId) +
+                  (_share.tlogx * (grid.xf(ix + 1, iq2, flavorId) - grid.xf(ix, iq2, flavorId)));
+    double f_qh =
+        grid.xf(ix, iq2 + 1, flavorId) +
+        (_share.tlogx * (grid.xf(ix + 1, iq2 + 1, flavorId) - grid.xf(ix, iq2 + 1, flavorId)));
     return f_ql + (_share.tlogq * (f_qh - f_ql));
 }
 

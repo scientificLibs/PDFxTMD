@@ -14,7 +14,7 @@ class CLHAPDFBilinearInterpolator
 
     // Main interface method - hot path
     double interpolate(PartonFlavor flavor, double x, double mu2) const;
-    void interpolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const;
+    void interpolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS> &output) const;
     void initialize(const IReader<CDefaultLHAPDFFileReader> *reader);
     const IReader<CDefaultLHAPDFFileReader> *getReader() const;
 

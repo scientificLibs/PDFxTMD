@@ -46,8 +46,7 @@ double ReplicasPercentileStrategy::Correlation(const std::vector<double> &values
     {
         cor += valuesA[imem] * valuesB[imem];
     }
-    cor = (cor / numCoreErrMember - errA.central * errB.central) /
-          (errA.errsymm * errB.errsymm);
+    cor = (cor / numCoreErrMember - errA.central * errB.central) / (errA.errsymm * errB.errsymm);
     cor *= numCoreErrMember / (numCoreErrMember - 1.0); //< bias correction
     return cor;
 }

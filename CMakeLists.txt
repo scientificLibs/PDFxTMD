@@ -3,9 +3,9 @@ include(cmake/version.cmake)
 include(CheckLanguage)
 project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} LANGUAGES CXX)
 
-option(ENABLE_FORMATTING "Enable code formatting" OFF)
-option(ENABLE_DOCUMENTATION "Enable documentation generation" OFF)
-option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" OFF)
+option(ENABLE_FORMATTING "Enable code formatting" ON)
+option(ENABLE_DOCUMENTATION "Enable documentation generation" ON)
+option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" ON)
 option(ENABLE_BUILDING_EXAMPLES "Enable building examples" ON)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -62,9 +62,8 @@ set(ALL_SOURCES
     src/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.cpp
     src/Implementation/Interpolator/TMD/TTrilinearInterpolator.cpp
     src/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.cpp
-    src/Implementation/Reader/TMD/TDefaultAllFlavorReader.cpp
+    src/Implementation/Reader/TMD/TDefaultLHAPDF_TMDReader.cpp
     src/Factory.cpp
-    src/Implementation/Coupling/Interpolation/YamlCouplingInterp.cpp
     src/FortranFactoryWrapper.cpp
     src/Common/FileUtils.cpp
     src/Common/AllFlavorsShape.cpp
@@ -72,6 +71,9 @@ set(ALL_SOURCES
     src/Uncertainty/ReplicasPercentileStrategy.cpp
     src/Uncertainty/ReplicasStdDevStrategy.cpp
     src/Uncertainty/SymmHessianStrategy.cpp
+    src/Implementation/Coupling/ODE/ODEQCDCoupling.cpp
+    src/Implementation/Coupling/Analytic/AnalyticQCDCoupling.cpp
+    src/Implementation/Coupling/Interpolation/InterpolateQCDCoupling.cpp
 )
 
 if(WIN32)

@@ -1,13 +1,13 @@
-#include "PDFxTMDLib/Common/ConfigWrapper.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
+#include "PDFxTMDLib/Common/ConfigWrapper.h"
 #include "PDFxTMDLib/Common/Exception.h"
 #include "PDFxTMDLib/Common/FileUtils.h"
+#include <PDFxTMDLib/Common/Logger.h>
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <set>
-#include <fstream>
-#include <PDFxTMDLib/Common/Logger.h>
 
 namespace fs = std::filesystem;
 namespace PDFxTMD
@@ -63,16 +63,16 @@ bool hasWriteAccess(const std::string &path)
     }
     catch (const std::filesystem::filesystem_error &e)
     {
-        #if defined(ENABLE_LOG) && (ENABLE_LOG == 1)
+#if defined(ENABLE_LOG) && (ENABLE_LOG == 1)
         std::cerr << "Filesystem error: " << e.what() << std::endl;
-        #endif
+#endif
         return false;
     }
     catch (const std::exception &e)
     {
-        #if defined(ENABLE_LOG) && (ENABLE_LOG == 1)
+#if defined(ENABLE_LOG) && (ENABLE_LOG == 1)
         std::cerr << "Error: " << e.what() << std::endl;
-        #endif
+#endif
         return false;
     }
 }
@@ -102,7 +102,6 @@ std::vector<std::string> GetPDFxTMDPathsAsVector()
         result.emplace(notDefaultPath);
     }
     return std::vector(result.begin(), result.end());
-
 }
 
 std::vector<std::string> split(const std::string &str, char delimiter)
@@ -182,8 +181,6 @@ double _extrapolateLinear(double x, double xl, double xh, double yl, double yh)
     }
 }
 
-
-
 std::string GetPDFxTMDPaths()
 {
     std::string rootPath;
@@ -223,7 +220,7 @@ std::string GetPDFxTMDPaths()
     {
         delimitedPaths = pathsPair.first.value();
     }
-    
+
     return delimitedPaths;
 }
 

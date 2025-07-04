@@ -21,7 +21,9 @@ class ConfigWrapper
     };
 
     // Modified constructor to initialize data
-    ConfigWrapper() : data{Format::YAML, fkyaml::node::mapping()} {}
+    ConfigWrapper() : data{Format::YAML, fkyaml::node::mapping()}
+    {
+    }
 
     bool loadFromFile(const std::filesystem::path &filepath, Format format)
     {
@@ -86,8 +88,8 @@ class ConfigWrapper
         }
         return false;
     }
-    template <typename T>
-    std::pair<std::optional<T>, ErrorType> get(const std::string &key) const
+
+    template <typename T> std::pair<std::optional<T>, ErrorType> get(const std::string &key) const
     {
         if (data.format == Format::YAML)
         {
@@ -108,8 +110,7 @@ class ConfigWrapper
         return {std::nullopt, ErrorType::CONFIG_KeyNotFound};
     }
 
-    template <typename T>
-    bool set(const std::string& key, const T& value)
+    template <typename T> bool set(const std::string &key, const T &value)
     {
         if (data.format == Format::YAML)
         {
@@ -119,7 +120,7 @@ class ConfigWrapper
                     return false;
                 data.yaml[key] = value;
             }
-            catch (const std::exception & e)
+            catch (const std::exception &e)
             {
                 throw std::runtime_error(e.what());
             }
@@ -129,7 +130,7 @@ class ConfigWrapper
     }
 
     // New method to save the configuration to a YAML file
-    bool saveToFile(const std::string& filename) const
+    bool saveToFile(const std::string &filename) const
     {
         std::ofstream ofs(filename);
         if (!ofs.is_open())
@@ -143,9 +144,9 @@ class ConfigWrapper
             ofs.close();
             return true;
         }
-        catch (const std::exception&)
+        catch (const std::exception &)
         {
-            return false; 
+            return false;
         }
     }
 

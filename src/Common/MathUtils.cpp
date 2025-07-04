@@ -106,9 +106,9 @@ double norm_quantile(double p)
     /// @todo Return +-inf
     if (p <= 0 || p >= 1)
     {
-        #if defined(ENABLE_LOG) && (ENABLE_LOG == 1)
+#if defined(ENABLE_LOG) && (ENABLE_LOG == 1)
         std::cerr << "norm_quantile: probability outside (0, 1)" << std::endl;
-        #endif
+#endif
         return 0;
     }
 
