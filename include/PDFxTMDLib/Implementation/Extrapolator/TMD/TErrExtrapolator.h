@@ -13,7 +13,8 @@ class TErrExtrapolator : public ITMDExtrapolator<TErrExtrapolator>
     {
         throw std::runtime_error("Requested data is outside the PDF grid boundaries");
     }
-    void extrapolate(double x, double kt2, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const
+    void extrapolate(double x, double kt2, double mu2,
+                     std::array<double, DEFAULT_TOTAL_PDFS> &output) const
     {
         throw std::runtime_error("Requested data is outside the PDF grid boundaries");
     }

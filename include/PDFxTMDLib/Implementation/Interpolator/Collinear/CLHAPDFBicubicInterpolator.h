@@ -14,7 +14,7 @@ class CLHAPDFBicubicInterpolator
     ~CLHAPDFBicubicInterpolator() = default;
 
     double interpolate(PartonFlavor flavor, double x, double q2) const;
-    void interpolate(double x, double q2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const;
+    void interpolate(double x, double q2, std::array<double, DEFAULT_TOTAL_PDFS> &output) const;
     void initialize(const IReader<CDefaultLHAPDFFileReader> *reader);
     const IReader<CDefaultLHAPDFFileReader> *getReader() const;
 

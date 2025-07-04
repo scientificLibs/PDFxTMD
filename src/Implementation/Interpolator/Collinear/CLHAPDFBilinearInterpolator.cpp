@@ -40,15 +40,13 @@ inline double _interpolateLinear(double x, double xl, double xh, double yl, doub
     return yl + (x - xl) / (xh - xl) * (yh - yl);
 }
 
-inline double _interpolate(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2, PartonFlavor flavor,
-                    shared_data _share)
+inline double _interpolate(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2,
+                           PartonFlavor flavor, shared_data _share)
 {
     const double f_ql = _interpolateLinear(_share.logx, _share.logx0, _share.logx1,
-                                           grid.xf(ix, iq2, flavor),
-                                           grid.xf(ix + 1, iq2, flavor));
+                                           grid.xf(ix, iq2, flavor), grid.xf(ix + 1, iq2, flavor));
     const double f_qh =
-        _interpolateLinear(_share.logx, _share.logx0, _share.logx1,
-                           grid.xf(ix, iq2 + 1, flavor),
+        _interpolateLinear(_share.logx, _share.logx0, _share.logx1, grid.xf(ix, iq2 + 1, flavor),
                            grid.xf(ix + 1, iq2 + 1, flavor));
     // Then interpolate in Q2, using the x-ipol results as anchor points
     return _interpolateLinear(_share.logq2, grid.log_mu2_vec.at(iq2), grid.log_mu2_vec.at(iq2 + 1),
@@ -66,21 +64,22 @@ const IReader<CDefaultLHAPDFFileReader> *CLHAPDFBilinearInterpolator::getReader(
     return m_reader;
 }
 
-void CLHAPDFBilinearInterpolator::interpolate(double x, double mu2, std::array<double, DEFAULT_TOTAL_PDFS>& output) const
+void CLHAPDFBilinearInterpolator::interpolate(double x, double mu2,
+                                              std::array<double, DEFAULT_TOTAL_PDFS> &output) const
 {
     const size_t ix = indexbelow(x, m_Shape.x_vec);
-    const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);   
+    const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);
     shared_data shared = fill(m_Shape, x, mu2, ix);
     for (int i = 0; i < DEFAULT_TOTAL_PDFS; i++)
     {
-       output[i] = _interpolate(m_Shape, ix, imu2, standardPartonFlavors[i], shared);
+        output[i] = _interpolate(m_Shape, ix, imu2, standardPartonFlavors[i], shared);
     }
 }
 
 double CLHAPDFBilinearInterpolator::interpolate(PartonFlavor flavor, double x, double mu2) const
 {
     const size_t ix = indexbelow(x, m_Shape.x_vec);
-    const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);   
+    const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);
     shared_data shared = fill(m_Shape, x, mu2, ix);
     return _interpolate(m_Shape, ix, imu2, flavor, shared);
 }

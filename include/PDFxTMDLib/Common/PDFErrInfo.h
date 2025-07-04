@@ -1,9 +1,9 @@
 #pragma once
+#include <PDFxTMDLib/Common/StringUtils.h>
+#include <PDFxTMDLib/Common/YamlMetaInfo/YamlErrorInfo.h>
 #include <string>
 #include <utility>
 #include <vector>
-#include <PDFxTMDLib/Common/YamlMetaInfo/YamlErrorInfo.h>
-#include <PDFxTMDLib/Common/StringUtils.h>
 
 namespace PDFxTMD
 {
@@ -49,7 +49,7 @@ struct PDFErrInfo
     size_t nmemCore() const;
     /// Number of par-set members
     size_t nmemPar() const;
-      /// Parse extended error type syntax
+    /// Parse extended error type syntax
     static PDFErrInfo CalculateErrorInfo(const YamlErrorInfo &yamlErrInfo);
 };
 } // namespace PDFxTMD

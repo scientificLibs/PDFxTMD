@@ -18,7 +18,7 @@ class IInterpolator : public CRTPBase<Derived>
     {
         return this->derived().interpolate(flavor, args...);
     }
-    void interpolate(InterpolateArgs... args, std::array<double, DEFAULT_TOTAL_PDFS>& output) const
+    void interpolate(InterpolateArgs... args, std::array<double, DEFAULT_TOTAL_PDFS> &output) const
     {
         return this->derived().interpolate(args..., output);
     }
