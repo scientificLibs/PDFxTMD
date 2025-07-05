@@ -14,12 +14,13 @@ void SymmHessianStrategy::Uncertainty(const std::vector<double> &values, const i
     }
     errsymm = std::sqrt(errsymm);
     uncertainty.errplus = uncertainty.errminus = uncertainty.errsymm = errsymm;
+    uncertainty.central = values[0];
 }
 double SymmHessianStrategy::Correlation(const std::vector<double> &valuesA,
                                         const std::vector<double> &valuesB,
                                         const int numCoreErrMember)
 {
-    double cor = -1;
+    double cor = 0.;
     PDFUncertainty errA;
     Uncertainty(valuesA, numCoreErrMember, -1, errA);
     PDFUncertainty errB;

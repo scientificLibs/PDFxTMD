@@ -3,12 +3,14 @@
 #include <fstream>
 #include <map>
 #include <optional>
+#include <sstream> // Required for stringstream, though we change its usage
 #include <string>
 #include <variant>
 #include <vector>
 
-#include "PDFxTMDLib/Common/PartonUtils.h"
-#include "PDFxTMDLib/external/rapidyaml/rapidyaml-0.9.0.hpp"
+#include "PDFxTMDLib/Common/PartonUtils.h" // Assuming ErrorType is defined here
+#include "ryml.hpp"
+#include "ryml_std.hpp"
 #include <iostream>
 
 namespace PDFxTMD
@@ -35,7 +37,8 @@ class ConfigWrapper
     {
         if (data.format == Format::YAML)
         {
-            // CORRECTED LINE: Use ConstNodeRef because this method is const
+            // BUG FIX 1: Use ConstNodeRef because this method is const.
+            // This ensures const-correctness.
             ryml::ConstNodeRef root = data.tree.rootref();
 
             if (!root.is_map())
@@ -52,6 +55,7 @@ class ConfigWrapper
             try
             {
                 T value;
+                // Use the streaming operator to extract the value
                 root[ckey] >> value;
                 return {value, ErrorType::None};
             }
@@ -75,19 +79,15 @@ class ConfigWrapper
             {
                 ryml::csubstr ckey(key.data(), key.size());
 
-                if constexpr (std::is_convertible_v<T, std::string_view>)
-                {
-                    data.tree[ckey] = value;
-                }
-                else
-                {
-                    std::stringstream ss;
-                    ss << value;
-                    data.tree[ckey] = ryml::to_csubstr(ss.str());
-                }
+                // BUG FIX 2: Stream directly to the node.
+                // This avoids creating a temporary string and the resulting
+                // dangling pointer. ryml will manage the memory.
+                data.tree[ckey] << value;
             }
             catch (const std::exception &e)
             {
+                // It's generally better to let exceptions propagate or handle them more gracefully
+                // than re-throwing as a different type, but we'll keep the original logic.
                 throw std::runtime_error(e.what());
             }
             return true;
@@ -96,10 +96,11 @@ class ConfigWrapper
     }
 
     bool saveToFile(const std::string &filename) const;
+
     void initializeEmptyYAML()
     {
         data.tree.clear();
-        data.tree.rootref() |= ryml::MAP;
+        data.tree.rootref() |= ryml::MAP; // Set the root to be a map
         data.format = Format::YAML;
     }
 

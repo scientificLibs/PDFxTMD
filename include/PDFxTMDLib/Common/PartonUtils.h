@@ -88,7 +88,7 @@ bool hasWriteAccess(const std::string &path);
 double _extrapolateLinear(double x, double xl, double xh, double yl, double yh);
 std::string StandardPDFNaming(const std::string &pdfName, int set);
 std::vector<std::string> GetPDFxTMDPathsAsVector();
-std::string GetPDFxTMDPaths();
+std::vector<std::string> GetPDFxTMDPathsFromYaml();
 bool AddPathToEnvironment(const std::string &newPath);
 std::vector<std::string> split(const std::string &str, char delimiter);
 /// Format an integer @a val as a zero-padded string of length

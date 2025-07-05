@@ -102,6 +102,15 @@ void TDefaultLHAPDF_TMDReader::read(const std::string &pdfName, int setNumber)
         m_blockLine++;
     }
 
+    for (auto partonFlavor : standardPartonFlavors)
+    {
+        if (m_pdfShape.grids[partonFlavor].size() == 0)
+        {
+            m_pdfShape.grids[partonFlavor].resize(
+                m_pdfShape.x_vec.size() * m_pdfShape.kt2_vec.size() * m_pdfShape.mu2_vec.size(),
+                0.);
+        }
+    }
     m_pdfShape.finalizeXKt2P2();
     m_xMinMax = {m_pdfShape.x_vec.front(), m_pdfShape.x_vec.back()};
     m_q2MinMax = {m_pdfShape.mu2_vec.front(), m_pdfShape.mu2_vec.back()};
@@ -118,8 +127,8 @@ void TDefaultLHAPDF_TMDReader::readXKnots(NumParser &parser, DefaultAllFlavorTMD
     double value;
     while (parser.hasMore())
     {
-        parser >> value;
-        data.x_vec.emplace_back(value);
+        if (parser >> value)
+            data.x_vec.emplace_back(value);
     }
 
     if (data.x_vec.empty())
@@ -133,8 +142,8 @@ void TDefaultLHAPDF_TMDReader::readQ2Knots(NumParser &parser, DefaultAllFlavorTM
     double value;
     while (parser.hasMore())
     {
-        parser >> value;
-        data.mu2_vec.emplace_back(value * value);
+        if (parser >> value)
+            data.mu2_vec.emplace_back(value * value);
     }
 
     if (data.mu2_vec.empty())
@@ -147,8 +156,8 @@ void TDefaultLHAPDF_TMDReader::readKt2Knots(NumParser &parser, DefaultAllFlavorT
     double value;
     while (parser.hasMore())
     {
-        parser >> value;
-        data.kt2_vec.emplace_back(value * value);
+        if (parser >> value)
+            data.kt2_vec.emplace_back(value * value);
     }
 
     if (data.kt2_vec.empty())
@@ -162,10 +171,12 @@ void TDefaultLHAPDF_TMDReader::readParticleIds(NumParser &parser, DefaultAllFlav
     int id;
     while (parser.hasMore())
     {
-        parser >> id;
-        if (std::find(data._pids.begin(), data._pids.end(), id) == data._pids.end())
+        if (parser >> id)
         {
-            data._pids.emplace_back(id);
+            if (std::find(data._pids.begin(), data._pids.end(), id) == data._pids.end())
+            {
+                data._pids.emplace_back(id);
+            }
         }
     }
 
@@ -188,11 +199,10 @@ void TDefaultLHAPDF_TMDReader::readValues(NumParser &parser, DefaultAllFlavorTMD
     {
         for (auto flavor : data._pids)
         {
-            if (!(parser >> value))
+            if (parser >> value)
             {
-                continue;
+                data.grids[static_cast<PartonFlavor>(flavor)].push_back(value);
             }
-            data.grids[static_cast<PartonFlavor>(flavor)].push_back(value);
         }
     }
 }
