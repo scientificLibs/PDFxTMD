@@ -62,38 +62,57 @@ int main()
     PDFSet.Uncertainty(PDFxTMD::PartonFlavor::g, 0.1, 10000, NO_REQUESTED_CONFIDENCE_LEVEL, uncertainty);
     std::cout << "PDF uncertainties on g computed with MMHT2014lo68cl  at its default CL" << std::endl;
     std::cout << " xg= " << uncertainty.central << " +" << uncertainty.errplus << " -" << uncertainty.errminus << " (+-" << uncertainty.errsymm << ")" << std::endl;
-    ////////////////////////////////////////////////////////////////////////////////////
-    PDFxTMD::PDFUncertainty uncertainty90PerCent = PDFSet.Uncertainty(PDFxTMD::PartonFlavor::g, 0.1, 10000, 90);
-    std::cout << "PDF uncertainties on g computed with MMHT2014lo68cl  at CL = 90%" << std::endl;
-    std::cout << " xg= " << uncertainty90PerCent.central << " +" << uncertainty90PerCent.errplus << " -" << uncertainty90PerCent.errminus << " (+-" << uncertainty90PerCent.errsymm << ")" << std::endl;
-    PDFSet.alphasQ2(100);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /*
-    correlation between two PDFSets are easily calculable using:
-    double Correlation(PartonFlavor flavorA, double xA, double mu2A, PartonFlavor flavorB, double xB, double mu2B)
-    there is also similar method to LHAPDF:
-    double Correlation(const std::vector<double>& valuesA, const std::vector<double>& valuesB) const
-    */
-    double correlation = PDFSet.Correlation(PDFxTMD::PartonFlavor::g, 1e-1, 10000, PDFxTMD::PartonFlavor::g, 1e-1, 10000);
-    std::cout << "correlation between g and g at same scale and momentum fraction: " << correlation << std::endl;
-    // calculating cPDFs with factory method
-    auto PDFFactory = PDFxTMD::GenericCPDFFactory();
-    auto MMHT2014LO68cl = PDFFactory.mkCPDF("MMHT2014lo68cl", 0);
-    double x = 0.0001;
-    double mu2 = 100;
-    std::cout << "Gluon factory method:  " << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::g, x, mu2) << std::endl;
-    std::cout << "Up factory method:  " << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::u, x, mu2) << std::endl;
-    std::cout << "Down factory method:  " << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::d, x, mu2) << std::endl;
-    std::cout << "Strange factory method:  " << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::s, x, mu2) << std::endl;
-    std::cout << "Charm factory method:  " << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::c, x, mu2) << std::endl;
-    std::cout << "Bottom factory method:  " << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::b, x, mu2) << std::endl;
-    //calculating cPDFs for all flavors calculation
-    std::array<double, 13> mmhtAll;
-    MMHT2014LO68cl.pdf(x, mu2, mmhtAll);
-    for (int flavorIndex = 0; flavorIndex < 13; flavorIndex++)
-    {
-        std::cout << "cPDF All flavors factory method: " << PartonFlavorToString(flavorIndex) << ": " << mmhtAll[flavorIndex] << std::endl;
-    }
+    //////////////NNPDF23_nnlo_noLHC_as_0120 for replicas/////////////////
+    PDFxTMD::PDFSet<PDFxTMD::CollinearPDFTag> PDFSetNNPDF("NNPDF23_nnlo_noLHC_as_0120");
+        PDFxTMD::PDFUncertainty uncertaintyNNPDF = PDFSetNNPDF.Uncertainty(PDFxTMD::PartonFlavor::g, 0.1, 10000);
+        std::cout << "NNPDF23_nnlo_noLHC_as_0120:  xg= " << uncertaintyNNPDF.central << " +" << uncertaintyNNPDF.errplus << " -"
+                  << uncertaintyNNPDF.errminus << " (+-" << uncertaintyNNPDF.errsymm << ")"
+                  << std::endl;
+        ////////////////////////////////////////////////////////////////////////////////////
+        PDFxTMD::PDFUncertainty uncertainty90PerCent =
+            PDFSet.Uncertainty(PDFxTMD::PartonFlavor::g, 0.1, 10000, 90);
+        std::cout << "PDF uncertainties on g computed with MMHT2014lo68cl  at CL = 90%"
+                  << std::endl;
+        std::cout << " xg= " << uncertainty90PerCent.central << " +" << uncertainty90PerCent.errplus
+                  << " -" << uncertainty90PerCent.errminus << " (+-" << uncertainty90PerCent.errsymm
+                  << ")" << std::endl;
+        PDFSet.alphasQ2(100);
+        //////////////////////////////////////////////////////////////////////////////////////
+        /*
+        correlation between two PDFSets are easily calculable using:
+        double Correlation(PartonFlavor flavorA, double xA, double mu2A, PartonFlavor flavorB,
+        double xB, double mu2B) there is also similar method to LHAPDF: double Correlation(const
+        std::vector<double>& valuesA, const std::vector<double>& valuesB) const
+        */
+        double correlation = PDFSet.Correlation(PDFxTMD::PartonFlavor::g, 1e-1, 10000,
+                                                PDFxTMD::PartonFlavor::g, 1e-1, 10000);
+        std::cout << "correlation between g and g at same scale and momentum fraction: "
+                  << correlation << std::endl;
+        // calculating cPDFs with factory method
+        auto PDFFactory = PDFxTMD::GenericCPDFFactory();
+        auto MMHT2014LO68cl = PDFFactory.mkCPDF("MMHT2014lo68cl", 0);
+        double x = 0.0001;
+        double mu2 = 100;
+        std::cout << "Gluon factory method:  "
+                  << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::g, x, mu2) << std::endl;
+        std::cout << "Up factory method:  " << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::u, x, mu2)
+                  << std::endl;
+        std::cout << "Down factory method:  "
+                  << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::d, x, mu2) << std::endl;
+        std::cout << "Strange factory method:  "
+                  << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::s, x, mu2) << std::endl;
+        std::cout << "Charm factory method:  "
+                  << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::c, x, mu2) << std::endl;
+        std::cout << "Bottom factory method:  "
+                  << MMHT2014LO68cl.pdf(PDFxTMD::PartonFlavor::b, x, mu2) << std::endl;
+        // calculating cPDFs for all flavors calculation
+        std::array<double, 13> mmhtAll;
+        MMHT2014LO68cl.pdf(x, mu2, mmhtAll);
+        for (int flavorIndex = 0; flavorIndex < 13; flavorIndex++)
+        {
+            std::cout << "cPDF All flavors factory method: " << PartonFlavorToString(flavorIndex)
+                      << ": " << mmhtAll[flavorIndex] << std::endl;
+        }
 
     //calculate cPDFs with type alias
     PDFxTMD::CollinearPDF cpdfPDF("MMHT2014lo68cl", 0);

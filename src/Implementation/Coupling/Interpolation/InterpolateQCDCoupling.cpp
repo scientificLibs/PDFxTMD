@@ -9,6 +9,7 @@ namespace PDFxTMD
 void InterpolateQCDCoupling::initialize(const YamlCouplingInfo &couplingInfo)
 {
     m_couplingInfo = couplingInfo;
+    m_alsphasVec_vec = couplingInfo.alphas_vec;
     for (double mu2_ : m_couplingInfo.mu_vec)
     {
         m_mu2_vec.push_back(mu2_);

@@ -74,6 +74,7 @@ set(ALL_SOURCES
     src/Implementation/Coupling/ODE/ODEQCDCoupling.cpp
     src/Implementation/Coupling/Analytic/AnalyticQCDCoupling.cpp
     src/Implementation/Coupling/Interpolation/InterpolateQCDCoupling.cpp
+    src/Common/ConfigWrapper.cpp
 )
 
 if(WIN32)

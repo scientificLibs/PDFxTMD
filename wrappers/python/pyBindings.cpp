@@ -3,9 +3,9 @@
 #include <stdexcept>
 #include <string>
 #include "PDFxTMDLib/Factory.h"
-#include "PDFxTMDLib/ICPDF.h"
-#include "PDFxTMDLib/ITMD.h"
-#include "PDFxTMDLib/IQCDCoupling.h"
+#include "PDFxTMDLib/Interface/ICPDF.h"
+#include "PDFxTMDLib/Interface/ITMD.h"
+#include "PDFxTMDLib/Interface/IQCDCoupling.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
 #include <array>
 
