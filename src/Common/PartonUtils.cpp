@@ -79,7 +79,7 @@ bool hasWriteAccess(const std::string &path)
 std::vector<std::string> GetPDFxTMDPathsAsVector()
 {
     std::vector<std::string> output;
-    auto PDFxTMDPath = GetPDFxTMDPaths();
+    auto notDefaultPaths = GetPDFxTMDPathsFromYaml();
     if (!FileUtils::Exists(DEFAULT_ENV_PATH))
     {
         if (FileUtils::HasUserAccess(FileUtils::ParentDir(DEFAULT_ENV_PATH)))
@@ -91,7 +91,6 @@ std::vector<std::string> GetPDFxTMDPathsAsVector()
     result.emplace(DEFAULT_ENV_PATH);
     std::string currentPath = std::filesystem::current_path().string();
     result.emplace(currentPath);
-    auto notDefaultPaths = split(PDFxTMDPath, '|');
     for (auto &&notDefaultPath : notDefaultPaths)
     {
         if (FileUtils::HasUserAccess(FileUtils::ParentDir(notDefaultPath)))
@@ -181,7 +180,7 @@ double _extrapolateLinear(double x, double xl, double xh, double yl, double yh)
     }
 }
 
-std::string GetPDFxTMDPaths()
+std::vector<std::string> GetPDFxTMDPathsFromYaml()
 {
     std::string rootPath;
 #if defined(_WIN32)
@@ -191,7 +190,7 @@ std::string GetPDFxTMDPaths()
     const char *homeDir = std::getenv("HOME");
     if (!homeDir)
     {
-        return "";
+        return {};
     }
     rootPath = std::string(homeDir) + "/.PDFxTMDLib";
 #endif
@@ -210,18 +209,12 @@ std::string GetPDFxTMDPaths()
         std::ofstream ofs(configFilePath);
         ofs << "paths: " << std::endl;
         ofs.close();
-        return "";
+        return {};
     }
     config.loadFromFile(configFilePath, PDFxTMD::ConfigWrapper::Format::YAML);
 
-    auto pathsPair = config.get<std::string>("paths");
-    std::string delimitedPaths;
-    if (pathsPair.first.has_value())
-    {
-        delimitedPaths = pathsPair.first.value();
-    }
-
-    return delimitedPaths;
+    auto pathsPair = config.get<std::vector<std::string>>("paths");
+    return *pathsPair.first;
 }
 
 bool AddPathToEnvironment(const std::string &newPath)
@@ -239,19 +232,17 @@ bool AddPathToEnvironment(const std::string &newPath)
     rootPath = std::string(homeDir) + "/.PDFxTMDLib";
 #endif
     std::string configFilePath = rootPath + "/config.yaml";
-    std::string delimitedPaths = GetPDFxTMDPaths();
-    PDFxTMD::ConfigWrapper config;
-
-    if (delimitedPaths.find(newPath) != std::string::npos)
+    auto updatedPaths = GetPDFxTMDPathsFromYaml();
+    auto found_pathItr =
+        std::find_if(updatedPaths.begin(), updatedPaths.end(),
+                     [newPath](const std::string &path) { return newPath == path; });
+    if (found_pathItr == updatedPaths.end())
     {
-        return true;
+        PDFxTMD::ConfigWrapper config;
+        updatedPaths.push_back(newPath);
+        config.set("paths", updatedPaths);
+        return config.saveToFile(configFilePath);
     }
-    if (delimitedPaths.empty())
-        delimitedPaths += newPath;
-    else
-        delimitedPaths += "|" + newPath;
-
-    config.set("paths", delimitedPaths.c_str());
-    return config.saveToFile(configFilePath);
+    return true;
 }
 } // namespace PDFxTMD

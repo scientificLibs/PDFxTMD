@@ -35,7 +35,7 @@ void TTrilinearInterpolator::interpolate(double x, double kt2, double mu2,
         interp(m_dimensions.data(), 1, selectedPdf, output_, m_tmdShape.log_kt2_vec.data(), &logkt2,
                m_tmdShape.log_x_vec.data(), &logX, m_tmdShape.log_mu2_vec.data(), &logMu2);
 
-        output[i] = (output_[0] < 0 ? 0 : output_[0] / kt2);
+        output[i] = (output_[0] < 0 ? 0 : output_[0]);
     }
 }
 
@@ -51,7 +51,7 @@ double TTrilinearInterpolator::interpolate(PDFxTMD::PartonFlavor flavor, double 
     interp(m_dimensions.data(), 1, selectedPdf, output, m_tmdShape.log_kt2_vec.data(), &logkt2,
            m_tmdShape.log_x_vec.data(), &logX, m_tmdShape.log_mu2_vec.data(), &logMu2);
 
-    return output[0] < 0 ? 0 : output[0] / kt2;
+    return output[0] < 0 ? 0 : output[0];
 }
 
 const IReader<TDefaultLHAPDF_TMDReader> *TTrilinearInterpolator::getReader() const

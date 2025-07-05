@@ -118,6 +118,29 @@ template <typename Tag> class PDFSet
         StoreCoreVariationErros(resUncertainty);
         CalculateParameterVariationErrors(resUncertainty, pdfs);
     }
+    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, TMDPDFTag>>>
+    PDFUncertainty Uncertainty(PartonFlavor flavor, double x, double kt2, double mu2,
+                               double cl = NO_REQUESTED_CONFIDENCE_LEVEL)
+    {
+        if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
+        {
+            static_assert(!std::is_same_v<Tag, Tag>,
+                          "PDFxTMD::PDFUncertainty PDFxTMD::PDFSet::Uncertainty(PartonFlavor "
+                          "flavor, double x, double kt2, double mu2, double cl = "
+                          "NO_REQUESTED_CONFIDENCE_LEVEL) is only defined for TMDPDFTag");
+        }
+        PDFUncertainty resUncertainty;
+        const auto pdfs = CalculatePDFValues(flavor, x, kt2, mu2);
+        const double reqCL = ValidateAndGetCL(cl);
+
+        m_uncertaintyStrategy_.Uncertainty(pdfs, m_pdfErrInfo.nmemCore(), reqCL, resUncertainty);
+        resUncertainty.central = pdfs[0];
+
+        ApplyConfidenceLevelScaling(resUncertainty, reqCL);
+        StoreCoreVariationErros(resUncertainty);
+        CalculateParameterVariationErrors(resUncertainty, pdfs);
+        return resUncertainty;
+    }
     template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     PDFUncertainty Uncertainty(PartonFlavor flavor, double x, double mu2,
                                double cl = NO_REQUESTED_CONFIDENCE_LEVEL)
@@ -173,11 +196,34 @@ template <typename Tag> class PDFSet
         return resUncertainty;
     }
 
+    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     double Correlation(PartonFlavor flavorA, double xA, double mu2A, PartonFlavor flavorB,
                        double xB, double mu2B)
     {
+        if constexpr (std::is_same_v<Tag, TMDPDFTag>)
+        {
+            static_assert(!std::is_same_v<Tag, Tag>,
+                          "double PDFxTMD::PDFSet::Correlation(PartonFlavor flavorA, double xA, "
+                          "double mu2A, PartonFlavor flavorB, double xB, double mu2B) is only "
+                          "defined for CollinearPDFTag");
+        }
         const auto pdfsA = CalculatePDFValues(flavorA, xA, mu2A);
         const auto pdfsB = CalculatePDFValues(flavorB, xB, mu2B);
+        return m_uncertaintyStrategy_.Correlation(pdfsA, pdfsB, m_pdfErrInfo.nmemCore());
+    }
+    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, TMDPDFTag>>>
+    double Correlation(PartonFlavor flavorA, double xA, double kt2A, double mu2A,
+                       PartonFlavor flavorB, double xB, double kt2B, double mu2B)
+    {
+        if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
+        {
+            static_assert(
+                !std::is_same_v<Tag, Tag>,
+                "PartonFlavor flavorA, double xA, double kt2A, double mu2A, PartonFlavor "
+                "flavorB,double xB, double kt2B, double mu2B) is only defined for TMDPDFTag");
+        }
+        const auto pdfsA = CalculatePDFValues(flavorA, xA, kt2A, mu2A);
+        const auto pdfsB = CalculatePDFValues(flavorB, xB, kt2B, mu2B);
         return m_uncertaintyStrategy_.Correlation(pdfsA, pdfsB, m_pdfErrInfo.nmemCore());
     }
     double Correlation(const std::vector<double> &valuesA, const std::vector<double> &valuesB) const
@@ -212,7 +258,6 @@ template <typename Tag> class PDFSet
         }
     }
 
-    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     void CreateAllPDFSets()
     {
         std::lock_guard<std::mutex> lock(m_pdfSetMtx);

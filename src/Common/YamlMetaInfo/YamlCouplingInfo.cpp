@@ -38,7 +38,6 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
         ConfigWrapper.get<double>("AlphaS_ThresholdBottom");
     auto [AlphaS_ThresholdTop, AlphaS_ThresholdTopError] =
         ConfigWrapper.get<double>("AlphaS_ThresholdTop");
-    bool isThreshholdObtained = false;
     if (all(AlphaS_ThresholdDownError == ErrorType::None,
             AlphaS_ThresholdUpError == ErrorType::None,
             AlphaS_ThresholdStrangeError == ErrorType::None,
@@ -52,7 +51,6 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
         output.quarkThreshhold[PartonFlavor::c] = *AlphaS_ThresholdCharm;
         output.quarkThreshhold[PartonFlavor::b] = *AlphaS_ThresholdBottom;
         output.quarkThreshhold[PartonFlavor::t] = *AlphaS_ThresholdTop;
-        isThreshholdObtained = true;
     }
     auto [ThresholdDown, ThresholdDownError] = ConfigWrapper.get<double>("ThresholdDown");
     auto [ThresholdUp, ThresholdUpError] = ConfigWrapper.get<double>("ThresholdUp");
@@ -71,17 +69,8 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
         output.quarkThreshhold[PartonFlavor::c] = *ThresholdCharm;
         output.quarkThreshhold[PartonFlavor::b] = *ThresholdBottom;
         output.quarkThreshhold[PartonFlavor::t] = *ThresholdTop;
-        isThreshholdObtained = true;
     }
-    if (!isThreshholdObtained)
-    {
-        output.quarkThreshhold[PartonFlavor::d] = -1;
-        output.quarkThreshhold[PartonFlavor::u] = -1;
-        output.quarkThreshhold[PartonFlavor::s] = -1;
-        output.quarkThreshhold[PartonFlavor::c] = -1;
-        output.quarkThreshhold[PartonFlavor::b] = -1;
-        output.quarkThreshhold[PartonFlavor::t] = -1;
-    }
+
     bool isMasssObtained = false;
     auto [AlphaS_MDown, AlphaS_MDownError] = ConfigWrapper.get<double>("AlphaS_MDown");
     auto [AlphaS_MUp, AlphaS_MUpError] = ConfigWrapper.get<double>("AlphaS_MUp");
@@ -234,23 +223,23 @@ std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
         else if (AlphaS_Type == "ode")
         {
             output.alphaCalcMethod = AlphasType::ode;
-            auto [AlphaS_MZ, AlphaS_MZError] = ConfigWrapper.get<double>("AlphaS_MZ");
-            if (AlphaS_MZError == ErrorType::None)
-            {
-                output.AlphaS_MassReference = *AlphaS_MZ;
-            }
             auto [AlphaS_MassReference, AlphaS_MassReferenceError] =
                 ConfigWrapper.get<double>("AlphaS_MassReference");
             if (AlphaS_MassReferenceError == ErrorType::None)
             {
                 output.AlphaS_MassReference = *AlphaS_MassReference;
             }
-
             auto [AlphaS_Reference, AlphaS_ReferenceError] =
                 ConfigWrapper.get<double>("AlphaS_Reference");
             if (AlphaS_ReferenceError == ErrorType::None)
             {
                 output.AlphaS_Reference = *AlphaS_Reference;
+            }
+
+            auto [AlphaS_MZ, AlphaS_MZError] = ConfigWrapper.get<double>("AlphaS_MZ");
+            if (AlphaS_MZError == ErrorType::None)
+            {
+                output.AlphaS_MZ = *AlphaS_MZ;
             }
             if (!(AlphaS_MZError == ErrorType::None && MassZError == ErrorType::None) &&
                 !(AlphaS_MassReferenceError == ErrorType::None &&

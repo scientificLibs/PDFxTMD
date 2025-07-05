@@ -16,6 +16,7 @@ void ODEQCDCoupling::initialize(const YamlCouplingInfo &couplingInfo)
 {
     // obtain mu2_vec and alphasVec by solving differential equation to use interpolation.
     m_couplingInfo = couplingInfo;
+    _interpolate();
     m_alphas_vec = m_couplingInfo.alphas_vec;
     m_mu2_vec.resize(m_couplingInfo.mu_vec.size());
     std::transform(m_couplingInfo.mu_vec.begin(), m_couplingInfo.mu_vec.end(), m_mu2_vec.begin(),
@@ -249,7 +250,7 @@ void ODEQCDCoupling::_interpolate()
         alphas.push_back(grid.at(x).second);
     }
     m_couplingInfo.alphas_vec = std::move(alphas);
-    m_couplingInfo.mu_vec.reserve(m_mu2_vec.size());
+    m_couplingInfo.mu_vec.resize(m_mu2_vec.size());
     std::transform(m_mu2_vec.begin(), m_mu2_vec.end(), m_couplingInfo.mu_vec.begin(),
                    [](double mu2) { return std::sqrt(mu2); });
     m_couplingInterp.initialize(m_couplingInfo);

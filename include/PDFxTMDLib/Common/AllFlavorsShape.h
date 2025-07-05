@@ -28,12 +28,10 @@ struct DefaultAllFlavorShape
 {
     DefaultAllFlavorShape()
     {
-        // Precompute strides and reserve memory in constructor
-        grids_flat.reserve(1024); // Adjust size based on typical use case
-        _lookup.fill(-1);         // Initialize lookup with invalid PID
+        grids_flat.reserve(1024);
+        _lookup.fill(-1);
     }
 
-    // Aligned vectors for better cache performance
     alignas(64) std::vector<double> log_x_vec;
     alignas(64) std::vector<double> log_mu2_vec;
     alignas(64) std::vector<double> x_vec;
@@ -46,8 +44,8 @@ struct DefaultAllFlavorShape
     alignas(64) std::vector<double> coefficients_flat;
 
     // Precomputed strides for fast indexing
-    size_t stride_ix = 0;  // n_mu2s * n_flavors
-    size_t stride_iq2 = 0; // n_flavors
+    size_t stride_ix = 0;
+    size_t stride_iq2 = 0;
 
     std::vector<int> _shape;
     const double &coeff(int ix, int iq2, int flavorId, int in) const;

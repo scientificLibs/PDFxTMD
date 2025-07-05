@@ -15,7 +15,14 @@ if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
+include(FetchContent)
+FetchContent_Declare(
+    ryml
+    GIT_REPOSITORY https://github.com/biojppm/rapidyaml.git
+    GIT_TAG 47ec2fa184209687c20fd5bc05621e1cb1200311
+    EXCLUDE_FROM_ALL
+)
+FetchContent_MakeAvailable(ryml)
 # Check if the target is x86
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|i[3-6]86")
     set(IS_X86 TRUE)
@@ -88,6 +95,8 @@ if(WIN32)
     )
 else()
     add_library(${PROJECT_NAME} SHARED ${ALL_SOURCES})
+    target_link_libraries(${PROJECT_NAME} ryml::ryml)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/rapidyaml/include)
     set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
     target_include_directories(${PROJECT_NAME} 
         PUBLIC 
@@ -100,6 +109,9 @@ else()
         OUTPUT_NAME ${PROJECT_NAME}
         DEBUG_POSTFIX "d"
     )
+    target_link_libraries(${PROJECT_NAME}_static  ryml::ryml)
+    target_include_directories(${PROJECT_NAME}_static PRIVATE ${PROJECT_SOURCE_DIR}/rapidyaml/include)
+
     target_include_directories(${PROJECT_NAME}_static 
         PUBLIC 
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
