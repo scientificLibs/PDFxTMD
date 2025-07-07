@@ -61,7 +61,6 @@ template <typename Tag> class PDFSet
     {
         return m_qcdCoupling->AlphaQCDMu2(q2);
     }
-    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     PDF_t *operator[](int member)
     {
         std::lock_guard<std::mutex> lock(m_pdfSetMtx);
@@ -72,7 +71,6 @@ template <typename Tag> class PDFSet
         return m_PDFSet_[member].get();
     }
 
-    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     PDF_t *operator[](int member) const
     {
         if (m_PDFSet_.find(member) == m_PDFSet_.end())
