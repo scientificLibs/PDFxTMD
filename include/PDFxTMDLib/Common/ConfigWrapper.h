@@ -3,12 +3,16 @@
 #include <fstream>
 #include <map>
 #include <optional>
+#include <sstream> // Required for stringstream, though we change its usage
 #include <string>
 #include <variant>
 #include <vector>
 
-#include "PDFxTMDLib/Common/PartonUtils.h"
-#include "PDFxTMDLib/external/fkYAML/node.hpp"
+#include "PDFxTMDLib/Common/PartonUtils.h" // Assuming ErrorType is defined here
+
+#include "ryml.hpp"
+#include "ryml_std.hpp"
+#include <iostream>
 
 namespace PDFxTMD
 {
@@ -20,85 +24,41 @@ class ConfigWrapper
         YAML
     };
 
-    // Modified constructor to initialize data
-    ConfigWrapper() : data{Format::YAML, fkyaml::node::mapping()} {}
-
-    bool loadFromFile(const std::filesystem::path &filepath, Format format)
+    // Constructor initializes an empty YAML map
+    ConfigWrapper()
     {
-        if (format == Format::YAML)
-        {
-            std::ifstream ifs(filepath);
-            if (!ifs.is_open())
-                return false;
-            try
-            {
-                data.yaml = fkyaml::node::deserialize(ifs);
-                if (!data.yaml.is_mapping())
-                {
-                    data.yaml = fkyaml::node::mapping();
-                    data.format = format;
-                    return false;
-                }
-                if (data.yaml.size() == 0)
-                {
-                    ifs.close();
-                    std::ofstream ofs(filepath, std::ios::trunc);
-                    ofs << "{}";
-                    return false;
-                }
-                data.format = format;
-                return true;
-            }
-            catch (const std::exception &)
-            {
-                data.yaml = fkyaml::node::mapping();
-                data.format = format;
-                return false;
-            }
-        }
-        return false;
+        initializeEmptyYAML();
     }
 
-    bool loadFromString(const std::string &data_string, Format format)
-    {
-        if (format == Format::YAML)
-        {
-            try
-            {
-                std::istringstream iss(data_string);
-                data.yaml = fkyaml::node::deserialize(iss);
-                // Check if the parsed node is a mapping
-                if (!data.yaml.is_mapping())
-                {
-                    data.yaml = fkyaml::node::mapping(); // Reset to empty mapping
-                    data.format = format;
-                    return false; // Indicate failure
-                }
-                data.format = format;
-                return true; // Success: it’s a mapping
-            }
-            catch (const std::exception &)
-            {
-                data.yaml = fkyaml::node::mapping();
-                data.format = format;
-                return false; // Exception means failure
-            }
-        }
-        return false;
-    }
-    template <typename T>
-    std::pair<std::optional<T>, ErrorType> get(const std::string &key) const
+    bool loadFromFile(const std::filesystem::path &filepath, Format format);
+
+    bool loadFromString(const std::string &data_string, Format format);
+
+    template <typename T> std::pair<std::optional<T>, ErrorType> get(const std::string &key) const
     {
         if (data.format == Format::YAML)
         {
+            // BUG FIX 1: Use ConstNodeRef because this method is const.
+            // This ensures const-correctness.
+            ryml::ConstNodeRef root = data.tree.rootref();
+
+            if (!root.is_map())
+            {
+                return {std::nullopt, ErrorType::CONFIG_KeyNotFound};
+            }
+
+            ryml::csubstr ckey(key.data(), key.size());
+            if (!root.has_child(ckey))
+            {
+                return {std::nullopt, ErrorType::CONFIG_KeyNotFound};
+            }
+
             try
             {
-                if (data.yaml.contains(key))
-                {
-                    T value = data.yaml[key].get_value<T>();
-                    return {value, ErrorType::None};
-                }
-                return {std::nullopt, ErrorType::CONFIG_KeyNotFound};
+                T value;
+                // Use the streaming operator to extract the value
+                root[ckey] >> value;
+                return {value, ErrorType::None};
             }
             catch (const std::exception &)
             {
@@ -108,19 +68,27 @@ class ConfigWrapper
         return {std::nullopt, ErrorType::CONFIG_KeyNotFound};
     }
 
-    template <typename T>
-    bool set(const std::string& key, const T& value)
+    template <typename T> bool set(const std::string &key, const T &value)
     {
         if (data.format == Format::YAML)
         {
+            if (!data.tree.rootref().is_map())
+            {
+                return false;
+            }
             try
             {
-                if (data.yaml == nullptr)
-                    return false;
-                data.yaml[key] = value;
+                ryml::csubstr ckey(key.data(), key.size());
+
+                // BUG FIX 2: Stream directly to the node.
+                // This avoids creating a temporary string and the resulting
+                // dangling pointer. ryml will manage the memory.
+                data.tree[ckey] << value;
             }
-            catch (const std::exception & e)
+            catch (const std::exception &e)
             {
+                // It's generally better to let exceptions propagate or handle them more gracefully
+                // than re-throwing as a different type, but we'll keep the original logic.
                 throw std::runtime_error(e.what());
             }
             return true;
@@ -128,30 +96,12 @@ class ConfigWrapper
         return false;
     }
 
-    // New method to save the configuration to a YAML file
-    bool saveToFile(const std::string& filename) const
-    {
-        std::ofstream ofs(filename);
-        if (!ofs.is_open())
-        {
-            return false; // Failed to open file
-        }
-        try
-        {
-            auto serializedContent = fkyaml::node::serialize(data.yaml);
-            ofs << serializedContent;
-            ofs.close();
-            return true;
-        }
-        catch (const std::exception&)
-        {
-            return false; 
-        }
-    }
+    bool saveToFile(const std::string &filename) const;
 
     void initializeEmptyYAML()
     {
-        data.yaml = fkyaml::node::mapping();
+        data.tree.clear();
+        data.tree.rootref() |= ryml::MAP; // Set the root to be a map
         data.format = Format::YAML;
     }
 
@@ -159,7 +109,7 @@ class ConfigWrapper
     struct Data
     {
         Format format;
-        fkyaml::node yaml;
+        ryml::Tree tree;
     } data;
 };
 } // namespace PDFxTMD

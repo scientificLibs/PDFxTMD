@@ -1,11 +1,12 @@
-#include <PDFxTMDLib/Common/YamlMetaInfo/YamlCouplingInfo.h>
 #include <PDFxTMDLib/Common/ConfigWrapper.h>
-#include <PDFxTMDLib/Common/StringUtils.h>
 #include <PDFxTMDLib/Common/Exception.h>
+#include <PDFxTMDLib/Common/StringUtils.h>
+#include <PDFxTMDLib/Common/YamlMetaInfo/YamlCouplingInfo.h>
+#include <string>
 
 namespace PDFxTMD
 {
-    std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
+std::pair<std::optional<YamlCouplingInfo>, ErrorType> YamlCouplingInfoReader(
     const std::string &yamlInfoPath)
 {
     ConfigWrapper ConfigWrapper;
@@ -25,22 +26,6 @@ namespace PDFxTMD
         output.alphas_vec = std::move(*alphas_vec);
     }
 
-    auto [alphasLambda3, alphasLambda3Error] = ConfigWrapper.get<double>("AlphaS_Lambda3");
-    if (alphasLambda3Error == ErrorType::None)
-    {
-        output.alphasLambda3 = *alphasLambda3;
-    }
-    auto [alphasLambda4, alphasLambda4Error] = ConfigWrapper.get<double>("AlphaS_Lambda4");
-    if (alphasLambda4Error != ErrorType::None)
-    {
-        output.alphasLambda4 = *alphasLambda4;
-    }
-    auto [alphasLambda5, alphasLambda5Error] = ConfigWrapper.get<double>("AlphaS_Lambda5");
-    if (alphasLambda5Error == ErrorType::None)
-    {
-        output.alphasLambda5 = *alphasLambda5;
-    }
-
     auto [AlphaS_ThresholdDown, AlphaS_ThresholdDownError] =
         ConfigWrapper.get<double>("AlphaS_ThresholdDown");
     auto [AlphaS_ThresholdUp, AlphaS_ThresholdUpError] =
@@ -53,7 +38,6 @@ namespace PDFxTMD
         ConfigWrapper.get<double>("AlphaS_ThresholdBottom");
     auto [AlphaS_ThresholdTop, AlphaS_ThresholdTopError] =
         ConfigWrapper.get<double>("AlphaS_ThresholdTop");
-    bool isThreshholdObtained = false;
     if (all(AlphaS_ThresholdDownError == ErrorType::None,
             AlphaS_ThresholdUpError == ErrorType::None,
             AlphaS_ThresholdStrangeError == ErrorType::None,
@@ -67,7 +51,6 @@ namespace PDFxTMD
         output.quarkThreshhold[PartonFlavor::c] = *AlphaS_ThresholdCharm;
         output.quarkThreshhold[PartonFlavor::b] = *AlphaS_ThresholdBottom;
         output.quarkThreshhold[PartonFlavor::t] = *AlphaS_ThresholdTop;
-        isThreshholdObtained = true;
     }
     auto [ThresholdDown, ThresholdDownError] = ConfigWrapper.get<double>("ThresholdDown");
     auto [ThresholdUp, ThresholdUpError] = ConfigWrapper.get<double>("ThresholdUp");
@@ -86,17 +69,8 @@ namespace PDFxTMD
         output.quarkThreshhold[PartonFlavor::c] = *ThresholdCharm;
         output.quarkThreshhold[PartonFlavor::b] = *ThresholdBottom;
         output.quarkThreshhold[PartonFlavor::t] = *ThresholdTop;
-        isThreshholdObtained = true;
     }
-    if (!isThreshholdObtained)
-    {
-        output.quarkThreshhold[PartonFlavor::d] = -1;
-        output.quarkThreshhold[PartonFlavor::u] = -1;
-        output.quarkThreshhold[PartonFlavor::s] = -1;
-        output.quarkThreshhold[PartonFlavor::c] = -1;
-        output.quarkThreshhold[PartonFlavor::b] = -1;
-        output.quarkThreshhold[PartonFlavor::t] = -1;
-    }
+
     bool isMasssObtained = false;
     auto [AlphaS_MDown, AlphaS_MDownError] = ConfigWrapper.get<double>("AlphaS_MDown");
     auto [AlphaS_MUp, AlphaS_MUpError] = ConfigWrapper.get<double>("AlphaS_MUp");
@@ -196,7 +170,7 @@ namespace PDFxTMD
     }
     output.flavorScheme =
         (flavorScheme == "variable" ? AlphasFlavorScheme::variable : AlphasFlavorScheme::fixed);
-    output.numFlavors = numFlavors;
+    output.AlphaS_NumFlavors = numFlavors;
 
     auto [MassZ, MassZError] = ConfigWrapper.get<double>("MZ");
     if (MassZError == ErrorType::None)
@@ -207,7 +181,7 @@ namespace PDFxTMD
     auto [AlphaS_OrderQCD, AlphaS_OrderQCDError] = ConfigWrapper.get<int>("AlphaS_OrderQCD");
     if (AlphaS_OrderQCDError == ErrorType::None)
     {
-        output.alphasOrder = (AlphasType)*AlphaS_OrderQCD;
+        output.alphasOrder = (OrderQCD)*AlphaS_OrderQCD;
     }
     auto [AlphaS_Type, AlphaS_TypeError] = ConfigWrapper.get<std::string>("AlphaS_Type");
     if (AlphaS_TypeError == ErrorType::None)
@@ -215,10 +189,65 @@ namespace PDFxTMD
         if (AlphaS_Type == "ipol")
         {
             output.alphaCalcMethod = AlphasType::ipol;
+            if (!all(mu_vecError == ErrorType::None, alphas_vecError == ErrorType::None))
+            {
+                throw MetadataError(
+                    "Requested ipol AlphaS but the required parameters are not defined.");
+            }
         }
         else if (AlphaS_Type == "analytic")
         {
-            output.alphaCalcMethod = AlphasType::ipol;
+            output.alphaCalcMethod = AlphasType::analytic;
+            auto [alphasLambda3, alphasLambda3Error] = ConfigWrapper.get<double>("AlphaS_Lambda3");
+            if (alphasLambda3Error == ErrorType::None)
+            {
+                output.alphasLambda3 = *alphasLambda3;
+            }
+            auto [alphasLambda4, alphasLambda4Error] = ConfigWrapper.get<double>("AlphaS_Lambda4");
+            if (alphasLambda4Error == ErrorType::None)
+            {
+                output.alphasLambda4 = *alphasLambda4;
+            }
+            auto [alphasLambda5, alphasLambda5Error] = ConfigWrapper.get<double>("AlphaS_Lambda5");
+            if (alphasLambda5Error == ErrorType::None)
+            {
+                output.alphasLambda5 = *alphasLambda5;
+            }
+            if (!all(alphasLambda3Error == ErrorType::None, alphasLambda4Error == ErrorType::None,
+                     alphasLambda5Error == ErrorType::None))
+            {
+                throw MetadataError(
+                    "Requested analytic AlphaS but the required parameters are not defined.");
+            }
+        }
+        else if (AlphaS_Type == "ode")
+        {
+            output.alphaCalcMethod = AlphasType::ode;
+            auto [AlphaS_MassReference, AlphaS_MassReferenceError] =
+                ConfigWrapper.get<double>("AlphaS_MassReference");
+            if (AlphaS_MassReferenceError == ErrorType::None)
+            {
+                output.AlphaS_MassReference = *AlphaS_MassReference;
+            }
+            auto [AlphaS_Reference, AlphaS_ReferenceError] =
+                ConfigWrapper.get<double>("AlphaS_Reference");
+            if (AlphaS_ReferenceError == ErrorType::None)
+            {
+                output.AlphaS_Reference = *AlphaS_Reference;
+            }
+
+            auto [AlphaS_MZ, AlphaS_MZError] = ConfigWrapper.get<double>("AlphaS_MZ");
+            if (AlphaS_MZError == ErrorType::None)
+            {
+                output.AlphaS_MZ = *AlphaS_MZ;
+            }
+            if (!(AlphaS_MZError == ErrorType::None && MassZError == ErrorType::None) &&
+                !(AlphaS_MassReferenceError == ErrorType::None &&
+                  AlphaS_ReferenceError == ErrorType::None))
+                throw MetadataError(
+                    "Requested ODE AlphaS but there is no reference point given: define either "
+                    "AlphaS_MZ and MZ, or AlphaS_MassReference and AlphaS_Reference. The latter is "
+                    "given preference if both are defined.");
         }
         else
         {
@@ -228,4 +257,111 @@ namespace PDFxTMD
     }
     return {output, ErrorType::None};
 }
+
+// int numFlavorsQ2(double q2, const YamlCouplingInfo& couplingInfo)
+// {
+//     if (couplingInfo.flavorScheme == AlphasFlavorScheme::fixed)
+//         return couplingInfo.AlphaS_NumFlavors;
+//     int nf = 0;
+//     /// Use quark masses if flavour threshold not set explicitly
+//     if (couplingInfo.quarkThreshhold.empty())
+//     {
+//         for (int it = 1; it <= 6; ++it)
+//         {
+//             auto element = couplingInfo.quarkMasses.find(static_cast<PartonFlavor>(it));
+//             if (element == couplingInfo.quarkMasses.end())
+//                 continue;
+//             if (SQR(element->second) < q2)
+//                 nf = it;
+//         }
+//     }
+//     else
+//     {
+//         for (int it = 1; it <= 6; ++it)
+//         {
+//             auto element = couplingInfo.quarkThreshhold.find(static_cast<PartonFlavor>(it));
+//             if (element == couplingInfo.quarkThreshhold.end())
+//                 continue;
+//             if (SQR(element->second) < q2)
+//                 nf = it;
+//         }
+//     }
+//     if (nf > couplingInfo.AlphaS_NumFlavors)
+//         nf = couplingInfo.AlphaS_NumFlavors;
+//     return nf;
+// }
+// Calculate the number of active quark flavours at energy scale Q2.
+// Respects min/max nf
+/// Currently returns the active number of flavors,
+/// not the number actually used for lambdaQCD
+/// (in case only lambda3 and lambda5 are defined and
+/// we are in the 4 flavour range, we use lambda3 but this returns 4)
+/// @todo Is this the "correct" behaviour?
+int numFlavorsQ2(double q2, const YamlCouplingInfo &couplingInfo, int nfMin, int nfMax)
+{
+    if (couplingInfo.flavorScheme == AlphasFlavorScheme::fixed)
+        return couplingInfo.AlphaS_NumFlavors;
+    int nf = nfMin;
+    /// Use quark masses if flavour threshold not set explicitly
+    if (couplingInfo.quarkThreshhold.empty())
+    {
+        for (int it = nfMin; it <= nfMax; ++it)
+        {
+            auto element = couplingInfo.quarkMasses.find(static_cast<PartonFlavor>(it));
+            if (element == couplingInfo.quarkMasses.end())
+                continue;
+            if (SQR(element->second) < q2)
+                nf = it;
+        }
+    }
+    else
+    {
+        for (int it = nfMin; it <= nfMax; ++it)
+        {
+            auto element = couplingInfo.quarkThreshhold.find(static_cast<PartonFlavor>(it));
+            if (element == couplingInfo.quarkThreshhold.end())
+                continue;
+            if (SQR(element->second) < q2)
+                nf = it;
+        }
+    }
+    if (nf > couplingInfo.AlphaS_NumFlavors)
+        nf = couplingInfo.AlphaS_NumFlavors;
+    return nf;
 }
+
+// Calculate a beta function given the number of active flavours
+double beta(OrderQCD qcdOrder, int nf)
+{
+    if (qcdOrder == OrderQCD::LO)
+        return (double)0.875352187 - 0.053051647 * nf; //(33 - 2*nf)/(12*M_PI)
+    if (qcdOrder == OrderQCD::NLO)
+        return (double)0.6459225457 - 0.0802126037 * nf; //(153 - 19*nf)/(24*sqr(M_PI))
+    if (qcdOrder == OrderQCD::N2LO)
+        return (double)0.719864327 - 0.140904490 * nf +
+               0.00303291339 * nf *
+                   nf; //(2857 - (5033 / 9.0)*nf + (325 / 27.0)*sqr(nf))/(128*sqr(M_PI)*M_PI)
+    if (qcdOrder == OrderQCD::N3LO)
+        return (double)1.172686 - 0.2785458 * nf + 0.01624467 * nf * nf +
+               0.0000601247 * nf * nf * nf;
+    // ( (149753/6.) + 3564*ZETA_3 - ((1078361/162.) + (6502/27.)*ZETA_3)*nf +
+    // ((50065/162.) + (6472/81.)*ZETA_3)*sqr(nf) +
+    // (1093/729.)*sqr(nf)*nf)/(256*sqr(M_PI)*sqr(M_PI))
+    if (qcdOrder == OrderQCD::N4LO)
+        return (double)1.714138 - 0.5940794 * nf + 0.05607482 * nf * nf -
+               0.0007380571 * nf * nf * nf - 0.00000587968 * nf * nf * nf * nf;
+    // ... if you want the analytic form just look them up in hep-ph/1606.08659
+
+    throw AlphaQCDError("Invalid index " + std::to_string((int)qcdOrder) +
+                        " for requested beta function");
+}
+
+std::vector<double> betas(int nf)
+{
+    std::vector<double> rtn;
+    rtn.reserve(4);
+    for (int i = 0; i < 5; ++i)
+        rtn.emplace_back(beta(static_cast<OrderQCD>(i), nf));
+    return rtn;
+}
+} // namespace PDFxTMD

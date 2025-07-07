@@ -20,7 +20,7 @@ template <typename Reader> bool isInRangeKt2(const Reader &reader, double kt2)
 }
 // Check if the point (x, mu) is within the range of the PDF
 // set
- template <typename Reader> inline bool isInRange(const Reader &reader, double x, double mu2)
+template <typename Reader> inline bool isInRange(const Reader &reader, double x, double mu2)
 {
     const auto [xmin, xmax] = std::move(reader.getBoundaryValues(PhaseSpaceComponent::X));
     const auto [q2min, q2max] = std::move(reader.getBoundaryValues(PhaseSpaceComponent::Q2));

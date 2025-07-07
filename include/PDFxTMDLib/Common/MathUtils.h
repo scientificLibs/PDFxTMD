@@ -1,10 +1,16 @@
 #pragma once
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 #include <cmath>
 #include <iostream>
 
+// taken form LHAPDF
 namespace PDFxTMD
 {
-static const double CL1SIGMA = 100 * std::erf(1/std::sqrt(2));
+static const double CL1SIGMA = 100 * std::erf(1 / std::sqrt(2));
 
 /// gamma functions from Cephes library -- http://www.netlib.org/cephes
 /// Copyright 1985, 1987, 2000 by Stephen L. Moshier
@@ -46,4 +52,9 @@ double norm_quantile(double p);
 ///   @arg p   - the probability value, at which the quantile is computed
 ///   @arg ndf - number of degrees of freedom
 double chisquared_quantile(double p, double ndf);
+/// Get the sign of a number
+template <typename N> inline int sgn(N val)
+{
+    return (N(0) < val) - (val < N(0));
+}
 } // namespace PDFxTMD

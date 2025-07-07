@@ -17,7 +17,7 @@ class CContinuationExtrapolator
     : public IcAdvancedPDFExtrapolator<CContinuationExtrapolator<Interpolator>>
 {
   public:
-    void setInterpolator(const Interpolator* interpolator)
+    void setInterpolator(const Interpolator *interpolator)
     {
         m_interpolator = interpolator;
     }
@@ -51,7 +51,7 @@ class CContinuationExtrapolator
                anom = 0;
         for (size_t i = 0; i < DEFAULT_TOTAL_PDFS; i += 1)
         {
-            PartonFlavor flavor = standardPartonFlavors[i];   
+            PartonFlavor flavor = standardPartonFlavors[i];
             if (x < xMin && (q2 >= q2Min && q2 <= q2Max))
             {
                 // Extrapolation in small x only.
