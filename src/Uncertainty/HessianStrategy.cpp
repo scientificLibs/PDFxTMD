@@ -21,9 +21,11 @@ void HessianStrategy::Uncertainty(const std::vector<double> &values, const int n
     uncertainty.errsymm = 0.5 * std::sqrt(errsymm);
     uncertainty.errplus = std::sqrt(errplus);
     uncertainty.errminus = std::sqrt(errminus);
+    uncertainty.central = values[0];
 }
 
-double HessianStrategy::Correlation(const std::vector<double> &valuesA, const std::vector<double> &valuesB, const int numCoreErrMember)
+double HessianStrategy::Correlation(const std::vector<double> &valuesA,
+                                    const std::vector<double> &valuesB, const int numCoreErrMember)
 {
     PDFUncertainty errA;
     Uncertainty(valuesA, numCoreErrMember, -1, errA);

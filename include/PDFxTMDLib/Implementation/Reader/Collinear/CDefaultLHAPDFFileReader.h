@@ -22,6 +22,7 @@ class CDefaultLHAPDFFileReader : public IReader<CDefaultLHAPDFFileReader>
     int m_blockLine = 0;
     std::pair<double, double> m_xMinMax;
     std::pair<double, double> m_q2MinMax;
+
   private:
     void processDataLine(const std::string &line, DefaultAllFlavorShape &data);
     void readXKnots(NumParser &parser, DefaultAllFlavorShape &data);

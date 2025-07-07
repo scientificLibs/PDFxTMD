@@ -3,16 +3,16 @@
 #include "PDFxTMDLib/Common/Exception.h"
 #include "PDFxTMDLib/Common/PDFUtils.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
-#include <PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h>
 #include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/TMD/TZeroExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.h"
 #include "PDFxTMDLib/Implementation/Interpolator/TMD/TTrilinearInterpolator.h"
 #include "PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
-#include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
+#include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultLHAPDF_TMDReader.h"
 #include "PDFxTMDLib/Interface/IExtrapolator.h"
 #include "PDFxTMDLib/Interface/IInterpolator.h"
 #include "PDFxTMDLib/Interface/IReader.h"
+#include <PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h>
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -51,7 +51,7 @@ template <typename Tag> struct DefaultPDFImplementations;
 // Specialization for TMDPDFTag
 template <> struct DefaultPDFImplementations<TMDPDFTag>
 {
-    using Reader = TDefaultAllFlavorReader;
+    using Reader = TDefaultLHAPDF_TMDReader;
     using Interpolator = TTrilinearInterpolator;
     using Extrapolator = TZeroExtrapolator;
 };
@@ -126,13 +126,10 @@ class GenericPDF
                                    "is not supported for this tag.");
         }
     }
-    GenericPDF(GenericPDF&& other) noexcept
-        : m_pdfName(std::move(other.m_pdfName)),
-        m_setNumber(other.m_setNumber),
-        m_reader(std::move(other.m_reader)),
-        m_interpolator(std::move(other.m_interpolator)),
-        m_extrapolator(std::move(other.m_extrapolator)),
-        m_stdInfo(std::move(other.m_stdInfo))
+    GenericPDF(GenericPDF &&other) noexcept
+        : m_pdfName(std::move(other.m_pdfName)), m_setNumber(other.m_setNumber),
+          m_reader(std::move(other.m_reader)), m_interpolator(std::move(other.m_interpolator)),
+          m_extrapolator(std::move(other.m_extrapolator)), m_stdInfo(std::move(other.m_stdInfo))
     {
         m_interpolator.initialize(&m_reader);
         if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
@@ -140,13 +137,10 @@ class GenericPDF
             m_extrapolator.setInterpolator(&m_interpolator);
         }
     }
-    GenericPDF(const GenericPDF& other)
-        : m_pdfName(other.m_pdfName),
-        m_setNumber(other.m_setNumber),
-        m_reader(other.m_reader),
-        m_interpolator(other.m_interpolator),
-        m_extrapolator(other.m_extrapolator),
-        m_stdInfo(other.m_stdInfo)
+    GenericPDF(const GenericPDF &other)
+        : m_pdfName(other.m_pdfName), m_setNumber(other.m_setNumber), m_reader(other.m_reader),
+          m_interpolator(other.m_interpolator), m_extrapolator(other.m_extrapolator),
+          m_stdInfo(other.m_stdInfo)
     {
         m_interpolator.initialize(&m_reader);
         if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
@@ -219,16 +213,14 @@ class GenericPDF
             throw FileLoadException("Unable to find info file of PDF set " + m_pdfName);
         if constexpr (std::is_same_v<Tag, TMDPDFTag>)
         {
-            auto pdfStandardInfo =
-                YamlStandardPDFInfoReader(*infoPathPair.first);
+            auto pdfStandardInfo = YamlStandardPDFInfoReader(*infoPathPair.first);
             if (pdfStandardInfo.second != ErrorType::None)
                 throw InvalidFormatException("Invalid standard info file " + *infoPathPair.first);
             m_stdInfo = *pdfStandardInfo.first;
         }
         else if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
         {
-            auto pdfStandardInfo =
-                YamlStandardPDFInfoReader(*infoPathPair.first);
+            auto pdfStandardInfo = YamlStandardPDFInfoReader(*infoPathPair.first);
             if (pdfStandardInfo.second != ErrorType::None)
                 throw InvalidFormatException("Invalid standard info file " + *infoPathPair.first);
             m_stdInfo = *pdfStandardInfo.first;

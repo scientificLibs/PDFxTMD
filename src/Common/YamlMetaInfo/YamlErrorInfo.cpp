@@ -1,9 +1,9 @@
-#include <iostream>
 #include <PDFxTMDLib/Common/ConfigWrapper.h>
-#include <PDFxTMDLib/Common/YamlMetaInfo/YamlErrorInfo.h>
-#include <PDFxTMDLib/Common/StringUtils.h>
-#include <PDFxTMDLib/Common/MathUtils.h>
 #include <PDFxTMDLib/Common/Logger.h>
+#include <PDFxTMDLib/Common/MathUtils.h>
+#include <PDFxTMDLib/Common/StringUtils.h>
+#include <PDFxTMDLib/Common/YamlMetaInfo/YamlErrorInfo.h>
+#include <iostream>
 
 namespace PDFxTMD
 {
@@ -42,8 +42,8 @@ std::pair<std::optional<YamlErrorInfo>, ErrorType> YamlErrorInfoReader(
         {
             output.ErrorConfLevel = CL1SIGMA;
             PDFxTMDLOG << "[PDFxTMD][YamlErrorInfoReader] ErrorConfLevel is not found "
-                         "in yaml config file, set to default 68%"
-                      << std::endl;
+                          "in yaml config file, set to default 68%"
+                       << std::endl;
         }
     }
 

@@ -3,21 +3,21 @@
 #pragma once
 #include "PDFxTMDLib/Common/Uncertainty.h"
 #include "PDFxTMDLib/GenericPDF.h"
-#include "PDFxTMDLib/ICPDF.h"
-#include "PDFxTMDLib/ITMD.h"
+#include "PDFxTMDLib/Interface/ICPDF.h"
+#include "PDFxTMDLib/Interface/ITMD.h"
 #include <PDFxTMDLib/Common/Exception.h>
 #include <PDFxTMDLib/Common/MathUtils.h>
 #include <PDFxTMDLib/Common/PDFErrInfo.h>
 #include <PDFxTMDLib/Common/YamlMetaInfo/YamlErrorInfo.h>
 #include <PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h>
 #include <PDFxTMDLib/Factory.h>
-#include <PDFxTMDLib/IQCDCoupling.h>
+#include <PDFxTMDLib/Interface/IQCDCoupling.h>
 #include <PDFxTMDLib/Interface/IUncertainty.h>
 #include <PDFxTMDLib/Uncertainty/HessianStrategy.h>
+#include <PDFxTMDLib/Uncertainty/NullUncertaintyStrategy.h>
 #include <PDFxTMDLib/Uncertainty/ReplicasPercentileStrategy.h>
 #include <PDFxTMDLib/Uncertainty/ReplicasStdDevStrategy.h>
 #include <PDFxTMDLib/Uncertainty/SymmHessianStrategy.h>
-#include <PDFxTMDLib/Uncertainty/NullUncertaintyStrategy.h>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -46,7 +46,7 @@ template <typename Tag> class PDFSet
     explicit PDFSet(std::string pdfSetName, bool alternativeReplicaUncertainty = false)
         : m_pdfSetName(std::move(pdfSetName)),
           m_alternativeReplicaUncertainty(alternativeReplicaUncertainty),
-        m_uncertaintyStrategy_(NullUncertaintyStrategy())
+          m_uncertaintyStrategy_(NullUncertaintyStrategy())
     {
         Initialize();
     }
@@ -61,7 +61,6 @@ template <typename Tag> class PDFSet
     {
         return m_qcdCoupling->AlphaQCDMu2(q2);
     }
-    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     PDF_t *operator[](int member)
     {
         std::lock_guard<std::mutex> lock(m_pdfSetMtx);
@@ -72,7 +71,6 @@ template <typename Tag> class PDFSet
         return m_PDFSet_[member].get();
     }
 
-    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     PDF_t *operator[](int member) const
     {
         if (m_PDFSet_.find(member) == m_PDFSet_.end())
@@ -83,10 +81,15 @@ template <typename Tag> class PDFSet
     void Uncertainty(PartonFlavor flavor, double x, double kt2, double mu2, double cl,
                      PDFUncertainty &resUncertainty)
     {
-        throw NotSupportError("PDFxTMD::PDFSet::Uncertainty is not defined for TMDs");
-        // const auto pdfs = CalculatePDFValues(flavor, x, kt2, mu2);
-        // m_uncertaintyStrategy_->Uncertainty(pdfs, m_pdfErrInfo.nmemCore(), cl, resUncertainty);
-        // resUncertainty.central = pdfs[0];
+        if constexpr (std::is_same_v<T, CollinearPDFTag>)
+        {
+            static_assert(
+                !std::is_same_v<Tag, Tag>,
+                "PDFxTMD::PDFSet::Uncertainty(PartonFlavor flavor, double x, kt2, double mu2, "
+                "double cl, PDFUncertainty& resUncertainty) is only for TMDPDFTag");
+        }
+        const auto pdfs = CalculatePDFValues(flavor, x, kt2, mu2);
+        PDFUncertaintyInternalEvaluation(pdfs, cl, resUncertainty);
     }
     template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     void Uncertainty(PartonFlavor flavor, double x, double mu2, double cl,
@@ -99,6 +102,11 @@ template <typename Tag> class PDFSet
                           "double cl, PDFUncertainty& resUncertainty) is only for CollinearPDFTag");
         }
         const auto pdfs = CalculatePDFValues(flavor, x, mu2);
+        PDFUncertaintyInternalEvaluation(pdfs, cl, resUncertainty);
+    }
+    inline void PDFUncertaintyInternalEvaluation(const std::vector<double> &pdfs, double cl,
+                                                 PDFUncertainty &resUncertainty)
+    {
         const double reqCL = ValidateAndGetCL(cl);
 
         m_uncertaintyStrategy_.Uncertainty(pdfs, m_pdfErrInfo.nmemCore(), reqCL, resUncertainty);
@@ -107,6 +115,29 @@ template <typename Tag> class PDFSet
         ApplyConfidenceLevelScaling(resUncertainty, reqCL);
         StoreCoreVariationErros(resUncertainty);
         CalculateParameterVariationErrors(resUncertainty, pdfs);
+    }
+    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, TMDPDFTag>>>
+    PDFUncertainty Uncertainty(PartonFlavor flavor, double x, double kt2, double mu2,
+                               double cl = NO_REQUESTED_CONFIDENCE_LEVEL)
+    {
+        if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
+        {
+            static_assert(!std::is_same_v<Tag, Tag>,
+                          "PDFxTMD::PDFUncertainty PDFxTMD::PDFSet::Uncertainty(PartonFlavor "
+                          "flavor, double x, double kt2, double mu2, double cl = "
+                          "NO_REQUESTED_CONFIDENCE_LEVEL) is only defined for TMDPDFTag");
+        }
+        PDFUncertainty resUncertainty;
+        const auto pdfs = CalculatePDFValues(flavor, x, kt2, mu2);
+        const double reqCL = ValidateAndGetCL(cl);
+
+        m_uncertaintyStrategy_.Uncertainty(pdfs, m_pdfErrInfo.nmemCore(), reqCL, resUncertainty);
+        resUncertainty.central = pdfs[0];
+
+        ApplyConfidenceLevelScaling(resUncertainty, reqCL);
+        StoreCoreVariationErros(resUncertainty);
+        CalculateParameterVariationErrors(resUncertainty, pdfs);
+        return resUncertainty;
     }
     template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     PDFUncertainty Uncertainty(PartonFlavor flavor, double x, double mu2,
@@ -145,7 +176,8 @@ template <typename Tag> class PDFSet
         StoreCoreVariationErros(resUncertainty);
         CalculateParameterVariationErrors(resUncertainty, values);
     }
-    PDFUncertainty Uncertainty(const std::vector<double> &values, double cl = NO_REQUESTED_CONFIDENCE_LEVEL)
+    PDFUncertainty Uncertainty(const std::vector<double> &values,
+                               double cl = NO_REQUESTED_CONFIDENCE_LEVEL)
     {
         if (values.size() != m_pdfSetErrorInfo.size)
             throw InvalidInputError("Error in PDFxTMD::PDFSet::Uncertainty. Input vector must "
@@ -162,17 +194,39 @@ template <typename Tag> class PDFSet
         return resUncertainty;
     }
 
+    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     double Correlation(PartonFlavor flavorA, double xA, double mu2A, PartonFlavor flavorB,
                        double xB, double mu2B)
     {
+        if constexpr (std::is_same_v<Tag, TMDPDFTag>)
+        {
+            static_assert(!std::is_same_v<Tag, Tag>,
+                          "double PDFxTMD::PDFSet::Correlation(PartonFlavor flavorA, double xA, "
+                          "double mu2A, PartonFlavor flavorB, double xB, double mu2B) is only "
+                          "defined for CollinearPDFTag");
+        }
         const auto pdfsA = CalculatePDFValues(flavorA, xA, mu2A);
         const auto pdfsB = CalculatePDFValues(flavorB, xB, mu2B);
         return m_uncertaintyStrategy_.Correlation(pdfsA, pdfsB, m_pdfErrInfo.nmemCore());
     }
+    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, TMDPDFTag>>>
+    double Correlation(PartonFlavor flavorA, double xA, double kt2A, double mu2A,
+                       PartonFlavor flavorB, double xB, double kt2B, double mu2B)
+    {
+        if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
+        {
+            static_assert(
+                !std::is_same_v<Tag, Tag>,
+                "PartonFlavor flavorA, double xA, double kt2A, double mu2A, PartonFlavor "
+                "flavorB,double xB, double kt2B, double mu2B) is only defined for TMDPDFTag");
+        }
+        const auto pdfsA = CalculatePDFValues(flavorA, xA, kt2A, mu2A);
+        const auto pdfsB = CalculatePDFValues(flavorB, xB, kt2B, mu2B);
+        return m_uncertaintyStrategy_.Correlation(pdfsA, pdfsB, m_pdfErrInfo.nmemCore());
+    }
     double Correlation(const std::vector<double> &valuesA, const std::vector<double> &valuesB) const
     {
-        if (valuesA.size() != m_pdfSetErrorInfo.size ||
-            valuesB.size() != m_pdfSetErrorInfo.size)
+        if (valuesA.size() != m_pdfSetErrorInfo.size || valuesB.size() != m_pdfSetErrorInfo.size)
             throw InvalidInputError("Error in PDFxTMD::PDFSet::Correlation. Input vectors must "
                                     "contain values for all PDF members.");
         return m_uncertaintyStrategy_.Correlation(valuesA, valuesB, m_pdfErrInfo.nmemCore());
@@ -185,13 +239,15 @@ template <typename Tag> class PDFSet
         {
             if constexpr (std::is_same_v<Tag, TMDPDFTag>)
             {
-                m_PDFSet_.insert_or_assign(setMember,
-                    std::make_unique<PDF_t>(PDFxTMD::GenericTMDFactory().mkTMD(m_pdfSetName, setMember)));
+                m_PDFSet_.insert_or_assign(
+                    setMember, std::make_unique<PDF_t>(
+                                   PDFxTMD::GenericTMDFactory().mkTMD(m_pdfSetName, setMember)));
             }
             else if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
             {
-                m_PDFSet_.insert_or_assign(setMember,
-                    std::make_unique<PDF_t>(PDFxTMD::GenericCPDFFactory().mkCPDF(m_pdfSetName, setMember)));
+                m_PDFSet_.insert_or_assign(
+                    setMember, std::make_unique<PDF_t>(
+                                   PDFxTMD::GenericCPDFFactory().mkCPDF(m_pdfSetName, setMember)));
             }
             else
             {
@@ -200,7 +256,6 @@ template <typename Tag> class PDFSet
         }
     }
 
-    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     void CreateAllPDFSets()
     {
         std::lock_guard<std::mutex> lock(m_pdfSetMtx);
@@ -208,11 +263,15 @@ template <typename Tag> class PDFSet
         {
             if constexpr (std::is_same_v<Tag, TMDPDFTag>)
             {
-                m_PDFSet_.insert_or_assign(i, std::make_unique<PDF_t>(PDFxTMD::GenericTMDFactory().mkTMD(m_pdfSetName, i)));
+                m_PDFSet_.insert_or_assign(
+                    i,
+                    std::make_unique<PDF_t>(PDFxTMD::GenericTMDFactory().mkTMD(m_pdfSetName, i)));
             }
             else if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
             {
-                m_PDFSet_.insert_or_assign(i, std::make_unique<PDF_t>(PDFxTMD::GenericCPDFFactory().mkCPDF(m_pdfSetName, i)));
+                m_PDFSet_.insert_or_assign(
+                    i,
+                    std::make_unique<PDF_t>(PDFxTMD::GenericCPDFFactory().mkCPDF(m_pdfSetName, i)));
             }
             else
             {
@@ -245,10 +304,11 @@ template <typename Tag> class PDFSet
     {
         return m_pdfSetInfo;
     }
-    PDFSet(const PDFSet&) = delete;
-    PDFSet& operator=(const PDFSet&) = delete;
-    PDFSet(PDFSet&&) = default;
-    PDFSet& operator=(PDFSet&&) = default;
+    PDFSet(const PDFSet &) = delete;
+    PDFSet &operator=(const PDFSet &) = delete;
+    PDFSet(PDFSet &&) = default;
+    PDFSet &operator=(PDFSet &&) = default;
+
   private:
     void Initialize()
     {
@@ -326,7 +386,7 @@ template <typename Tag> class PDFSet
         {
             if (m_alternativeReplicaUncertainty)
             {
-                m_uncertaintyStrategy_ =  IUncertainty(ReplicasPercentileStrategy());
+                m_uncertaintyStrategy_ = IUncertainty(ReplicasPercentileStrategy());
             }
             else
             {

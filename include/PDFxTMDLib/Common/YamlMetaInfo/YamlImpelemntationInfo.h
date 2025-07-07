@@ -1,7 +1,7 @@
 #pragma once
-#include <string>
-#include <optional>
 #include <PDFxTMDLib/Common/PartonUtils.h>
+#include <optional>
+#include <string>
 
 namespace PDFxTMD
 {
@@ -14,4 +14,4 @@ struct YamlImpelemntationInfo
 
 std::pair<std::optional<YamlImpelemntationInfo>, ErrorType> YamlImpelemntationInfoReader(
     const std::string &yamlInfoPath);
-}
+} // namespace PDFxTMD

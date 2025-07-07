@@ -1,18 +1,20 @@
 #include "PDFxTMDLib/Factory.h"
+#include "PDFxTMDLib/Common/YamlMetaInfo/YamlImpelemntationInfo.h"
 #include "PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h"
 #include "PDFxTMDLib/GenericPDF.h"
-#include "PDFxTMDLib/Implementation/Coupling/Interpolation/YamlCouplingInterp.h"
+#include "PDFxTMDLib/Implementation/Coupling/Analytic/AnalyticQCDCoupling.h"
+#include "PDFxTMDLib/Implementation/Coupling/Interpolation/InterpolateQCDCoupling.h"
+#include "PDFxTMDLib/Implementation/Coupling/ODE/ODEQCDCoupling.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CErrExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CNearestPointExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/TMD/TErrExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/TMD/TZeroExtrapolator.h"
-#include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBilinearInterpolator.h"
 #include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.h"
+#include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBilinearInterpolator.h"
 #include "PDFxTMDLib/Implementation/Interpolator/TMD/TTrilinearInterpolator.h"
 #include "PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
-#include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
-#include "PDFxTMDLib/Common/YamlMetaInfo/YamlImpelemntationInfo.h"
+#include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultLHAPDF_TMDReader.h"
 #include <memory>
 
 namespace PDFxTMD
@@ -21,7 +23,7 @@ namespace PDFxTMD
 //////// start reader types
 enum class TReader
 {
-    TDefaultAllFlavorReader,
+    TDefaultLHAPDF_TMDReader,
 };
 
 enum class CReader
@@ -31,9 +33,9 @@ enum class CReader
 };
 TReader TReaderType(const std::string &type)
 {
-    if (type == "TDefaultAllFlavorReader")
+    if (type == "TDefaultLHAPDF_TMDReader")
     {
-        return TReader::TDefaultAllFlavorReader;
+        return TReader::TDefaultLHAPDF_TMDReader;
     }
 
     throw NotSupportError("This file reader is not supported");
@@ -141,7 +143,7 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
     auto [impelmentationInfo, error] = YamlImpelemntationInfoReader(*infoPathPair.first);
     if ((*impelmentationInfo).reader == "")
     {
-        readerType = TReader::TDefaultAllFlavorReader;
+        readerType = TReader::TDefaultLHAPDF_TMDReader;
     }
     else
     {
@@ -167,16 +169,16 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
         extrapolatorType = TExtrapolatorype((*impelmentationInfo).extrapolator);
     }
 
-    if (readerType == TReader::TDefaultAllFlavorReader)
+    if (readerType == TReader::TDefaultLHAPDF_TMDReader)
     {
         if (extrapolatorType == TExtrapolator::TErrExtrapolator)
         {
-            return ITMD(GenericPDF<TMDPDFTag, TDefaultAllFlavorReader, TTrilinearInterpolator,
+            return ITMD(GenericPDF<TMDPDFTag, TDefaultLHAPDF_TMDReader, TTrilinearInterpolator,
                                    TErrExtrapolator>(pdfSetName, setMember));
         }
         else if (extrapolatorType == TExtrapolator::TZeroExtrapolator)
         {
-            return ITMD(GenericPDF<TMDPDFTag, TDefaultAllFlavorReader, TTrilinearInterpolator,
+            return ITMD(GenericPDF<TMDPDFTag, TDefaultLHAPDF_TMDReader, TTrilinearInterpolator,
                                    TZeroExtrapolator>(pdfSetName, setMember));
         }
     }
@@ -230,42 +232,46 @@ ICPDF GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
             if (extrapolatorType == CExtrapolator::CContinuationExtrapolator)
             {
                 return ICPDF(
-                    std::move(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBicubicInterpolator,
-                               CContinuationExtrapolator<CLHAPDFBicubicInterpolator>>(pdfSetName,
-                                                                                    setMember)));
+                    std::move(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader,
+                                         CLHAPDFBicubicInterpolator,
+                                         CContinuationExtrapolator<CLHAPDFBicubicInterpolator>>(
+                        pdfSetName, setMember)));
             }
             else if (extrapolatorType == CExtrapolator::CErrExtrapolator)
             {
-                return ICPDF(
-                    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
-                               CErrExtrapolator>(pdfSetName, setMember));
+                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader,
+                                        CLHAPDFBilinearInterpolator, CErrExtrapolator>(pdfSetName,
+                                                                                       setMember));
             }
             else if (extrapolatorType == CExtrapolator::CNearestPointExtrapolator)
             {
-                return ICPDF(
-                    GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
-                               CNearestPointExtrapolator<CLHAPDFBilinearInterpolator>>(pdfSetName,
-                                                                                 setMember));
+                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader,
+                                        CLHAPDFBilinearInterpolator,
+                                        CNearestPointExtrapolator<CLHAPDFBilinearInterpolator>>(
+                    pdfSetName, setMember));
             }
         }
         else if (interpolatorType == CInterpolator::CLHAPDFBilinearInterpolator)
         {
             if (extrapolatorType == CExtrapolator::CContinuationExtrapolator)
             {
-                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
-                               CContinuationExtrapolator<CLHAPDFBilinearInterpolator>>(pdfSetName,
-                                                                                    setMember));
+                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader,
+                                        CLHAPDFBilinearInterpolator,
+                                        CContinuationExtrapolator<CLHAPDFBilinearInterpolator>>(
+                    pdfSetName, setMember));
             }
             else if (extrapolatorType == CExtrapolator::CErrExtrapolator)
             {
-                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
-                               CErrExtrapolator>(pdfSetName, setMember));
+                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader,
+                                        CLHAPDFBilinearInterpolator, CErrExtrapolator>(pdfSetName,
+                                                                                       setMember));
             }
             else if (extrapolatorType == CExtrapolator::CNearestPointExtrapolator)
             {
-                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader, CLHAPDFBilinearInterpolator,
-                               CNearestPointExtrapolator<CLHAPDFBilinearInterpolator>>(pdfSetName,
-                                                                                 setMember));
+                return ICPDF(GenericPDF<CollinearPDFTag, CDefaultLHAPDFFileReader,
+                                        CLHAPDFBilinearInterpolator,
+                                        CNearestPointExtrapolator<CLHAPDFBilinearInterpolator>>(
+                    pdfSetName, setMember));
             }
         }
     }
@@ -289,16 +295,23 @@ IQCDCoupling CouplingFactory::mkCoupling(const std::string &pdfSetName)
     }
 
     couplingInfo_ = *couplingInfo.first;
-    m_alphaType = couplingInfo_.alphaCalcMethod;
-    if (m_alphaType == AlphasType::ipol)
+    if (couplingInfo_.alphaCalcMethod == AlphasType::ipol)
     {
-        std::vector<double> mu2Vec;
-        mu2Vec.resize(couplingInfo_.mu_vec.size());
-        std::transform(couplingInfo_.mu_vec.begin(), couplingInfo_.mu_vec.end(), mu2Vec.begin(),
-                       [](double q) { return q * q; });
-        YamlCouplingInterp test = YamlCouplingInterp();
-        test.SetParamters(mu2Vec, couplingInfo_.alphas_vec);
-        return IQCDCoupling(test);
+        InterpolateQCDCoupling interpCoupling = InterpolateQCDCoupling();
+        interpCoupling.initialize(couplingInfo_);
+        return IQCDCoupling(interpCoupling);
+    }
+    if (couplingInfo_.alphaCalcMethod == AlphasType::analytic)
+    {
+        AnalyticQCDCoupling analyticCoupling = AnalyticQCDCoupling();
+        analyticCoupling.initialize(couplingInfo_);
+        return IQCDCoupling(analyticCoupling);
+    }
+    if (couplingInfo_.alphaCalcMethod == AlphasType::ode)
+    {
+        ODEQCDCoupling odeQCDCoupling = ODEQCDCoupling();
+        odeQCDCoupling.initialize(couplingInfo_);
+        return IQCDCoupling(odeQCDCoupling);
     }
     throw NotSupportError("The requested coupling approach is currently not supported");
 }

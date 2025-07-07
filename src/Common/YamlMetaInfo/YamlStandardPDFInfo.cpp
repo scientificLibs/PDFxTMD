@@ -1,5 +1,5 @@
-#include <PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h>
 #include <PDFxTMDLib/Common/Logger.h>
+#include <PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h>
 #include <iostream>
 
 namespace PDFxTMD
@@ -19,8 +19,8 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     if (errorOrderQCD != ErrorType::None)
     {
         PDFxTMDLOG << "[PDFxTMD][YamlInfoReader] OrderQCD not "
-                     "found in yaml file"
-                  << std::endl;
+                      "found in yaml file"
+                   << std::endl;
         return {std::nullopt, errorOrderQCD};
     }
     output.orderQCD = static_cast<OrderQCD>(*orderQCD);
@@ -29,8 +29,8 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     if (errorFormat != ErrorType::None)
     {
         PDFxTMDLOG << "[PDFxTMD][YamlInfoReader] Format is not "
-                     "found in yaml config file"
-                  << std::endl;
+                      "found in yaml config file"
+                   << std::endl;
         return {std::nullopt, errorFormat};
     }
     output.Format = *format;
@@ -39,8 +39,8 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     if (errorNumMembers != ErrorType::None)
     {
         PDFxTMDLOG << "[PDFxTMD][YamlInfoReader] NumMembers is not "
-                     "found in yaml config file"
-                  << std::endl;
+                      "found in yaml config file"
+                   << std::endl;
         return {std::nullopt, errorNumMembers};
     }
     output.NumMembers = *NumMembers;
@@ -49,8 +49,8 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     if (errorFlavors != ErrorType::None)
     {
         PDFxTMDLOG << "[PDFxTMD][YamlInfoReader] Flavors is not "
-                     "found in yaml config file"
-                  << std::endl;
+                      "found in yaml config file"
+                   << std::endl;
         return {std::nullopt, errorFlavors};
     }
     output.Flavors = *Flavors;
@@ -59,8 +59,8 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     if (errorXMin != ErrorType::None)
     {
         PDFxTMDLOG << "[PDFxTMD][YamlInfoReader] XMin is not found "
-                     "in yaml config file"
-                  << std::endl;
+                      "in yaml config file"
+                   << std::endl;
         return {std::nullopt, errorXMin};
     }
     output.XMin = *XMin;
@@ -69,8 +69,8 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     if (errorXMax != ErrorType::None)
     {
         PDFxTMDLOG << "[PDFxTMD][YamlInfoReader] XMax is not found "
-                     "in yaml config file"
-                  << std::endl;
+                      "in yaml config file"
+                   << std::endl;
         return {std::nullopt, errorXMin};
     }
     output.XMax = *XMax;
@@ -80,8 +80,8 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     if (errorQMin != ErrorType::None)
     {
         PDFxTMDLOG << "[PDFxTMD][YamlInfoReader] QMin is not found "
-                     "in yaml config file"
-                  << std::endl;
+                      "in yaml config file"
+                   << std::endl;
         return {std::nullopt, errorQMin};
     }
     output.QMin = *QMin;
@@ -90,8 +90,8 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     if (errorQMax != ErrorType::None)
     {
         PDFxTMDLOG << "[PDFxTMD][YamlInfoReader] QMax is not found "
-                     "in yaml config file"
-                  << std::endl;
+                      "in yaml config file"
+                   << std::endl;
         return {std::nullopt, errorQMax};
     }
     output.QMax = *QMax;

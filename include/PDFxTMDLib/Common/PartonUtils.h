@@ -1,14 +1,14 @@
 #pragma once
+#include <algorithm>
+#include <array>
+#include <cmath>
 #include <exception>
 #include <filesystem>
+#include <map>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <map>
-#include <array>
-#include <cmath>
 
 #define FOLDER_SEP "/"
 #define STD_PDF_INFO_EXTENSION ".info"
@@ -50,7 +50,8 @@ enum class OrderQCD
     LO,
     NLO,
     N2LO,
-    N3LO
+    N3LO,
+    N4LO
 };
 enum PartonFlavor
 {
@@ -77,18 +78,17 @@ enum PartonFlavor
 };
 
 constexpr std::array<PartonFlavor, DEFAULT_TOTAL_PDFS> standardPartonFlavors = {
-    PartonFlavor::tbar, PartonFlavor::bbar,  PartonFlavor::cbar, PartonFlavor::sbar,
-    PartonFlavor::ubar, PartonFlavor::dbar,  PartonFlavor::gNS,    PartonFlavor::d,
-    PartonFlavor::u,    PartonFlavor::s,     PartonFlavor::c,    PartonFlavor::b,
+    PartonFlavor::tbar, PartonFlavor::bbar, PartonFlavor::cbar, PartonFlavor::sbar,
+    PartonFlavor::ubar, PartonFlavor::dbar, PartonFlavor::gNS,  PartonFlavor::d,
+    PartonFlavor::u,    PartonFlavor::s,    PartonFlavor::c,    PartonFlavor::b,
     PartonFlavor::t};
-
 
 std::vector<std::string> splitPaths(const std::string &paths);
 bool hasWriteAccess(const std::string &path);
 double _extrapolateLinear(double x, double xl, double xh, double yl, double yh);
 std::string StandardPDFNaming(const std::string &pdfName, int set);
 std::vector<std::string> GetPDFxTMDPathsAsVector();
-std::string GetPDFxTMDPaths();
+std::vector<std::string> GetPDFxTMDPathsFromYaml();
 bool AddPathToEnvironment(const std::string &newPath);
 std::vector<std::string> split(const std::string &str, char delimiter);
 /// Format an integer @a val as a zero-padded string of length
@@ -99,12 +99,17 @@ std::pair<std::optional<std::string>, ErrorType> StandardInfoFilePath(
 std::pair<std::optional<std::string>, ErrorType> StandardPDFSetPath(const std::string &pdfSetName,
                                                                     int set);
 // taken from the lhapdf
-inline size_t indexbelow(double value, const std::vector<double>& knots) {
+inline size_t indexbelow(double value, const std::vector<double> &knots)
+{
     size_t i = std::upper_bound(knots.begin(), knots.end(), value) - knots.begin();
-    if (i == knots.size()) i -= 1; // can't return the last knot index
-    i -= 1;                // step back to get the knot <= x behaviour
+    if (i == knots.size())
+        i -= 1; // can't return the last knot index
+    i -= 1;     // step back to get the knot <= x behaviour
     return i;
-  }
-    /// Check if a number is in a range (closed-open) (from lhapdf)
-  inline int in_range(double x, double low, double high) { return x >= low && x < high; }
+}
+/// Check if a number is in a range (closed-open) (from lhapdf)
+inline int in_range(double x, double low, double high)
+{
+    return x >= low && x < high;
+}
 } // namespace PDFxTMD
