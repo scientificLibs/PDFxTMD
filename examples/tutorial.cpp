@@ -49,7 +49,7 @@ constexpr const char* PartonFlavorToString(const int flavorIndex)
 int main()
 {
     // calculatig cPDFs with PDFSet approach. It gives a vector of all PDFSet members.
-    PDFxTMD::PDFSet<PDFxTMD::CollinearPDFTag> PDFSet("MMHT2014lo68cl");
+    PDFxTMD::PDFSet<PDFxTMD::CollinearPDFTag> PDFSet("MSHT20nlo_as120");
     //Calculating PDF uncertainty is easily done via Uncertainty method. 
     //There is also an overload similar to LHAPDF: void Uncertainty(const std::vector<double> &values, double cl, PDFUncertainty &resUncertainty). 
     PDFxTMD::PDFUncertainty uncertainty;
