@@ -1,4 +1,6 @@
-/// this class and all uncertainties related features are based on the LHAPDF library, but is
+/// @file PDFSet.h
+/// @brief This file contains the declaration of the PDFSet class.
+/// This class and all uncertainties related features are based on the LHAPDF library, but is
 /// heavily refactored to improve its readibility and even its performance!
 #pragma once
 #include "PDFxTMDLib/Common/Uncertainty.h"
@@ -26,23 +28,43 @@
 
 namespace PDFxTMD
 {
+/// @brief A type trait to map a tag to a specific PDF interface type.
+/// @tparam T The tag (e.g., TMDPDFTag, CollinearPDFTag).
 template <typename T> struct PDFType;
 
+/// @brief Specialization of PDFType for Transverse Momentum Dependent (TMD) PDFs.
 template <> struct PDFType<TMDPDFTag>
 {
     using type = ITMD;
 };
 
+/// @brief Specialization of PDFType for Collinear PDFs.
 template <> struct PDFType<CollinearPDFTag>
 {
     using type = ICPDF;
 };
 
+/**
+ * @class PDFSet
+ * @brief Manages a set of Parton Distribution Functions (PDFs), providing tools for uncertainty and correlation analysis.
+ *
+ * This class acts as a container for all members of a specific PDF set (e.g., CT18, PB-NLO). It handles the
+ * loading of PDF data, calculation of uncertainties using various methods (replicas, Hessian), and evaluation of
+ * correlations between PDF values. It is a templated class that can be specialized for either TMD or Collinear PDFs.
+ *
+ * @tparam Tag A tag to specify the PDF type (TMDPDFTag or CollinearPDFTag).
+ */
 template <typename Tag> class PDFSet
 {
   public:
+    /// @brief The specific PDF interface type (ITMD or ICPDF) determined by the Tag.
     using PDF_t = typename PDFType<Tag>::type;
 
+    /**
+     * @brief Constructs a PDFSet for a given PDF name.
+     * @param pdfSetName The name of the PDF set to load.
+     * @param alternativeReplicaUncertainty If true, use percentile strategy for replica uncertainties; otherwise, use standard deviation.
+     */
     explicit PDFSet(std::string pdfSetName, bool alternativeReplicaUncertainty = false)
         : m_pdfSetName(std::move(pdfSetName)),
           m_alternativeReplicaUncertainty(alternativeReplicaUncertainty),
@@ -51,16 +73,34 @@ template <typename Tag> class PDFSet
         Initialize();
     }
 
+    /// @brief Default constructor.
     PDFSet() = default;
+
+    /**
+     * @brief Get the strong coupling constant alpha_s at a given scale Q.
+     * @param q The momentum transfer scale Q in GeV.
+     * @return The value of alpha_s(Q).
+     */
     double alphasQ(double q) const
     {
         return alphasQ2(q * q);
     }
 
+    /**
+     * @brief Get the strong coupling constant alpha_s at a given squared scale Q^2.
+     * @param q2 The squared momentum transfer scale Q^2 in GeV^2.
+     * @return The value of alpha_s(Q^2).
+     */
     double alphasQ2(double q2) const
     {
         return m_qcdCoupling->AlphaQCDMu2(q2);
     }
+
+    /**
+     * @brief Access a specific PDF member from the set.
+     * @param member The member index (0 is the central value).
+     * @return A pointer to the PDF object. Creates the object if it doesn't exist.
+     */
     PDF_t *operator[](int member)
     {
         std::lock_guard<std::mutex> lock(m_pdfSetMtx);
@@ -71,111 +111,108 @@ template <typename Tag> class PDFSet
         return m_PDFSet_[member].get();
     }
 
+    /**
+     * @brief Access a specific PDF member from the set (const version).
+     * @param member The member index.
+     * @return A const pointer to the PDF object, or nullptr if it has not been created.
+     */
     PDF_t *operator[](int member) const
     {
         if (m_PDFSet_.find(member) == m_PDFSet_.end())
             return nullptr;
-        return m_PDFSet_[member].get();
+        return m_PDFSet_.at(member).get();
     }
+
+    /**
+     * @brief Calculate the TMD uncertainty. (Enabled only for TMDPDFTag)
+     * @param flavor The parton flavor.
+     * @param x The momentum fraction.
+     * @param kt2 The squared transverse momentum.
+     * @param mu2 The squared factorization scale.
+     * @param cl The desired confidence level in percent.
+     * @param resUncertainty The output PDFUncertainty object.
+     */
     template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, TMDPDFTag>>>
     void Uncertainty(PartonFlavor flavor, double x, double kt2, double mu2, double cl,
                      PDFUncertainty &resUncertainty)
     {
-        if constexpr (std::is_same_v<T, CollinearPDFTag>)
-        {
-            static_assert(
-                !std::is_same_v<Tag, Tag>,
-                "PDFxTMD::PDFSet::Uncertainty(PartonFlavor flavor, double x, kt2, double mu2, "
-                "double cl, PDFUncertainty& resUncertainty) is only for TMDPDFTag");
-        }
         const auto pdfs = CalculatePDFValues(flavor, x, kt2, mu2);
         PDFUncertaintyInternalEvaluation(pdfs, cl, resUncertainty);
     }
+
+    /**
+     * @brief Calculate the collinear PDF uncertainty. (Enabled only for CollinearPDFTag)
+     * @param flavor The parton flavor.
+     * @param x The momentum fraction.
+     * @param mu2 The squared factorization scale.
+     * @param cl The desired confidence level in percent.
+     * @param resUncertainty The output PDFUncertainty object.
+     */
     template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     void Uncertainty(PartonFlavor flavor, double x, double mu2, double cl,
                      PDFUncertainty &resUncertainty)
     {
-        if constexpr (std::is_same_v<T, TMDPDFTag>)
-        {
-            static_assert(!std::is_same_v<Tag, Tag>,
-                          "PDFxTMD::PDFSet::Uncertainty(PartonFlavor flavor, double x, double mu2, "
-                          "double cl, PDFUncertainty& resUncertainty) is only for CollinearPDFTag");
-        }
         const auto pdfs = CalculatePDFValues(flavor, x, mu2);
         PDFUncertaintyInternalEvaluation(pdfs, cl, resUncertainty);
     }
-    inline void PDFUncertaintyInternalEvaluation(const std::vector<double> &pdfs, double cl,
-                                                 PDFUncertainty &resUncertainty)
-    {
-        const double reqCL = ValidateAndGetCL(cl);
-
-        m_uncertaintyStrategy_.Uncertainty(pdfs, m_pdfErrInfo.nmemCore(), reqCL, resUncertainty);
-        resUncertainty.central = pdfs[0];
-
-        ApplyConfidenceLevelScaling(resUncertainty, reqCL);
-        StoreCoreVariationErros(resUncertainty);
-        CalculateParameterVariationErrors(resUncertainty, pdfs);
-    }
+    
+    /**
+     * @brief Calculate the TMD uncertainty and return the result. (Enabled only for TMDPDFTag)
+     * @param flavor The parton flavor.
+     * @param x The momentum fraction.
+     * @param kt2 The squared transverse momentum.
+     * @param mu2 The squared factorization scale.
+     * @param cl The desired confidence level in percent (default is the set's native CL).
+     * @return A PDFUncertainty object with the results.
+     */
     template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, TMDPDFTag>>>
     PDFUncertainty Uncertainty(PartonFlavor flavor, double x, double kt2, double mu2,
                                double cl = NO_REQUESTED_CONFIDENCE_LEVEL)
     {
-        if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
-        {
-            static_assert(!std::is_same_v<Tag, Tag>,
-                          "PDFxTMD::PDFUncertainty PDFxTMD::PDFSet::Uncertainty(PartonFlavor "
-                          "flavor, double x, double kt2, double mu2, double cl = "
-                          "NO_REQUESTED_CONFIDENCE_LEVEL) is only defined for TMDPDFTag");
-        }
         PDFUncertainty resUncertainty;
         const auto pdfs = CalculatePDFValues(flavor, x, kt2, mu2);
-        const double reqCL = ValidateAndGetCL(cl);
-
-        m_uncertaintyStrategy_.Uncertainty(pdfs, m_pdfErrInfo.nmemCore(), reqCL, resUncertainty);
-        resUncertainty.central = pdfs[0];
-
-        ApplyConfidenceLevelScaling(resUncertainty, reqCL);
-        StoreCoreVariationErros(resUncertainty);
-        CalculateParameterVariationErrors(resUncertainty, pdfs);
+        PDFUncertaintyInternalEvaluation(pdfs, cl, resUncertainty);
         return resUncertainty;
     }
+    
+    /**
+     * @brief Calculate the collinear PDF uncertainty and return the result. (Enabled only for CollinearPDFTag)
+     * @param flavor The parton flavor.
+     * @param x The momentum fraction.
+     * @param mu2 The squared factorization scale.
+     * @param cl The desired confidence level in percent (default is the set's native CL).
+     * @return A PDFUncertainty object with the results.
+     */
     template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     PDFUncertainty Uncertainty(PartonFlavor flavor, double x, double mu2,
                                double cl = NO_REQUESTED_CONFIDENCE_LEVEL)
     {
-        if constexpr (std::is_same_v<Tag, TMDPDFTag>)
-        {
-            static_assert(!std::is_same_v<Tag, Tag>,
-                          "PDFxTMD::PDFUncertainty PDFxTMD::PDFSet::Uncertainty(PartonFlavor "
-                          "flavor, double x, double mu2, double cl = "
-                          "NO_REQUESTED_CONFIDENCE_LEVEL) is only defined for CollinearPDFTag");
-        }
         PDFUncertainty resUncertainty;
         const auto pdfs = CalculatePDFValues(flavor, x, mu2);
-        const double reqCL = ValidateAndGetCL(cl);
-
-        m_uncertaintyStrategy_.Uncertainty(pdfs, m_pdfErrInfo.nmemCore(), reqCL, resUncertainty);
-        resUncertainty.central = pdfs[0];
-
-        ApplyConfidenceLevelScaling(resUncertainty, reqCL);
-        StoreCoreVariationErros(resUncertainty);
-        CalculateParameterVariationErrors(resUncertainty, pdfs);
+        PDFUncertaintyInternalEvaluation(pdfs, cl, resUncertainty);
         return resUncertainty;
     }
+    
+    /**
+     * @brief Calculate uncertainty from a pre-computed vector of PDF values.
+     * @param values A vector of PDF values from all members of the set.
+     * @param cl The desired confidence level in percent.
+     * @param resUncertainty The output PDFUncertainty object.
+     */
     void Uncertainty(const std::vector<double> &values, double cl, PDFUncertainty &resUncertainty)
     {
         if (values.size() != m_pdfSetErrorInfo.size)
             throw InvalidInputError("Error in PDFxTMD::PDFSet::Uncertainty. Input vector must "
                                     "contain values for all PDF members.");
-        const double reqCL = ValidateAndGetCL(cl);
-
-        m_uncertaintyStrategy_.Uncertainty(values, m_pdfErrInfo.nmemCore(), reqCL, resUncertainty);
-        resUncertainty.central = values[0];
-
-        ApplyConfidenceLevelScaling(resUncertainty, reqCL);
-        StoreCoreVariationErros(resUncertainty);
-        CalculateParameterVariationErrors(resUncertainty, values);
+        PDFUncertaintyInternalEvaluation(values, cl, resUncertainty);
     }
+    
+    /**
+     * @brief Calculate uncertainty from a pre-computed vector of PDF values and return the result.
+     * @param values A vector of PDF values from all members of the set.
+     * @param cl The desired confidence level in percent (default is the set's native CL).
+     * @return A PDFUncertainty object.
+     */
     PDFUncertainty Uncertainty(const std::vector<double> &values,
                                double cl = NO_REQUESTED_CONFIDENCE_LEVEL)
     {
@@ -183,47 +220,56 @@ template <typename Tag> class PDFSet
             throw InvalidInputError("Error in PDFxTMD::PDFSet::Uncertainty. Input vector must "
                                     "contain values for all PDF members.");
         PDFUncertainty resUncertainty;
-        const double reqCL = ValidateAndGetCL(cl);
-
-        m_uncertaintyStrategy_.Uncertainty(values, m_pdfErrInfo.nmemCore(), reqCL, resUncertainty);
-        resUncertainty.central = values[0];
-
-        ApplyConfidenceLevelScaling(resUncertainty, reqCL);
-        StoreCoreVariationErros(resUncertainty);
-        CalculateParameterVariationErrors(resUncertainty, values);
+        PDFUncertaintyInternalEvaluation(values, cl, resUncertainty);
         return resUncertainty;
     }
-
+    
+    /**
+     * @brief Calculate the correlation for collinear PDFs. (Enabled only for CollinearPDFTag)
+     * @param flavorA The parton flavor for the first observable.
+     * @param xA The momentum fraction 'x' for the first observable.
+     * @param mu2A The scale 'mu2' for the first observable.
+     * @param flavorB The parton flavor for the second observable.
+     * @param xB The momentum fraction 'x' for the second observable.
+     * @param mu2B The scale 'mu2' for the second observable.
+     * @return The correlation coefficient.
+     */
     template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
     double Correlation(PartonFlavor flavorA, double xA, double mu2A, PartonFlavor flavorB,
                        double xB, double mu2B)
     {
-        if constexpr (std::is_same_v<Tag, TMDPDFTag>)
-        {
-            static_assert(!std::is_same_v<Tag, Tag>,
-                          "double PDFxTMD::PDFSet::Correlation(PartonFlavor flavorA, double xA, "
-                          "double mu2A, PartonFlavor flavorB, double xB, double mu2B) is only "
-                          "defined for CollinearPDFTag");
-        }
         const auto pdfsA = CalculatePDFValues(flavorA, xA, mu2A);
         const auto pdfsB = CalculatePDFValues(flavorB, xB, mu2B);
         return m_uncertaintyStrategy_.Correlation(pdfsA, pdfsB, m_pdfErrInfo.nmemCore());
     }
+
+    /**
+     * @brief Calculate the correlation for TMDs. (Enabled only for TMDPDFTag)
+     * @param flavorA The parton flavor for the first TMD.
+     * @param xA The momentum fraction 'x' for the first TMD.
+     * @param kt2A The transverse momentum 'kt2' for the first TMD.
+     * @param mu2A The scale 'mu2' for the first TMD.
+     * @param flavorB The parton flavor for the second TMD.
+     * @param xB The momentum fraction 'x' for the second TMD.
+     * @param kt2B The transverse momentum 'kt2' for the second TMD.
+     * @param mu2B The scale 'mu2' for the second TMD.
+     * @return The correlation coefficient.
+     */
     template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, TMDPDFTag>>>
     double Correlation(PartonFlavor flavorA, double xA, double kt2A, double mu2A,
                        PartonFlavor flavorB, double xB, double kt2B, double mu2B)
     {
-        if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
-        {
-            static_assert(
-                !std::is_same_v<Tag, Tag>,
-                "PartonFlavor flavorA, double xA, double kt2A, double mu2A, PartonFlavor "
-                "flavorB,double xB, double kt2B, double mu2B) is only defined for TMDPDFTag");
-        }
         const auto pdfsA = CalculatePDFValues(flavorA, xA, kt2A, mu2A);
         const auto pdfsB = CalculatePDFValues(flavorB, xB, kt2B, mu2B);
         return m_uncertaintyStrategy_.Correlation(pdfsA, pdfsB, m_pdfErrInfo.nmemCore());
     }
+
+    /**
+     * @brief Calculate correlation from two pre-computed vectors of PDF values.
+     * @param valuesA A vector of PDF values for the first observable.
+     * @param valuesB A vector of PDF values for the second observable.
+     * @return The correlation coefficient.
+     */
     double Correlation(const std::vector<double> &valuesA, const std::vector<double> &valuesB) const
     {
         if (valuesA.size() != m_pdfSetErrorInfo.size || valuesB.size() != m_pdfSetErrorInfo.size)
@@ -232,7 +278,10 @@ template <typename Tag> class PDFSet
         return m_uncertaintyStrategy_.Correlation(valuesA, valuesB, m_pdfErrInfo.nmemCore());
     }
 
-    template <typename T = Tag, typename = std::enable_if_t<std::is_same_v<T, CollinearPDFTag>>>
+    /**
+     * @brief Explicitly creates a single PDF member.
+     * @param setMember The index of the PDF member to create.
+     */
     void CreatePDFSet(unsigned int setMember)
     {
         std::lock_guard<std::mutex> lock(m_pdfSetMtx);
@@ -255,61 +304,94 @@ template <typename Tag> class PDFSet
             }
         }
     }
-
+    
+    /**
+     * @brief Pre-loads all PDF members in the set.
+     */
     void CreateAllPDFSets()
     {
-        std::lock_guard<std::mutex> lock(m_pdfSetMtx);
         for (int i = 0; i < m_pdfSetStdInfo.NumMembers; ++i)
         {
-            if constexpr (std::is_same_v<Tag, TMDPDFTag>)
-            {
-                m_PDFSet_.insert_or_assign(
-                    i,
-                    std::make_unique<PDF_t>(PDFxTMD::GenericTMDFactory().mkTMD(m_pdfSetName, i)));
-            }
-            else if constexpr (std::is_same_v<Tag, CollinearPDFTag>)
-            {
-                m_PDFSet_.insert_or_assign(
-                    i,
-                    std::make_unique<PDF_t>(PDFxTMD::GenericCPDFFactory().mkCPDF(m_pdfSetName, i)));
-            }
-            else
-            {
-                static_assert(!std::is_same_v<Tag, Tag>, "Unsupported Tag");
+            std::cout << "pdfset i " << i << std::endl;
+            if (m_PDFSet_.find(i) == m_PDFSet_.end()) {
+                CreatePDFSet(i);
             }
         }
     }
-
+    
+    /**
+     * @brief Re-initializes the PDFSet with a new PDF set name.
+     * @param pdfSetName The name of the new PDF set.
+     */
     void InitailizePDFSetName(std::string pdfSetName)
     {
-        m_pdfSetName = pdfSetName;
-        ValidatePDFSetName();
-        LoadYamlInfo();
-        InitializeQCDCoupling();
-        InitializeUncertaintyStrategy();
+        m_pdfSetName = std::move(pdfSetName);
+        Initialize();
     }
+    
+    /**
+     * @brief Get the total number of members in this PDF set.
+     * @return The number of members.
+     */
     size_t size() const
     {
         return m_pdfSetStdInfo.NumMembers;
     }
+
+    /**
+     * @brief Get the standard metadata for the PDF set.
+     * @return A YamlStandardPDFInfo object.
+     */
     YamlStandardPDFInfo getStdPDFInfo() const
     {
         return m_pdfSetStdInfo;
     }
+
+    /**
+     * @brief Get the error metadata for the PDF set.
+     * @return A YamlErrorInfo object.
+     */
     YamlErrorInfo getPDFErrorInfo() const
     {
         return m_pdfSetErrorInfo;
     }
+
+    /**
+     * @brief Get the full configuration metadata object for the set.
+     * @return A ConfigWrapper object.
+     */
     ConfigWrapper info()
     {
         return m_pdfSetInfo;
     }
+    
+    // Rule of Five: disable copying, allow moving.
     PDFSet(const PDFSet &) = delete;
     PDFSet &operator=(const PDFSet &) = delete;
     PDFSet(PDFSet &&) = default;
     PDFSet &operator=(PDFSet &&) = default;
 
   private:
+    /**
+     * @brief Internal routine for uncertainty calculation.
+     * @param pdfs A vector of PDF values from all set members.
+     * @param cl The desired confidence level.
+     * @param resUncertainty The output PDFUncertainty object.
+     */
+    inline void PDFUncertaintyInternalEvaluation(const std::vector<double> &pdfs, double cl,
+                                                 PDFUncertainty &resUncertainty)
+    {
+        const double reqCL = ValidateAndGetCL(cl);
+
+        m_uncertaintyStrategy_.Uncertainty(pdfs, m_pdfErrInfo.nmemCore(), reqCL, resUncertainty);
+        resUncertainty.central = pdfs[0];
+
+        ApplyConfidenceLevelScaling(resUncertainty, reqCL);
+        StoreCoreVariationErros(resUncertainty);
+        CalculateParameterVariationErrors(resUncertainty, pdfs);
+    }
+    
+    /// @brief Initializes the PDF set by loading metadata and preparing strategies.
     void Initialize()
     {
         ValidatePDFSetName();
@@ -318,12 +400,16 @@ template <typename Tag> class PDFSet
         InitializeUncertaintyStrategy();
         CreateAllPDFSets();
     }
+
+    /// @brief Initializes the QCD coupling object.
     void InitializeQCDCoupling()
     {
         CouplingFactory qcdCouplingFactory_;
         m_qcdCoupling =
             std::make_unique<IQCDCoupling>(qcdCouplingFactory_.mkCoupling(m_pdfSetName));
     }
+
+    /// @brief Validates that the PDF set name is not empty.
     void ValidatePDFSetName()
     {
         if (m_pdfSetName.empty())
@@ -333,6 +419,7 @@ template <typename Tag> class PDFSet
         }
     }
 
+    /// @brief Loads all metadata from the .info YAML file.
     void LoadYamlInfo()
     {
         auto infoPathPair = StandardInfoFilePath(m_pdfSetName);
@@ -340,6 +427,8 @@ template <typename Tag> class PDFSet
             throw FileLoadException(
                 "PDFxTMD::PDFSet::LoadYamlInfo: Unable to find info file of PDF set " +
                 m_pdfSetName);
+
+        m_isValid = true;
         auto yamlInfoErrPair = YamlErrorInfoReader(*infoPathPair.first);
         if (yamlInfoErrPair.second != ErrorType::None || !yamlInfoErrPair.first.has_value())
         {
@@ -348,7 +437,6 @@ template <typename Tag> class PDFSet
         else
         {
             m_pdfSetErrorInfo = yamlInfoErrPair.first.value();
-            m_isValid = true;
         }
 
         auto yamlStdInfoErrPair = YamlStandardPDFInfoReader(*infoPathPair.first);
@@ -372,6 +460,7 @@ template <typename Tag> class PDFSet
         }
     }
 
+    /// @brief Selects and initializes the correct uncertainty calculation strategy.
     void InitializeUncertaintyStrategy()
     {
         m_pdfErrInfo = PDFErrInfo::CalculateErrorInfo(m_pdfSetErrorInfo);
@@ -412,12 +501,13 @@ template <typename Tag> class PDFSet
             (coreType != "replicas") ? m_pdfSetErrorInfo.ErrorConfLevel / 100.0 : CL1SIGMA / 100.0;
     }
 
+    /// @brief Calculates PDF values for all members of the set for a given kinematic point.
     template <typename... Args>
     std::vector<double> CalculatePDFValues(PartonFlavor flavor, Args... args) const
     {
         std::vector<double> pdfs;
         pdfs.reserve(m_pdfSetStdInfo.NumMembers);
-        for (auto &&pdf_ : m_PDFSet_)
+        for (const auto &pdf_ : m_PDFSet_)
         {
             if constexpr (sizeof...(args) == 3)
             { // TMD case
@@ -430,7 +520,8 @@ template <typename Tag> class PDFSet
         }
         return pdfs;
     }
-
+    
+    /// @brief Validates and returns the confidence level for calculations.
     double ValidateAndGetCL(double cl) const
     {
         const double reqCL = (cl >= 0) ? cl / 100.0 : m_setCL;
@@ -443,6 +534,7 @@ template <typename Tag> class PDFSet
         return reqCL;
     }
 
+    /// @brief Scales the uncertainty to the requested confidence level.
     void ApplyConfidenceLevelScaling(PDFUncertainty &rtn, double reqCL) const
     {
         if (m_setCL != reqCL && !m_alternativeReplicaUncertainty)
@@ -457,6 +549,8 @@ template <typename Tag> class PDFSet
             rtn.errsymm *= scale;
         }
     }
+
+    /// @brief Stores the core PDF variation errors into the result struct.
     void StoreCoreVariationErros(PDFUncertainty &resUncertainty)
     {
         // Store core variation uncertainties
@@ -467,6 +561,8 @@ template <typename Tag> class PDFSet
             {resUncertainty.errplus_pdf,
              resUncertainty.errminus_pdf}); ///< @note (+,-) pair-ordering
     }
+
+    /// @brief Calculates errors from parameter variations (e.g., alpha_s, quark masses).
     void CalculateParameterVariationErrors(PDFUncertainty &rtn,
                                            const std::vector<double> &values) const
     {
@@ -507,19 +603,20 @@ template <typename Tag> class PDFSet
             errsq_par_minus += SQR(eminus);
         }
     }
-    ConfigWrapper m_pdfSetInfo;
-    YamlErrorInfo m_pdfSetErrorInfo;
-    YamlStandardPDFInfo m_pdfSetStdInfo;
-    PDFErrInfo m_pdfErrInfo;
-    std::map<unsigned, std::unique_ptr<PDF_t>> m_PDFSet_;
-    std::vector<unsigned int> m_createdPDFSetsMember;
-    std::string m_pdfSetName;
-    IUncertainty m_uncertaintyStrategy_;
-    std::unique_ptr<IQCDCoupling> m_qcdCoupling;
-    double m_setCL;
-    bool m_alternativeReplicaUncertainty;
-    bool m_isValid = false;
-    std::mutex m_pdfSetMtx;
+    
+    ConfigWrapper m_pdfSetInfo;                 ///< General metadata object for the set.
+    YamlErrorInfo m_pdfSetErrorInfo;           ///< Specific error metadata.
+    YamlStandardPDFInfo m_pdfSetStdInfo;       ///< Specific standard PDF metadata.
+    PDFErrInfo m_pdfErrInfo;                     ///< Processed error structure information.
+    std::map<unsigned, std::unique_ptr<PDF_t>> m_PDFSet_; ///< Map of created PDF member objects.
+    std::vector<unsigned int> m_createdPDFSetsMember; ///< (Currently unused) Tracks created members.
+    std::string m_pdfSetName;                    ///< The name of the PDF set.
+    IUncertainty m_uncertaintyStrategy_;         ///< The strategy object for uncertainty calculations.
+    std::unique_ptr<IQCDCoupling> m_qcdCoupling; ///< The QCD coupling calculation object.
+    double m_setCL;                              ///< The native confidence level of the set.
+    bool m_alternativeReplicaUncertainty;      ///< Flag for replica uncertainty method.
+    bool m_isValid = false;                      ///< Flag indicating if the set loaded correctly.
+    std::mutex m_pdfSetMtx;                      ///< Mutex for thread-safe creation of PDF members.
 };
 
 } // namespace PDFxTMD
