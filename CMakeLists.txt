@@ -6,7 +6,7 @@ project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${P
 option(ENABLE_FORMATTING "Enable code formatting" OFF)
 option(ENABLE_DOCUMENTATION "Enable documentation generation" OFF)
 option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" OFF)
-option(ENABLE_BUILDING_EXAMPLES "Enable building examples" OFF)
+option(ENABLE_BUILDING_EXAMPLES "Enable building examples" ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,14 +15,6 @@ if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-include(FetchContent)
-FetchContent_Declare(
-    ryml
-    GIT_REPOSITORY https://github.com/biojppm/rapidyaml.git
-    GIT_TAG v0.9.0
-    EXCLUDE_FROM_ALL
-)
-FetchContent_MakeAvailable(ryml)
 # Check if the target is x86
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|i[3-6]86")
     set(IS_X86 TRUE)
@@ -90,7 +82,7 @@ if(WIN32)
     add_library(${PROJECT_NAME} STATIC)
     set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
     target_sources(${PROJECT_NAME} PRIVATE ${ALL_SOURCES})
-    target_link_libraries(${PROJECT_NAME} ryml::ryml)
+    target_link_libraries(${PROJECT_NAME})
     target_include_directories(${PROJECT_NAME} 
         PUBLIC 
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -98,7 +90,7 @@ if(WIN32)
     )
 else()
     add_library(${PROJECT_NAME} SHARED ${ALL_SOURCES})
-    target_link_libraries(${PROJECT_NAME} ryml::ryml)
+    target_link_libraries(${PROJECT_NAME})
     set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
     target_include_directories(${PROJECT_NAME} 
         PUBLIC 
@@ -111,7 +103,7 @@ else()
         OUTPUT_NAME ${PROJECT_NAME}
         DEBUG_POSTFIX "d"
     )
-    target_link_libraries(${PROJECT_NAME}_static  ryml::ryml)
+    target_link_libraries(${PROJECT_NAME}_static  )
     target_include_directories(${PROJECT_NAME}_static 
         PUBLIC 
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

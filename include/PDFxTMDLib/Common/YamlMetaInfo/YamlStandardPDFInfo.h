@@ -11,7 +11,6 @@ namespace PDFxTMD
 struct YamlStandardPDFInfo
 {
     OrderQCD orderQCD;
-    std::string Format;
     double XMin = 0;
     double XMax = 0;
     double QMin = 0;
