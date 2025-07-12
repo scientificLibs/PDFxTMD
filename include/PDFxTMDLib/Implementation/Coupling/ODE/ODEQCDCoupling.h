@@ -14,7 +14,7 @@ class ODEQCDCoupling
 
   private:
     void _interpolate();
-    void _solve(double q2, double &t, double &y, const double &allowed_relative, double h,
+    void _solve(double q2, double &t, double &y, const double allowed_relative, double h,
                 double accuracy) const;
     double _decouple(double y, double t, unsigned int ni, unsigned int nf) const;
     void _rk4(double &t, double &y, double h, const double allowed_change,

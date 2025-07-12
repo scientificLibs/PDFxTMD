@@ -41,7 +41,7 @@ TReader TReaderType(const std::string &type)
     {
         return TReader::TDefaultLHAPDF_TMDReader;
     }
-    else if (type == "TDefaultLHAPDF_TMDReader")
+    else if (type == "TDefaultTMDLibAllflavorReader")
     {
         return TReader::TDefaultTMDLibAllflavorReader;
     }
@@ -156,7 +156,7 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
     {
         if (standardInfoPair.first.has_value())
         {
-            YamlStandardTMDInfo stdInfo = standardInfoPair.first.value();
+            YamlStandardTMDInfo stdInfo = *standardInfoPair.first;
             format = stdInfo.Format;
         }
     }
@@ -164,13 +164,13 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
     auto [impelmentationInfo, error] = YamlImpelemntationInfoReader(*infoPathPair.first);
     if ((*impelmentationInfo).reader == "")
     {
-        if(format == "lhagrid1_tmd")
-        {
-            readerType = TReader::TDefaultLHAPDF_TMDReader;
-        }
-        else if (format == "allflavorUpdf")
+        if (format == "allflavorUpdf")
         {
             readerType = TReader::TDefaultTMDLibAllflavorReader;
+        }
+        else
+        {
+            readerType = TReader::TDefaultLHAPDF_TMDReader;
         }
     }
     else
@@ -181,13 +181,13 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
     TInterpolator interpolatorType;
     if ((*impelmentationInfo).interpolator == "")
     {
-        if (format == "lhagrid1_tmd")
-        {
-            interpolatorType = TInterpolator::TTrilinearInterpolator;
-        }
-        else if (format == "allflavorUpdf")
+        if (format == "allflavorUpdf")
         {
             interpolatorType = TInterpolator::TTrilinearTMDLibInterpolator;
+        }
+        else
+        {
+            interpolatorType = TInterpolator::TTrilinearInterpolator;
         }
     }
     else

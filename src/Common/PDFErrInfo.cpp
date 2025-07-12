@@ -7,7 +7,7 @@ std::vector<std::string> PDFErrInfo::qpartNames() const
     std::vector<std::string> rtn;
     rtn.reserve(qparts.size());
     for (size_t iq = 0; iq < qparts.size(); ++iq)
-        rtn.push_back(qpartName(iq));
+        rtn.emplace_back(qpartName(iq));
     return rtn;
 }
 
@@ -47,7 +47,7 @@ PDFErrInfo PDFErrInfo::CalculateErrorInfo(const YamlErrorInfo &yamlErrInfo)
     // Loop over the quadrature parts, separated by +  signs, after extracting the core part
     std::vector<std::string> quadstrs = split(yamlErrInfo.ErrorType, '+');
     qparts.reserve(quadstrs.size());
-    qparts.push_back({{quadstrs[0], 0}});
+    qparts.emplace_back({{quadstrs[0], 0}});
     size_t nmempar = 0;
 
     for (size_t iq = 1; iq < quadstrs.size(); ++iq)
@@ -62,7 +62,7 @@ PDFErrInfo PDFErrInfo::CalculateErrorInfo(const YamlErrorInfo &yamlErrInfo)
             // Determine if a pair or singleton variation
             size_t esize = (StartsWith(estr, "#") || StartsWith(estr, "$")) ? 1 : 2;
             std::string ename = estr;
-            eparts.push_back({ename, esize});
+            eparts.emplace_back({ename, esize});
             nmempar += esize;
         }
 

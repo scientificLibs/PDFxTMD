@@ -92,15 +92,15 @@ void DefaultAllFlavorShape::_computePolynomialCoefficients()
 
     for (size_t ix = 0; ix < nxknots - 1; ++ix)
     {
-        double dlogx = log_x_vec[ix + 1] - log_x_vec[ix];
+        double dlogx_ = log_x_vec[ix + 1] - log_x_vec[ix];
         for (size_t iq2 = 0; iq2 < n_mu2s; ++iq2)
         {
             for (size_t id = 0; id < n_flavors; ++id)
             {
                 double VL = xf(ix, iq2, id);
                 double VH = xf(ix + 1, iq2, id);
-                double VDL = _ddxBicubic(ix, iq2, id) * dlogx;
-                double VDH = _ddxBicubic(ix + 1, iq2, id) * dlogx;
+                double VDL = _ddxBicubic(ix, iq2, id) * dlogx_;
+                double VDH = _ddxBicubic(ix + 1, iq2, id) * dlogx_;
 
                 // Polynomial coefficients
                 double a = VDH + VDL - 2 * VH + 2 * VL;
