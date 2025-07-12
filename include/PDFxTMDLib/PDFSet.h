@@ -562,7 +562,7 @@ template <typename Tag> class PDFSet
         resUncertainty.errplus_pdf = resUncertainty.errplus;
         resUncertainty.errminus_pdf = resUncertainty.errminus;
         resUncertainty.errsymm_pdf = resUncertainty.errsymm;
-        resUncertainty.errparts.emplace_back(
+        resUncertainty.errparts.push_back(
             {resUncertainty.errplus_pdf,
              resUncertainty.errminus_pdf}); ///< @note (+,-) pair-ordering
     }
@@ -603,7 +603,7 @@ template <typename Tag> class PDFSet
 
             const double eplus = vmax - rtn.central;
             const double eminus = rtn.central - vmin;
-            rtn.errparts.emplace_back({eplus, eminus});
+            rtn.errparts.push_back({eplus, eminus});
             errsq_par_plus += SQR(eplus);
             errsq_par_minus += SQR(eminus);
         }

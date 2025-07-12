@@ -160,7 +160,7 @@ class CContinuationExtrapolator
                                                               // subgrids)
         const size_t nq2knots = q2Vals_.size(); // total number of q2 knots (all
                                                                // subgrids)
-        const double xMin = xVaxVals_lsPair.at(0);  // first x knot
+        const double xMin = xVals_.at(0);  // first x knot
         const double xMin1 = xVals_.at(1); // second x knot
         const double xMax = xVals_.at(nxknots - 1); // last x knot
 

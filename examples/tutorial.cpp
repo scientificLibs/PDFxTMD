@@ -167,7 +167,7 @@ int main()
     //GenericPDF advanced usage
     using ExtrapolatorType = PDFxTMD::CErrExtrapolator;
     using ReaderType = PDFxTMD::CDefaultLHAPDFFileReader;
-    using InterpolatorType = PDFxTMD::CLHAPDFBilinearInterpolator;
+    using InterpolatorType = PDFxTMD::CLHAPDFBilinearInterpolator<ReaderType>;
     using PDFTag = PDFxTMD::CollinearPDFTag;
     using PDFType = PDFxTMD::GenericPDF<PDFTag, ReaderType, InterpolatorType, ExtrapolatorType>;
     PDFType pdf("MMHT2014lo68cl", 0);
