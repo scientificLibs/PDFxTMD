@@ -47,7 +47,7 @@ PDFErrInfo PDFErrInfo::CalculateErrorInfo(const YamlErrorInfo &yamlErrInfo)
     // Loop over the quadrature parts, separated by +  signs, after extracting the core part
     std::vector<std::string> quadstrs = split(yamlErrInfo.ErrorType, '+');
     qparts.reserve(quadstrs.size());
-    qparts.emplace_back({{quadstrs[0], 0}});
+    qparts.push_back({{quadstrs[0], 0}});
     size_t nmempar = 0;
 
     for (size_t iq = 1; iq < quadstrs.size(); ++iq)
