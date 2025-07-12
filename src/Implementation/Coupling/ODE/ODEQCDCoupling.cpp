@@ -4,6 +4,7 @@
 #include "PDFxTMDLib/Common/MathUtils.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
 #include <algorithm>
+#include <map>
 
 namespace PDFxTMD
 {

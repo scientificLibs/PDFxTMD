@@ -8,7 +8,7 @@
 namespace PDFxTMD
 {
 
-DefaultAllFlavorUPDFShape TDefaultAllFlavorReader::getData() const
+DefaultAllFlavorTMDShape TDefaultAllFlavorReader::getData() const
 {
     return m_updfShape;
 }
@@ -63,14 +63,15 @@ void TDefaultAllFlavorReader::read(const std::string &pdfName, int setNumber)
     {
         isSchemeSupported = true;
     }
-    if (standardUPDFInfo.Format == "allflavorUpdf")
-    {
-        isFormatSupported = true;
-    }
+
     if (!isSchemeSupported)
     {
         throw NotSupportError("TMDScheme " + standardUPDFInfo.TMDScheme +
                               " is currently not supported!");
+    }
+    if (standardUPDFInfo.Format == "allflavorUpdf")
+    {
+        isFormatSupported = true;
     }
     if (!isFormatSupported)
     {
