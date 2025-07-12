@@ -22,9 +22,7 @@ class InterpolateQCDCoupling
     class AlphaSArray
     {
       public:
-        AlphaSArray()
-        {
-        }
+        AlphaSArray() = default;
         AlphaSArray(const std::vector<double> &q2knots, const std::vector<double> &as)
             : _q2s(q2knots), _as(as)
         {

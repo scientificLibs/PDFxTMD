@@ -21,9 +21,7 @@ struct PDFErrInfo
     }
 
     /// Default constructor (for STL, Cython, etc.)
-    PDFErrInfo()
-    {
-    }
+    PDFErrInfo() = default;
 
     /// Error-set quadrature parts
     QuadParts qparts;

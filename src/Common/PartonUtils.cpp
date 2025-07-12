@@ -23,10 +23,10 @@ std::vector<std::string> splitPaths(const std::string &paths)
     size_t start = 0, end;
     while ((end = paths.find(':', start)) != std::string::npos)
     {
-        result.push_back(paths.substr(start, end - start));
+        result.emplace_back(paths.substr(start, end - start));
         start = end + 1;
     }
-    result.push_back(paths.substr(start));
+    result.emplace_back(paths.substr(start));
     return result;
 }
 bool hasWriteAccess(const std::string &path)
@@ -78,7 +78,6 @@ bool hasWriteAccess(const std::string &path)
 }
 std::vector<std::string> GetPDFxTMDPathsAsVector()
 {
-    std::vector<std::string> output;
     auto notDefaultPaths = GetPDFxTMDPathsFromYaml();
     if (!FileUtils::Exists(DEFAULT_ENV_PATH))
     {
@@ -231,7 +230,6 @@ bool AddPathToEnvironment(const std::string &newPath)
     }
     rootPath = std::string(homeDir) + "/.PDFxTMDLib";
 #endif
-    std::string configFilePath = rootPath + "/config.yaml";
     auto updatedPaths = GetPDFxTMDPathsFromYaml();
     auto found_pathItr =
         std::find_if(updatedPaths.begin(), updatedPaths.end(),
@@ -241,6 +239,7 @@ bool AddPathToEnvironment(const std::string &newPath)
         PDFxTMD::ConfigWrapper config;
         updatedPaths.push_back(newPath);
         config.set("paths", updatedPaths);
+        std::string configFilePath = rootPath + "/config.yaml";
         return config.saveToFile(configFilePath);
     }
     return true;

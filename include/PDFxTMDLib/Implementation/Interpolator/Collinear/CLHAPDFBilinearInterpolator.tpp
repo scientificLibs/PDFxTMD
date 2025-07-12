@@ -41,7 +41,7 @@ inline double _interpolateLinear(double x, double xl, double xh, double yl, doub
 }
 
 inline double _interpolate(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2,
-                           PartonFlavor flavor, shared_dataLinear _share)
+                           PartonFlavor flavor, const shared_dataLinear& _share)
 {
     const double f_ql = _interpolateLinear(_share.logx, _share.logx0, _share.logx1,
                                            grid.xf(ix, iq2, flavor), grid.xf(ix + 1, iq2, flavor));

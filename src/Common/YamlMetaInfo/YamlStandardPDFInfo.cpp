@@ -98,7 +98,7 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     auto [TMDScheme, errorTMDScheme] = ConfigWrapper.get<std::string>("TMDScheme");
     if (errorTMDScheme != ErrorType::None)
     {
-        output.TMDScheme = "";
+        output.TMDScheme.clear();
     }
     else
         output.TMDScheme = *TMDScheme;
