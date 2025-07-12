@@ -62,7 +62,7 @@ PDFErrInfo PDFErrInfo::CalculateErrorInfo(const YamlErrorInfo &yamlErrInfo)
             // Determine if a pair or singleton variation
             size_t esize = (StartsWith(estr, "#") || StartsWith(estr, "$")) ? 1 : 2;
             std::string ename = estr;
-            eparts.emplace_back({ename, esize});
+            eparts.push_back({ename, esize});
             nmempar += esize;
         }
 
