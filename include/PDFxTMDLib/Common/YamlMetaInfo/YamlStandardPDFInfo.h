@@ -17,6 +17,7 @@ struct YamlStandardPDFInfo
     double QMax = 0;
     int NumMembers = 0;
     std::vector<int> Flavors;
+    std::string Format;
     int lhapdfID = -1;
 };
 

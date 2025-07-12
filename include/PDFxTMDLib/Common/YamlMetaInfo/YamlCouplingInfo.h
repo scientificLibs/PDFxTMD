@@ -37,7 +37,7 @@ struct YamlCouplingInfo
     std::map<PartonFlavor, double> quarkMasses;
     AlphasFlavorScheme flavorScheme = AlphasFlavorScheme::variable;
     int AlphaS_NumFlavors = DEFULT_NUM_FLAVORS;
-    AlphasType alphaCalcMethod = AlphasType::ipol;
+    AlphasType alphaCalcMethod = AlphasType::None;
 };
 
 // Calculate the number of active quark flavours at energy scale Q2

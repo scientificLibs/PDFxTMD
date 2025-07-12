@@ -12,7 +12,7 @@ namespace PDFxTMD
 
 namespace
 { // Unnamed namespace
-struct shared_data
+struct shared_dataLinear
 {
     // manual cache some values
     double logx;
@@ -21,10 +21,10 @@ struct shared_data
     double logx1;
 };
 
-inline shared_data fill(const DefaultAllFlavorShape &grid, double x, double q2, size_t ix)
+inline shared_dataLinear fill(const DefaultAllFlavorShape &grid, double x, double q2, size_t ix)
 {
     // manual cache some values
-    shared_data share;
+    shared_dataLinear share;
     share.logq2 = log(q2);
     share.logx = log(x);
     share.logx0 = grid.log_x_vec[ix];
@@ -41,7 +41,7 @@ inline double _interpolateLinear(double x, double xl, double xh, double yl, doub
 }
 
 inline double _interpolate(const DefaultAllFlavorShape &grid, size_t ix, size_t iq2,
-                           PartonFlavor flavor, shared_data _share)
+                           PartonFlavor flavor, shared_dataLinear _share)
 {
     const double f_ql = _interpolateLinear(_share.logx, _share.logx0, _share.logx1,
                                            grid.xf(ix, iq2, flavor), grid.xf(ix + 1, iq2, flavor));
@@ -54,33 +54,35 @@ inline double _interpolate(const DefaultAllFlavorShape &grid, size_t ix, size_t 
 }
 } // namespace
 
-void CLHAPDFBilinearInterpolator::initialize(const IReader<CDefaultLHAPDFFileReader> *reader)
+template <class ReaderType>
+void CLHAPDFBilinearInterpolator<ReaderType>::initialize(const IReader<ReaderType> *reader)
 {
     m_reader = reader;
     m_Shape = reader->getData();
 }
-const IReader<CDefaultLHAPDFFileReader> *CLHAPDFBilinearInterpolator::getReader() const
+template<class ReaderType>
+const IReader<ReaderType> *CLHAPDFBilinearInterpolator<ReaderType>::getReader() const
 {
     return m_reader;
 }
-
-void CLHAPDFBilinearInterpolator::interpolate(double x, double mu2,
+template<class ReaderType>
+void CLHAPDFBilinearInterpolator<ReaderType>::interpolate(double x, double mu2,
                                               std::array<double, DEFAULT_TOTAL_PDFS> &output) const
 {
     const size_t ix = indexbelow(x, m_Shape.x_vec);
     const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);
-    shared_data shared = fill(m_Shape, x, mu2, ix);
+    shared_dataLinear shared = fill(m_Shape, x, mu2, ix);
     for (int i = 0; i < DEFAULT_TOTAL_PDFS; i++)
     {
         output[i] = _interpolate(m_Shape, ix, imu2, standardPartonFlavors[i], shared);
     }
 }
-
-double CLHAPDFBilinearInterpolator::interpolate(PartonFlavor flavor, double x, double mu2) const
+template<class ReaderType>
+double CLHAPDFBilinearInterpolator<ReaderType>::interpolate(PartonFlavor flavor, double x, double mu2) const
 {
     const size_t ix = indexbelow(x, m_Shape.x_vec);
     const size_t imu2 = indexbelow(mu2, m_Shape.mu2_vec);
-    shared_data shared = fill(m_Shape, x, mu2, ix);
+    shared_dataLinear shared = fill(m_Shape, x, mu2, ix);
     return _interpolate(m_Shape, ix, imu2, flavor, shared);
 }
 } // namespace PDFxTMD

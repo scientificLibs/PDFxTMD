@@ -4,7 +4,7 @@
 #include <vector>
 namespace PDFxTMD
 {
-/// @brief Strategy interface for calculating Hessian uncertainties.
+/// @brief null uncertainty for pdf set that do not impelement uncertainty.
 class NullUncertaintyStrategy
 {
   public:

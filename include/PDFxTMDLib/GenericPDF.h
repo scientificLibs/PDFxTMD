@@ -52,7 +52,7 @@ template <typename Tag> struct DefaultPDFImplementations;
 template <> struct DefaultPDFImplementations<TMDPDFTag>
 {
     using Reader = TDefaultLHAPDF_TMDReader;
-    using Interpolator = TTrilinearInterpolator;
+    using Interpolator = TTrilinearInterpolator<Reader>;
     using Extrapolator = TZeroExtrapolator;
 };
 
@@ -60,8 +60,8 @@ template <> struct DefaultPDFImplementations<TMDPDFTag>
 template <> struct DefaultPDFImplementations<CollinearPDFTag>
 {
     using Reader = CDefaultLHAPDFFileReader;
-    using Interpolator = CLHAPDFBicubicInterpolator;
-    using Extrapolator = CContinuationExtrapolator<CLHAPDFBicubicInterpolator>;
+    using Interpolator = CLHAPDFBicubicInterpolator<Reader>;
+    using Extrapolator = CContinuationExtrapolator<CLHAPDFBicubicInterpolator<Reader>>;
 };
 
 template <typename Tag, typename Reader = typename DefaultPDFImplementations<Tag>::Reader,

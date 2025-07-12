@@ -57,11 +57,9 @@ set(ALL_SOURCES
     src/Common/YamlMetaInfo/YamlStandardPDFInfo.cpp
     src/Common/YamlMetaInfo/YamlErrorInfo.cpp
     src/Common/PDFErrInfo.cpp
-    src/Implementation/Interpolator/Collinear/CLHAPDFBilinearInterpolator.cpp
-    src/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.cpp
-    src/Implementation/Interpolator/TMD/TTrilinearInterpolator.cpp
     src/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.cpp
     src/Implementation/Reader/TMD/TDefaultLHAPDF_TMDReader.cpp
+    src/Implementation/Reader/TMD/TDefaultAllFlavorReader.cpp
     src/Factory.cpp
     src/FortranFactoryWrapper.cpp
     src/Common/FileUtils.cpp

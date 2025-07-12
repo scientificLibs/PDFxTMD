@@ -14,12 +14,14 @@
 #include <PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h>
 #include <PDFxTMDLib/Factory.h>
 #include <PDFxTMDLib/Interface/IQCDCoupling.h>
+#include <PDFxTMDLib/Implementation/Coupling/Null/NullQCDCoupling.h>
 #include <PDFxTMDLib/Interface/IUncertainty.h>
 #include <PDFxTMDLib/Uncertainty/HessianStrategy.h>
 #include <PDFxTMDLib/Uncertainty/NullUncertaintyStrategy.h>
 #include <PDFxTMDLib/Uncertainty/ReplicasPercentileStrategy.h>
 #include <PDFxTMDLib/Uncertainty/ReplicasStdDevStrategy.h>
 #include <PDFxTMDLib/Uncertainty/SymmHessianStrategy.h>
+#include <PDFxTMDLib/Common/Logger.h>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -68,13 +70,15 @@ template <typename Tag> class PDFSet
     explicit PDFSet(std::string pdfSetName, bool alternativeReplicaUncertainty = false)
         : m_pdfSetName(std::move(pdfSetName)),
           m_alternativeReplicaUncertainty(alternativeReplicaUncertainty),
-          m_uncertaintyStrategy_(NullUncertaintyStrategy())
+          m_uncertaintyStrategy_(NullUncertaintyStrategy()),
+          m_qcdCoupling(CouplingFactory().mkCoupling(m_pdfSetName))
     {
         Initialize();
+        CreateAllPDFSets();
     }
 
     /// @brief Default constructor.
-    PDFSet() = default;
+    PDFSet():m_uncertaintyStrategy_(NullUncertaintyStrategy()), m_qcdCoupling(NullQCDCoupling()){};
 
     /**
      * @brief Get the strong coupling constant alpha_s at a given scale Q.
@@ -93,7 +97,7 @@ template <typename Tag> class PDFSet
      */
     double alphasQ2(double q2) const
     {
-        return m_qcdCoupling->AlphaQCDMu2(q2);
+        return m_qcdCoupling.AlphaQCDMu2(q2);
     }
 
     /**
@@ -284,7 +288,6 @@ template <typename Tag> class PDFSet
      */
     void CreatePDFSet(unsigned int setMember)
     {
-        std::lock_guard<std::mutex> lock(m_pdfSetMtx);
         {
             if constexpr (std::is_same_v<Tag, TMDPDFTag>)
             {
@@ -342,7 +345,7 @@ template <typename Tag> class PDFSet
      * @brief Get the standard metadata for the PDF set.
      * @return A YamlStandardPDFInfo object.
      */
-    YamlStandardPDFInfo getStdPDFInfo() const
+    YamlStandardTMDInfo getStdPDFInfo() const
     {
         return m_pdfSetStdInfo;
     }
@@ -396,17 +399,13 @@ template <typename Tag> class PDFSet
     {
         ValidatePDFSetName();
         LoadYamlInfo();
-        InitializeQCDCoupling();
         InitializeUncertaintyStrategy();
-        CreateAllPDFSets();
     }
 
     /// @brief Initializes the QCD coupling object.
     void InitializeQCDCoupling()
     {
-        CouplingFactory qcdCouplingFactory_;
-        m_qcdCoupling =
-            std::make_unique<IQCDCoupling>(qcdCouplingFactory_.mkCoupling(m_pdfSetName));
+        m_qcdCoupling = CouplingFactory().mkCoupling(m_pdfSetName);
     }
 
     /// @brief Validates that the PDF set name is not empty.
@@ -466,8 +465,10 @@ template <typename Tag> class PDFSet
         m_pdfErrInfo = PDFErrInfo::CalculateErrorInfo(m_pdfSetErrorInfo);
         if (m_pdfErrInfo.nmemCore() <= 0)
         {
-            throw InvalidInputError("Error in PDFxTMD::PDFSet::InitializeUncertaintyStrategy. PDF "
-                                    "set must contain more than just the central value.");
+            m_uncertaintyStrategy_ = IUncertainty(NullUncertaintyStrategy());
+            PDFxTMDLOG <<  "Error in PDFxTMD::PDFSet::InitializeUncertaintyStrategy. PDF "
+                                    "set must contain more than just the central value.";
+            return;
         }
 
         const auto &coreType = m_pdfErrInfo.coreType();
@@ -486,9 +487,13 @@ template <typename Tag> class PDFSet
         {
             m_uncertaintyStrategy_ = IUncertainty(HessianStrategy());
         }
-        else if (coreType == "symm-hessian")
+        else if (coreType == "symmhessian")
         {
             m_uncertaintyStrategy_ = IUncertainty(SymmHessianStrategy());
+        }
+        else if (coreType == "unknown")
+        {
+            m_uncertaintyStrategy_ = IUncertainty(NullUncertaintyStrategy());
         }
         else
         {
@@ -507,15 +512,15 @@ template <typename Tag> class PDFSet
     {
         std::vector<double> pdfs;
         pdfs.reserve(m_pdfSetStdInfo.NumMembers);
-        for (const auto &pdf_ : m_PDFSet_)
+        for (size_t i = 0; i < size(); i++)
         {
             if constexpr (sizeof...(args) == 3)
             { // TMD case
-                pdfs.emplace_back(pdf_.second->tmd(flavor, args...));
+                pdfs.emplace_back(operator[](i)->tmd(flavor, args...));
             }
             else
             { // Collinear case
-                pdfs.emplace_back(pdf_.second->pdf(flavor, args...));
+                pdfs.emplace_back(operator[](i)->pdf(flavor, args...));
             }
         }
         return pdfs;
@@ -603,16 +608,15 @@ template <typename Tag> class PDFSet
             errsq_par_minus += SQR(eminus);
         }
     }
-    
+    std::string m_pdfSetName;                   ///< The name of the PDF set.
     ConfigWrapper m_pdfSetInfo;                 ///< General metadata object for the set.
     YamlErrorInfo m_pdfSetErrorInfo;           ///< Specific error metadata.
-    YamlStandardPDFInfo m_pdfSetStdInfo;       ///< Specific standard PDF metadata.
+    YamlStandardTMDInfo m_pdfSetStdInfo;       ///< Specific standard PDF metadata.
     PDFErrInfo m_pdfErrInfo;                     ///< Processed error structure information.
     std::map<unsigned, std::unique_ptr<PDF_t>> m_PDFSet_; ///< Map of created PDF member objects.
     std::vector<unsigned int> m_createdPDFSetsMember; ///< (Currently unused) Tracks created members.
-    std::string m_pdfSetName;                    ///< The name of the PDF set.
     IUncertainty m_uncertaintyStrategy_;         ///< The strategy object for uncertainty calculations.
-    std::unique_ptr<IQCDCoupling> m_qcdCoupling; ///< The QCD coupling calculation object.
+    IQCDCoupling m_qcdCoupling; ///< The QCD coupling calculation object.
     double m_setCL;                              ///< The native confidence level of the set.
     bool m_alternativeReplicaUncertainty;      ///< Flag for replica uncertainty method.
     bool m_isValid = false;                      ///< Flag indicating if the set loaded correctly.
