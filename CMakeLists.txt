@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.14)
 include(cmake/version.cmake)
 include(CheckLanguage)
 project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH} LANGUAGES CXX)
@@ -6,7 +6,7 @@ project(PDFxTMDLib VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${P
 option(ENABLE_FORMATTING "Enable code formatting" OFF)
 option(ENABLE_DOCUMENTATION "Enable documentation generation" OFF)
 option(ENABLE_BUILDING_WRAPPERS "Enable building wrappers" OFF)
-option(ENABLE_BUILDING_EXAMPLES "Enable building examples" ON)
+option(ENABLE_BUILDING_EXAMPLES "Enable building examples" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

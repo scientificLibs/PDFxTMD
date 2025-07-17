@@ -18,6 +18,7 @@ struct YamlStandardPDFInfo
     int NumMembers = 0;
     std::vector<int> Flavors;
     std::string Format;
+    std::string SetDesc;
     int lhapdfID = -1;
 };
 

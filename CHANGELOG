@@ -1,4 +1,7 @@
 # CHANGELOG
+## [1.0.0] - 2025-7
+- Full lhagrid1 format support
+- introducing lhagrid_tmd1 for TMDs by extensions of lhagrid1 format
 ## [0.4.0] - 2025-6
 - Uncertainty, and correlation support for collinear PDF sets
 

@@ -2,49 +2,11 @@
 PDFxTMDLib Python Tutorial (Complete)
 
 This tutorial demonstrates how to use all exposed methods of the PDFxTMD Python bindings.
-It covers both the high-level `PDFSet` interface for uncertainty and correlation analysis,
+It covers `PDFSet` interface for uncertainty and correlation analysis,
 and the low-level factory interface for direct access to individual PDF members.
 
 Installation:
     pip install pdfxtmd
-
-API Reference: https://github.com/Raminkord92/PDFxTMD
-
-Exposed classes and methods:
-- PartonFlavor (enum)
-- PDFUncertainty (struct with uncertainty details)
-- YamlStandardPDFInfo (struct with standard metadata)
-- YamlErrorInfo (struct with error metadata)
-- ConfigWrapper (YAML configuration data wrapper)
-
-- # High-Level Interface (Recommended)
-- CPDFSet(pdfSetName: str, alternativeReplicaUncertainty: bool = False)
-- CPDFSet.Uncertainty(flavor: PartonFlavor, x: float, mu2: float, cl: float = -1.0) -> PDFUncertainty
-- CPDFSet.Uncertainty(values: list[float], cl: float = -1.0) -> PDFUncertainty
-- CPDFSet.Correlation(flavorA, xA, mu2A, flavorB, xB, mu2B) -> float
-- CPDFSet.Correlation(valuesA: list[float], valuesB: list[float]) -> float
-- CPDFSet.alphasQ(q: float) -> float
-- CPDFSet.alphasQ2(mu2: float) -> float
-- CPDFSet[member_index] -> ICPDF
-- CPDFSet.info() -> ConfigWrapper
-- CPDFSet.getStdPDFInfo() -> YamlStandardPDFInfo
-- CPDFSet.getPDFErrorInfo() -> YamlErrorInfo
-- TMDSet(pdfSetName: str, alternativeReplicaUncertainty: bool = False)
-- TMDSet.Uncertainty(flavor: PartonFlavor, x: float, kt2: float, mu2: float, cl: float = -1.0) -> PDFUncertainty
-- TMDSet.Correlation(flavorA, xA, kt2A, mu2A, flavorB, xB, kt2B, mu2B) -> float
-- TMDSet.alphasQ(q: float) -> float
-- TMDSet.alphasQ2(mu2: float) -> float
-- TMDSet[member_index] -> ITMD
-
-- # Low-Level Interface
-- GenericCPDFFactory.mkCPDF(pdfSetName: str, setMember: int) -> ICPDF
-- ICPDF.pdf(flavor: PartonFlavor, x: float, mu2: float) -> float
-- ICPDF.pdf(x: float, mu2: float) -> array[13]
-- GenericTMDFactory.mkTMD(pdfSetName: str, setMember: int) -> ITMD
-- ITMD.tmd(flavor: PartonFlavor, x: float, kt2: float, mu2: float) -> float
-- ITMD.tmd(x: float, kt2: float, mu2: float) -> array[13]
-- CouplingFactory.mkCoupling(pdfSetName: str) -> IQCDCoupling
-- IQCDCoupling.AlphaQCDMu2(mu2: float) -> float
 """
 import pdfxtmd
 
