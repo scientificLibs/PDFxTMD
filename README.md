@@ -332,7 +332,7 @@ paths:
   - /another/path/to/pdf/data
 ```
 
-The `paths` key accepts a list of directories where PDFxTMDLib will search for PDF set data. The current directory and standard system locations are searched by default.
+The `paths` key accepts a list of directories where PDFxTMDLib will search for PDF set data. The current directory and standard system locations are searched by default. In order to download cPDF sets use lhapdf sets available at [link](https://lhapdf.hepforge.org/pdfsets), and to download TMD sets visit the official website of this repository available at [pdfxtmdlib.org](https://pdfxtmdlib.org/downloads/).
 
 -----
 
