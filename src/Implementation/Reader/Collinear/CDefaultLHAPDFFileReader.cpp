@@ -110,7 +110,7 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
                               pdfData_.mu2_vec.end());
     }
     // Flatten the PDF data for faster access
-    size_t n_x = m_pdfShape.at(0).x_vec.size();
+    size_t n_x = m_pdfShape[0].x_vec.size();
     size_t n_mu2 = m_mu2CompTotal.size();
     size_t n_flavors = m_pdfShape.at(0)._pids.size();
     m_pdfShape_flat.grids_flat.resize(n_mu2 * n_x * n_flavors, 0.0);
@@ -132,13 +132,14 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
 
             for (size_t s_ = 0; s_ < m_pdfShape.size(); ++s_)
             {
+                const auto& mu2_vec_ = m_pdfShape[s_].mu2_vec;
                 // Find the mu2 value in this shape
-                auto it = std::find(m_pdfShape[s_].mu2_vec.begin(), m_pdfShape[s_].mu2_vec.end(),
+                auto it = std::find(mu2_vec_.begin(), mu2_vec_.end(),
                                     m_mu2CompTotal[iq2]);
-                if (it != m_pdfShape[s_].mu2_vec.end())
+                if (it != mu2_vec_.end())
                 {
                     shapeIndex = s_;
-                    local_iq2 = std::distance(m_pdfShape[s_].mu2_vec.begin(), it);
+                    local_iq2 = std::distance(mu2_vec_.begin(), it);
                     break;
                 }
             }
@@ -154,10 +155,10 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
             {
                 // Calculate flat index
                 size_t flat_index = ix * n_mu2 * n_flavors + iq2 * n_flavors + iflavor;
+                const auto& pids_ = m_pdfShape[shapeIndex]._pids;
                 // Get value from the structured format if available
-                if (std::find(m_pdfShape[shapeIndex]._pids.begin(),
-                              m_pdfShape[shapeIndex]._pids.end(),
-                              flavor) != m_pdfShape[shapeIndex]._pids.end() &&
+                if (std::find(pids_.begin(), pids_.end(),
+                              flavor) != pids_.end() &&
                     ix < m_pdfShape[shapeIndex].x_vec.size())
                 {
                     m_pdfShape_flat.grids_flat[flat_index] = m_pdfShape[shapeIndex].getGridFromMap(
@@ -170,9 +171,10 @@ void CDefaultLHAPDFFileReader::read(const std::string &pdfName, int setNumber)
     }
     m_pdfShape_flat.grids.clear();
     // After processing all data, set the boundary values once
-    if (!m_pdfShape.empty() && !m_pdfShape[0].x_vec.empty())
+    const auto& x_vec_ = m_pdfShape[0].x_vec;
+    if (!m_pdfShape.empty() && !x_vec_.empty())
     {
-        m_xMinMax = {m_pdfShape[0].x_vec.front(), m_pdfShape[0].x_vec.back()};
+        m_xMinMax = {x_vec_.front(), x_vec_.back()};
     }
 
     if (!m_mu2CompTotal.empty())

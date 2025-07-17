@@ -24,7 +24,7 @@ std::pair<std::optional<YamlErrorInfo>, ErrorType> YamlErrorInfoReader(
     }
     else
     {
-        output.ErrorType = "unkown";
+        output.ErrorType = "unknown";
     }
 
     auto [ErrorConfLevel, ErrorConfLevelError] = ConfigWrapper.get<double>("ErrorConfLevel");

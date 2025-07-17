@@ -1,3 +1,5 @@
+#define RYML_SINGLE_HDR_DEFINE_NOW
+#include "PDFxTMDLib/external/rapidyaml/rapidyaml-0.9.0.hpp"
 #include "PDFxTMDLib/Common/ConfigWrapper.h"
 #include <filesystem>
 

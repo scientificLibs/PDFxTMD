@@ -4,6 +4,7 @@
 #include "PDFxTMDLib/Common/MathUtils.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
 #include <algorithm>
+#include <map>
 
 namespace PDFxTMD
 {
@@ -130,7 +131,7 @@ void ODEQCDCoupling::_interpolate()
                 last_val = q2;
                 threshold = true;
                 _solve(q2, t, y, allowed_relative / 5, h / 5, accuracy / 5);
-                grid.push_back(std::make_pair(ind, y));
+                grid.emplace_back(std::make_pair(ind, y));
                 y = y * _decouple(y, t, numFlavorsQ2(m_mu2_vec[ind + 1], m_couplingInfo),
                                   numFlavorsQ2(m_mu2_vec[ind - 2], m_couplingInfo));
                 // Define divergence after y > 2. -- we have no accuracy after that any way
@@ -144,13 +145,13 @@ void ODEQCDCoupling::_interpolate()
         // If q2 is lower than a value that already diverged, it will also diverge
         if (q2 < low_lim)
         {
-            grid.push_back(std::make_pair(ind, std::numeric_limits<double>::max()));
+            grid.emplace_back(std::make_pair(ind, std::numeric_limits<double>::max()));
             continue;
             // If last point was the same we don't need to recalculate
         }
         else if (q2 == last_val)
         {
-            grid.push_back(std::make_pair(ind, y));
+            grid.emplace_back(std::make_pair(ind, y));
             continue;
             // Else calculate
         }
@@ -166,7 +167,7 @@ void ODEQCDCoupling::_interpolate()
             {
                 _solve(q2, t, y, allowed_relative, h, accuracy);
             }
-            grid.push_back(std::make_pair(ind, y));
+            grid.emplace_back(std::make_pair(ind, y));
             // Define divergence after y > 2. -- we have no accuracy after that any way
             if (y > 2.)
             {
@@ -197,7 +198,7 @@ void ODEQCDCoupling::_interpolate()
             {
                 last_val = q2;
                 _solve(q2, t, y, allowed_relative / 5, h / 5, accuracy / 5);
-                grid.push_back(std::make_pair(ind, y));
+                grid.emplace_back(std::make_pair(ind, y));
                 y = y * _decouple(y, t, numFlavorsQ2(m_mu2_vec[ind - 1], m_couplingInfo),
                                   numFlavorsQ2(m_mu2_vec[ind + 2], m_couplingInfo));
                 // Define divergence after y > 2. -- we have no accuracy after that any way
@@ -211,13 +212,13 @@ void ODEQCDCoupling::_interpolate()
         // If q2 is lower than a value that already diverged, it will also diverge
         if (q2 < low_lim)
         {
-            grid.push_back(std::make_pair(ind, std::numeric_limits<double>::max()));
+            grid.emplace_back(std::make_pair(ind, std::numeric_limits<double>::max()));
             continue;
             // If last point was the same we don't need to recalculate
         }
         else if (q2 == last_val)
         {
-            grid.push_back(std::make_pair(ind, y));
+            grid.emplace_back(std::make_pair(ind, y));
             continue;
             // Else calculate
         }
@@ -225,7 +226,7 @@ void ODEQCDCoupling::_interpolate()
         {
             last_val = q2;
             _solve(q2, t, y, allowed_relative, h, accuracy);
-            grid.push_back(std::make_pair(ind, y));
+            grid.emplace_back(std::make_pair(ind, y));
             // Define divergence after y > 2. -- we have no accuracy after that any way
             if (y > 2.)
             {
@@ -247,7 +248,7 @@ void ODEQCDCoupling::_interpolate()
     for (size_t x = 0; x < grid.size(); ++x)
     {
         // cout << sqrt(_q2s.at(x)) << "       " << grid.at(x).second << endl;
-        alphas.push_back(grid.at(x).second);
+        alphas.emplace_back(grid[x].second);
     }
     m_couplingInfo.alphas_vec = std::move(alphas);
     m_couplingInfo.mu_vec.resize(m_mu2_vec.size());
@@ -369,7 +370,7 @@ void ODEQCDCoupling::_rk4(double &t, double &y, double h, const double allowed_c
 // Pass y and t by reference and change them to avoid having to
 // return them in a container -- bit confusing but should be more
 // efficient
-void ODEQCDCoupling::_solve(double q2, double &t, double &y, const double &allowed_relative,
+void ODEQCDCoupling::_solve(double q2, double &t, double &y, const double allowed_relative,
                             double h, double accuracy) const
 {
     if (q2 == t)

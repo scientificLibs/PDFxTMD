@@ -29,23 +29,20 @@ class CContinuationExtrapolator
         // (and LHAPDFv5 when using MSTW sets), G. Watt, October
         // 2014.
         auto *reader = m_interpolator->getReader();
-        const size_t nxknots =
-            reader->getValues(PhaseSpaceComponent::X).size(); // total number of x knots (all
+        const auto& xVals_ = reader->getValues(PhaseSpaceComponent::X);
+        const auto& q2Vals_ = reader->getValues(PhaseSpaceComponent::Q2);
+        const size_t nxknots = xVals_.size(); // total number of x knots (all
                                                               // subgrids)
-        const size_t nq2knots =
-            reader->getValues(PhaseSpaceComponent::Q2).size(); // total number of q2 knots (all
+        const size_t nq2knots = q2Vals_.size(); // total number of q2 knots (all
                                                                // subgrids)
 
-        const double xMin = reader->getValues(PhaseSpaceComponent::X).at(0);  // first x knot
-        const double xMin1 = reader->getValues(PhaseSpaceComponent::X).at(1); // second x knot
-        const double xMax =
-            reader->getValues(PhaseSpaceComponent::X).at(nxknots - 1); // last x knot
+        const double xMin = xVals_.at(0);  // first x knot
+        const double xMin1 = xVals_.at(1); // second x knot
+        const double xMax = xVals_.at(nxknots - 1); // last x knot
 
-        const double q2Min = reader->getValues(PhaseSpaceComponent::Q2).at(0); // first q2 knot
-        const double q2Max1 =
-            reader->getValues(PhaseSpaceComponent::Q2).at(nq2knots - 2); // second-last q2 knot
-        const double q2Max =
-            reader->getValues(PhaseSpaceComponent::Q2).at(nq2knots - 1); // last q2 knot
+        const double q2Min = q2Vals_.at(0); // first q2 knot
+        const double q2Max1 = q2Vals_.at(nq2knots - 2); // second-last q2 knot
+        const double q2Max = q2Vals_.at(nq2knots - 1); // last q2 knot
 
         double fxMin = 0, fxMin1 = 0, fq2Max = 0, fq2Max1 = 0, fq2Min = 0, fq2Min1 = 0, xpdf = 0,
                anom = 0;
@@ -157,23 +154,19 @@ class CContinuationExtrapolator
         // (and LHAPDFv5 when using MSTW sets), G. Watt, October
         // 2014.
         auto *reader = m_interpolator->getReader();
-        const size_t nxknots =
-            reader->getValues(PhaseSpaceComponent::X).size(); // total number of x knots (all
+        const auto& xVals_ = reader->getValues(PhaseSpaceComponent::X);
+        const auto& q2Vals_ = reader->getValues(PhaseSpaceComponent::Q2);
+        const size_t nxknots = xVals_.size(); // total number of x knots (all
                                                               // subgrids)
-        const size_t nq2knots =
-            reader->getValues(PhaseSpaceComponent::Q2).size(); // total number of q2 knots (all
+        const size_t nq2knots = q2Vals_.size(); // total number of q2 knots (all
                                                                // subgrids)
+        const double xMin = xVals_.at(0);  // first x knot
+        const double xMin1 = xVals_.at(1); // second x knot
+        const double xMax = xVals_.at(nxknots - 1); // last x knot
 
-        const double xMin = reader->getValues(PhaseSpaceComponent::X).at(0);  // first x knot
-        const double xMin1 = reader->getValues(PhaseSpaceComponent::X).at(1); // second x knot
-        const double xMax =
-            reader->getValues(PhaseSpaceComponent::X).at(nxknots - 1); // last x knot
-
-        const double q2Min = reader->getValues(PhaseSpaceComponent::Q2).at(0); // first q2 knot
-        const double q2Max1 =
-            reader->getValues(PhaseSpaceComponent::Q2).at(nq2knots - 2); // second-last q2 knot
-        const double q2Max =
-            reader->getValues(PhaseSpaceComponent::Q2).at(nq2knots - 1); // last q2 knot
+        const double q2Min = q2Vals_.at(0); // first q2 knot
+        const double q2Max1 = q2Vals_.at(nq2knots - 2); // second-last q2 knot
+        const double q2Max = q2Vals_.at(nq2knots - 1); // last q2 knot
 
         double fxMin, fxMin1, fq2Max, fq2Max1, fq2Min, fq2Min1, xpdf, anom;
 

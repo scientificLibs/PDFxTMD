@@ -7,7 +7,7 @@ std::vector<std::string> PDFErrInfo::qpartNames() const
     std::vector<std::string> rtn;
     rtn.reserve(qparts.size());
     for (size_t iq = 0; iq < qparts.size(); ++iq)
-        rtn.push_back(qpartName(iq));
+        rtn.emplace_back(qpartName(iq));
     return rtn;
 }
 

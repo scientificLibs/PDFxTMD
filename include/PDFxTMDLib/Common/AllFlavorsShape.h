@@ -8,13 +8,15 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
+#include "PDFxTMDLib/Common/StringUtils.h"
 
 namespace PDFxTMD
 {
 
-inline bool isBlockSeparator(const std::string &line)
+inline bool isBlockSeparator(std::string &line)
 {
-    return line == "---";
+    trim(line);
+    return  line == "---";
 }
 
 inline bool isComment(const std::string &line)
