@@ -1,384 +1,361 @@
-# PDFxTMDLib
+![PDFxTMDLib Logo](./logo.png)
 
-<!-- AppVeyor Build Status Badges -->
 [![Build status: Windows](https://ci.appveyor.com/api/projects/status/github/Raminkord92/PDFxTMD?branch=main&svg=true&job=Image:Visual%20Studio%202019)](https://ci.appveyor.com/project/Raminkord92/PDFxTMD)
 [![Build status: Linux](https://ci.appveyor.com/api/projects/status/github/Raminkord92/PDFxTMD?branch=main&svg=true&job=Image:Ubuntu2204)](https://ci.appveyor.com/project/Raminkord92/PDFxTMD)
 [![Build status: macOS](https://ci.appveyor.com/api/projects/status/github/Raminkord92/PDFxTMD?branch=main&svg=true&job=Image:macOS)](https://ci.appveyor.com/project/Raminkord92/PDFxTMD)
 
-PDFxTMDLib is a high-performance C++ library for parton distribution functions (PDFs), supporting both collinear PDFs (cPDFs) and transverse momentum-dependent PDFs (TMDs). It is designed with modern C++17 principles for performance and extensibility, and provides interfaces for reading standard PDF grid files (LHAPDF, TMDLib) as well as custom formats.
+**PDFxTMDLib** is a high-performance C++ library for parton distribution functions (PDFs), supporting both collinear PDFs (cPDFs) and transverse momentum-dependent PDFs (TMDs). It is designed with modern C++17 principles for performance and extensibility, and provides interfaces for reading standard PDF grid files (LHAPDF, TMDLib) as well as custom formats.
 
-For a comprehensive understanding of PDFxTMDLib, please refer to the full paper available on [https://arxiv.org/abs/2412.16680](https://arxiv.org/abs/2412.16680).
+For a comprehensive understanding of the library's architecture, features, and performance benchmarks, please refer to the full paper available on arXiv: [https://arxiv.org/abs/2412.16680](https://arxiv.org/abs/2412.16680).
 
 ---
 
 ## Features
 
-- Unified interface for collinear PDFs and TMDs
-- Type-erased interfaces for easy extension
-- Factory design pattern for simple instantiation
-- Cross-platform support (Linux, Windows, macOS)
-- Thread-safety
-- Optional Fortran and Python wrappers
+- **Extensibility**: Easily create custom PDF implementations through template specialization.
+- **Cross-platform**: Full support for Linux, Windows, and macOS.
+- **Modern C++**: Built with C++17 for maximum performance and reliability.
+- **Wrappers**: Fortran and Python wrappers for easy integration.
 
 ---
 
-## Installation
+## Building and Installation
 
-### Requirements
+### Prerequisites
 
-- C++17 compatible compiler
-- CMake 3.30 or higher
+Before installing PDFxTMDLib, ensure your system meets these requirements:
+* **C++17 compatible compiler**: GCC 8+, Clang 7+, MSVC 2019+
+* **CMake**: Version 3.14 or newer
+* **For Windows**: Microsoft Visual Studio 2019 or newer
 
-### Option 1: Package Manager (Ubuntu/Debian)
+### Build Process
 
-1. Download the `.deb` file from the [Releases](https://github.com/Raminkord92/PDFxTMD/releases) section of GitHub.
-2. Install with:
-   ```bash
-   sudo dpkg -i PDFxTMDLib-0.3.0-Linux.deb
-   ```
-
-### Option 2: Building from Source
+The library uses a standard CMake build process. Execute the following commands in your terminal:
 
 ```bash
-git clone https://github.com/Raminkord92/PDFxTMD.git
-cd PDFxTMD
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make
-sudo make install
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -S ..
+cmake --build .
+````
+
+### Installation
+
+To install the library system-wide (recommended for Linux/macOS), execute the following command from the `build` directory. This may require administrative privileges.
+
+```bash
+cmake --install .
 ```
 
----
+This installs headers, libraries, and CMake configuration files to standard system locations.
 
-## Quick Start (C++)
+-----
 
-### 1. Write Your Program
+## C++ Usage and API
+
+PDFxTMDLib offers a flexible API with both high-level conveniences and low-level control.
+
+### Integration Methods
+
+#### CMake Integration (Recommended)
+
+For projects using CMake, add these lines to your `CMakeLists.txt` file to link against the installed library:
+
+```cmake
+find_package(PDFxTMDLib REQUIRED)
+target_link_libraries(your-target-name PDFxTMD::PDFxTMDLib)
+```
+
+#### Direct Compilation
+
+You can also link directly with the compiler.
+
+**Linux/macOS (GCC/Clang):**
+
+```bash
+g++ -std=c++17 your_source.cpp -lPDFxTMDLib -o your_executable
+```
+
+**Windows (MSVC from Developer Command Prompt):**
+
+```bash
+cl your_source.cpp /std:c++17 PDFxTMDLib.lib
+```
+
+### High-Level Interface: `PDFSet`
+
+The `PDFSet` template class is the interface for most applications. It abstracts away the complexities of managing PDF set members and provides a unified API for calculations, uncertainty analysis, and metadata access.
+
+#### Collinear PDF (cPDF) Calculations
+
+This example shows how to instantiate a collinear PDF set and evaluate the gluon PDF.
 
 ```cpp
+#include <PDFxTMDLib/PDFSet.h>
 #include <iostream>
-#include <PDFxTMDLib/Factory.h>
 
-int main()
-{
-    using namespace PDFxTMD;
-    GenericCPDFFactory cPDF;
-    auto CJ12min = cPDF.mkCPDF("CJ12min", 0);
-    double x = 0.01;
-    double mu2 = 100;
-    std::cout << "Up quark PDF: " << CJ12min.pdf(PartonFlavor::u, x, mu2) << std::endl;
+int main() {
+    // Instantiate a PDFSet for a collinear distribution set
+    PDFxTMD::PDFSet<PDFxTMD::CollinearPDFTag> cpdfSet("MSHT20nlo_as120");
+
+    // Access the central member (index 0)
+    auto central_pdf = cpdfSet[0];
+
+    // Define kinematics
+    double x = 0.1;
+    double mu2 = 10000; // Factorization scale squared
+
+    // Evaluate the gluon PDF
+    double gluon_pdf = central_pdf->pdf(PDFxTMD::PartonFlavor::g, x, mu2);
+
+    std::cout << "Gluon PDF at x=" << x << ", mu2=" << mu2 << " GeV2: " << gluon_pdf << std::endl;
     return 0;
 }
 ```
 
-### 2. Compile
+#### Transverse Momentum-Dependent PDF (TMD) Calculations
 
-```bash
-g++ main.cpp -lPDFxTMDLib -o test.out
-```
-
-### 3. Run
-
-```bash
-./test.out
-```
-
----
-
-## Basic Usage (C++)
+The process for TMDs is similar, specializing the `PDFSet` with `TMDPDFTag` and including the transverse momentum parameter $k_t^2$.
 
 ```cpp
-// TMD example
-using namespace PDFxTMD;
-GenericTMDFactory PBTMDObj;
-auto PBTMDObj_ = PBTMDObj.mkTMD("PB-NLO-HERAI+II-2023-set2-qs=0.74", 0);
-double x = 0.0001;
-double kt2 = 10;
-double mu2 = 100;
-double gPBTMD = PBTMDObj_.tmd(PartonFlavor::g, x, kt2, mu2);
-std::cout << "Gluon TMD of PB is: " << gPBTMD << std::endl;
+#include <PDFxTMDLib/PDFSet.h>
+#include <iostream>
 
-// Collinear PDF example
-GenericCPDFFactory ct18Obj;
-auto ct18Obj_ = ct18Obj.mkCPDF("CT18NLO", 0);
-double gCt18Obj_ = ct18Obj_.pdf(PartonFlavor::g, x, mu2);
-std::cout << "Gluon PDF of CT18 is: " << gCt18Obj_ << std::endl;
+int main() {
+    // Instantiate a PDFSet for a TMD distribution set
+    PDFxTMD::PDFSet<PDFxTMD::TMDPDFTag> tmdSet("PB-LO-HERAI+II-2020-set2");
+    
+    // Access the central member (index 0)
+    auto central_tmd = tmdSet[0];
+
+    // Define kinematics
+    double x = 0.001;
+    double kt2 = 10;
+    double mu2 = 100;
+
+    // Evaluate the up-quark TMD
+    double up_tmd = central_tmd->tmd(PDFxTMD::PartonFlavor::u, x, kt2, mu2);
+
+    std::cout << "Up-quark TMD at x=" << x << ", kt2=" << kt2 << ", mu2=" << mu2 << ": " << up_tmd << std::endl;
+    return 0;
+}
 ```
 
+#### Uncertainty and Correlation Analysis
 
-### C++ Usage
+PDFxTMDLib automates uncertainty and correlation calculations based on the PDF set's metadata (Hessian or Monte Carlo).
 
-PDFxTMDLib can be used in various ways within C++ projects. Here are some common usage patterns:
+```cpp
+#include <PDFxTMDLib/PDFSet.h>
+#include <iostream>
 
-- **Creating and Using a CPDF Object**
+int main() {
+    PDFxTMD::PDFSet<PDFxTMD::CollinearPDFTag> cpdfSet("MSHT20nlo_as120");
+    double x = 0.1;
+    double mu2 = 10000;
 
-  ```cpp
-  #include <PDFxTMDLib/Factory.h>
+    // Calculate PDF uncertainty at the default confidence level
+    PDFxTMD::PDFUncertainty uncertainty = cpdfSet.Uncertainty(PDFxTMD::PartonFlavor::g, x, mu2);
+    std::cout << "xg = " << uncertainty.central << " + " << uncertainty.errplus << " - " << uncertainty.errminus << std::endl;
 
-  using namespace PDFxTMD;
+    // Calculate uncertainty at 90% confidence level
+    PDFxTMD::PDFUncertainty uncertainty_90 = cpdfSet.Uncertainty(PDFxTMD::PartonFlavor::g, x, mu2, 90.0);
+    std::cout << "xg (90% CL) = " << uncertainty_90.central << " + " << uncertainty_90.errplus << " - " << uncertainty_90.errminus << std::endl;
 
-  // Create a factory for collinear PDFs
-  GenericCPDFFactory cPDF;
+    // Calculate correlation between gluon and up quark
+    double correlation = cpdfSet.Correlation(PDFxTMD::PartonFlavor::g, x, mu2, PDFxTMD::PartonFlavor::u, x, mu2);
+    std::cout << "Correlation between g and u: " << correlation << std::endl;
+    
+    return 0;
+}
+```
 
-  // Make a specific CPDF object (e.g., "CJ12min")
-  auto CJ12min = cPDF.mkCPDF("CJ12min", 0);
+### Factory Interfaces for Individual PDF Members
 
-  // Define variables for x and mu2
-  double x = 0.01;
-  double mu2 = 100;
+For applications that only need a specific PDF member without uncertainty analysis, factories provide a more direct and efficient approach.
 
-  // Access the PDF value for the up quark
-  double upQuarkPDF = CJ12min.pdf(PartonFlavor::u, x, mu2);
-  ```
+```cpp
+#include <PDFxTMDLib/GenericCPDFFactory.h>
+#include <PDFxTMDLib/GenericTMDFactory.h>
+#include <iostream>
 
-- **Creating and Using a TMD Object**
+int main() {
+    using namespace PDFxTMD;
+    double x = 0.001, mu2 = 100, kt2 = 10;
 
-  ```cpp
-  #include <PDFxTMDLib/Factory.h>
+    // Create a single cPDF member using a factory
+    auto cpdf_factory = GenericCPDFFactory();
+    auto cpdf = cpdf_factory.mkCPDF("MMHT2014lo68cl", 0);
+    double gluon_cpdf = cpdf.pdf(PartonFlavor::g, x, mu2);
+    std::cout << "Gluon cPDF: " << gluon_cpdf << std::endl;
 
-  using namespace PDFxTMD;
+    // Create a single TMD member using a factory
+    auto tmd_factory = GenericTMDFactory();
+    auto tmd = tmd_factory.mkTMD("PB-LO-HERAI+II-2020-set2", 0);
+    double gluon_tmd = tmd.tmd(PartonFlavor::g, x, kt2, mu2);
+    std::cout << "Gluon TMD: " << gluon_tmd << std::endl;
 
-  // Create a factory for TMDs
-  GenericTMDFactory PBTMDObj;
+    return 0;
+}
+```
 
-  // Make a specific TMD object (e.g., "PB-NLO-HERAI+II-2023-set2-qs=0.74")
-  auto PBTMDObj_ = PBTMDObj.mkTMD("PB-NLO-HERAI+II-2023-set2-qs=0.74", 0);
+### QCD Coupling Calculations
 
-  // Define variables for x, kt2, and mu2
-  double x = 0.0001;
-  double kt2 = 10;
-  double mu2 = 100;
+The strong coupling constant $\alpha_s(\mu^2)$ can be calculated either from a `PDFSet` instance or using a `CouplingFactory`.
 
-  // Access the TMD value for the gluon
-  double gluonTMD = PBTMDObj_.tmd(PartonFlavor::g, x, kt2, mu2);
-  ```
+```cpp
+#include <PDFxTMDLib/PDFSet.h>
+#include <PDFxTMDLib/CouplingFactory.h>
+#include <iostream>
 
-- **Batch Processing with All Flavors**
+int main() {
+    using namespace PDFxTMD;
+    double mu2 = 10000;
 
-  To retrieve PDFs or TMDs for all parton flavors simultaneously, you can use an array or vector:
+    // Method 1: Using PDFSet
+    PDFSet<CollinearPDFTag> cpdfSet("MSHT20nlo_as120");
+    double alpha_s_from_set = cpdfSet.alphasQ2(mu2);
+    std::cout << "alpha_s from PDFSet: " << alpha_s_from_set << std::endl;
 
-  ```cpp
-  #include <array>
-  #include <PDFxTMDLib/Factory.h>
+    // Method 2: Using CouplingFactory
+    auto couplingFactory = CouplingFactory();
+    auto coupling = couplingFactory.mkCoupling("MMHT2014lo68cl");
+    double alpha_s_from_factory = coupling.AlphaQCDMu2(mu2);
+    std::cout << "alpha_s from Factory: " << alpha_s_from_factory << std::endl;
 
-  using namespace PDFxTMD;
+    return 0;
+}
+```
 
-  // Assuming CJ12min is already created as in previous examples
-  std::array<double, DEFAULT_TOTAL_PDFS> allFlavors;
+### Advanced Usage: Custom Implementations
 
-  // Get PDFs for all flavors
-  CJ12min.pdf(x, mu2, allFlavors);
+PDFxTMDLib allows advanced users to construct PDF objects with custom components (e.g., reader, interpolator, extrapolator) by specializing the `GenericPDF` template. Type aliases are also available for convenience.
 
-  // Access individual flavor results
-  for (size_t i = 0; i < allFlavors.size(); ++i) {
-      std::cout << "Flavor " << i << ": " << allFlavors[i] << std::endl;
-  }
-  ```
+```cpp
+#include <PDFxTMDLib/GenericPDF.h>
+#include <PDFxTMDLib/Implementation/Extrapolator/Collinear/CErrExtrapolator.h>
+#include <PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBilinearInterpolator.h>
+#include <PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h>
+#include <iostream>
 
-- **Custom PDF or TMD Implementations**
+int main() {
+    using namespace PDFxTMD;
 
-  For advanced users, PDFxTMDLib allows the creation of PDFs or TMDs with custom components for reading, interpolating, and extrapolating:
+    // Custom PDF implementation with specific components
+    using ReaderType = CDefaultLHAPDFFileReader;
+    using InterpolatorType = CLHAPDFBilinearInterpolator<ReaderType>;
+    using ExtrapolatorType = CErrExtrapolator;
+    
+    GenericPDF<CollinearPDFTag, ReaderType, InterpolatorType, ExtrapolatorType> 
+        custom_cpdf("MMHT2014lo68cl", 0);
 
-  ```cpp
-  #include <PDFxTMDLib/Factory.h>
+    // Using convenient type aliases (equivalent to default implementations)
+    CollinearPDF cpdf("MMHT2014lo68cl", 0);
+    TMDPDF tmd("PB-LO-HERAI+II-2020-set2", 0);
+    
+    return 0;
+}
+```
 
-  using namespace PDFxTMD;
+-----
 
-  // Define custom components
-  using PDFTag = CollinearPDFTag;
-  using ReaderType = CDefaultLHAPDFFileReader;
-  using InterpolatorType = CLHAPDFBicubicInterpolator;
-  using ExtrapolatorType = CErrExtrapolator;
+## Python Wrapper
 
-  // Create a custom PDF
-  GenericPDF<PDFTag, ReaderType, InterpolatorType, ExtrapolatorType> customPDF("MMHT2014lo68cl", 0);
-  ```
+PDFxTMDLib provides a native Python interface using `pybind11`, exposing all major features of the C++ library.
 
-- **QCD Coupling**
+### Installation
 
-  Accessing the QCD coupling constant is straightforward:
-
-  ```cpp
-  #include <PDFxTMDLib/CouplingFactory.h>
-
-  using namespace PDFxTMD;
-
-  CouplingFactory couplingFactory;
-  auto coupling = couplingFactory.mkCoupling("MMHT2014lo68cl");
-
-  // Get Alpha_s value at a specific scale
-  double alphaS = coupling.AlphaQCDMu2(100);
-  ```
-
----
-
-### Python Wrapper
-
-PDFxTMDLib also provides a native Python interface using `pybind11`, exposing all major features of the C++ library.
-
-#### Installation
-
-Install from PyPI:
+Install the wrapper directly from PyPI:
 
 ```bash
 pip install pdfxtmd
 ```
 
-#### Quick Python Example
+### Quick Python Example
 
 ```python
 import pdfxtmd
 
-# Create a collinear PDF object
+# Create a collinear PDF object using the factory
 cpdf_factory = pdfxtmd.GenericCPDFFactory()
 cpdf = cpdf_factory.mkCPDF("CT18NLO", 0)
 x = 0.01
 mu2 = 100
 up_pdf = cpdf.pdf(pdfxtmd.PartonFlavor.u, x, mu2)
-print("Up quark PDF:", up_pdf)
+print(f"Up quark PDF: {up_pdf}")
 
-# Create a TMD PDF object
+# Create a TMD PDF object using the factory
 tmd_factory = pdfxtmd.GenericTMDFactory()
 tmd = tmd_factory.mkTMD("PB-NLO-HERAI+II-2023-set2-qs=0.74", 0)
 kt2 = 10
 gluon_tmd = tmd.tmd(pdfxtmd.PartonFlavor.g, x, kt2, mu2)
-print("Gluon TMD:", gluon_tmd)
+print(f"Gluon TMD: {gluon_tmd}")
 
 # Compute all flavors at once
 all_flavors = []
 cpdf.pdf(x, mu2, all_flavors)
-print("All flavors:", all_flavors)
+print(f"All flavors: {all_flavors}")
 ```
 
 #### QCD Coupling Example
 
 ```python
+import pdfxtmd
+
 coupling_factory = pdfxtmd.CouplingFactory()
 coupling = coupling_factory.mkCoupling("CT18NLO")
 for scale in [10, 100, 1000, 10000]:
-    print(f"Alpha_s at mu2={scale}:", coupling.AlphaQCDMu2(scale))
+    print(f"Alpha_s at mu2={scale}: {coupling.AlphaQCDMu2(scale)}")
 ```
 
-#### Error Handling
+> **Full Python documentation:** \> See [`examples/python/readme-pyversion.md`](https://www.google.com/search?q=examples/python/readme-pyversion.md) for a complete guide and advanced usage.
 
-The Python API raises exceptions for invalid input:
-
-```python
-try:
-    cpdf.pdf(pdfxtmd.PartonFlavor.u, -0.1, mu2)  # Invalid x
-except Exception as e:
-    print("Expected error for invalid x in CPDF:", e)
-
-try:
-    tmd.tmd(pdfxtmd.PartonFlavor.g, x, -5, mu2)  # Invalid kt2
-except Exception as e:
-    print("Expected error for invalid kt2 in TMD:", e)
-
-try:
-    coupling.AlphaQCDMu2(-1)  # Invalid mu2
-except Exception as e:
-    print("Expected error for invalid mu2 in Coupling:", e)
-```
-
-#### Enumerating Parton Flavors
-
-```python
-print("All PartonFlavor enum values:")
-for name, flavor in pdfxtmd.PartonFlavor.__members__.items():
-    print(f"  {name}: {flavor.value}")
-```
-
-> **Full Python documentation:**  
-> See [`examples/python/readme-pyversion.md`](examples/python/readme-pyversion.md) for a complete guide and advanced usage.
 #### Tutorials
 
-- **Jupyter Notebook Tutorial (run online):**  
-  [Open in Google Colab](https://colab.research.google.com/drive/1C_h9oGJJzt5h3m-h6o3lAJ5dl-AVv0j3#scrollTo=l1iGviJu1eUc)
+  - **Jupyter Notebook Tutorial (run online):** [Open in Google Colab](https://colab.research.google.com/drive/1C_h9oGJJzt5h3m-h6o3lAJ5dl-AVv0j3#scrollTo=l1iGviJu1eUc)
+  - **Local Example:** See [`examples/python/python_tutorial.py`](https://www.google.com/search?q=examples/python/python_tutorial.py)
 
-- **Local Example:**  
-  See [`examples/python/python_tutorial.py`](examples/python/python_tutorial.py)
----
-
-## Advanced Usage (C++)
-
-### Working with All Parton Flavors
-
-Retrieve PDFs for all flavors simultaneously:
-
-```cpp
-std::array<double, DEFAULT_TOTAL_PDFS> allFlavors;
-CJ12min.pdf(x, mu2, allFlavors);
-
-// Access individual flavors from the array
-for (int i = 0; i < DEFAULT_TOTAL_PDFS; i++) {
-    std::cout << "Flavor " << i << ": " << allFlavors[i] << std::endl;
-}
-```
-
-### Custom PDF Implementation
-
-Create PDFs with specific reader, interpolator, and extrapolator components:
-
-```cpp
-using PDFTag = PDFxTMD::CollinearPDFTag;
-using ReaderType = PDFxTMD::CDefaultLHAPDFFileReader;
-using InterpolatorType = PDFxTMD::CLHAPDFBicubicInterpolator;
-using ExtrapolatorType = PDFxTMD::CErrExtrapolator;
-
-// Create custom PDF with specific components
-PDFxTMD::GenericPDF<PDFTag, ReaderType, InterpolatorType, ExtrapolatorType> 
-    customPDF("MMHT2014lo68cl", 0);
-```
-
-### QCD Coupling
-
-```cpp
-PDFxTMD::CouplingFactory couplingFactory;
-auto coupling = couplingFactory.mkCoupling("MMHT2014lo68cl");
-std::cout << "Alpha_s at mu2=100: " << coupling.AlphaQCDMu2(100) << std::endl;
-```
-
-For more comprehensive examples, see [examples/tutorial.cpp](examples/tutorial.cpp).
-
----
+-----
 
 ## Configuration
 
-PDFxTMDLib uses YAML configuration files to locate PDF sets:
+PDFxTMDLib uses a `config.yaml` file to locate PDF data sets. The library searches for this file in the following locations:
 
-- **Windows**: `C:\ProgramData\PDFxTMDLib\config.yaml`
-- **Linux**: `~/.PDFxTMDLib/config.yaml`
+  - **Windows**: `C:\ProgramData\PDFxTMDLib\config.yaml`
+  - **Linux/macOS**: `~/.PDFxTMDLib/config.yaml`
 
-Example configuration:
+Example `config.yaml`:
+
 ```yaml
-paths: "/home/user/pdfs|/usr/share/PDFxTMDLib/pdfs"
+paths:
+  - /path/to/my/pdf/sets
+  - /another/path/to/pdf/data
 ```
 
-Multiple paths can be specified with the `|` separator. By default, the current directory and system-wide locations are included.
+The `paths` key accepts a list of directories where PDFxTMDLib will search for PDF set data. The current directory and standard system locations are searched by default.
 
-## Performance
-
-PDFxTMDLib is optimized for high performance. The library includes benchmarking tools to compare PDFxTMDLib with other libraries like LHAPDF and TMDLib in the `performance_vs_LHAPDF_TMDLIB` directory. Results are shown in the article [https://arxiv.org/abs/2412.16680](https://arxiv.org/abs/2412.16680).
-
----
+-----
 
 ## Visualization Tools
 
-For visualization of PDFs and TMDs, you can use the [QtPDFxTMDPlotter](https://github.com/Raminkord92/QtPDFxTMDPlotter), a Qt-based graphical tool built on top of PDFxTMDLib.
+For easy visualization of PDFs and TMDs, you can use the [QtPDFxTMDPlotter](https://github.com/Raminkord92/QtPDFxTMDPlotter), a Qt-based graphical tool built on top of PDFxTMDLib.
 
----
+-----
 
 ## Contributing
 
-Contributions are welcome! If you are interested in contributing, please contact [raminkord92@gmail.com](mailto:raminkord92@gmail.com).
+Contributions are welcome\! If you are interested in contributing to the project, please open an issue or contact [raminkord92@gmail.com](mailto:raminkord92@gmail.com).
 
----
+-----
 
 ## License
 
-This project is licensed under the GPL-3.0 License. For more details, see the [LICENSE](LICENSE) file.
+This project is licensed under the GPL-3.0 License. For more details, see the [LICENSE](https://www.google.com/search?q=LICENSE) file.
 
----
+-----
 
 ## Contact
 
 For any inquiries, please contact [raminkord92@gmail.com](mailto:raminkord92@gmail.com).
+
+-----

@@ -1,17 +1,17 @@
+#include "PDFxTMDLib/Common/ConfigWrapper.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
+#include "PDFxTMDLib/Common/YamlMetaInfo/YamlErrorInfo.h"
+#include "PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h"
 #include "PDFxTMDLib/Factory.h"
 #include "PDFxTMDLib/Interface/ICPDF.h"
 #include "PDFxTMDLib/Interface/IQCDCoupling.h"
 #include "PDFxTMDLib/Interface/ITMD.h"
 #include "PDFxTMDLib/PDFSet.h"
-#include "PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h"
-#include "PDFxTMDLib/Common/YamlMetaInfo/YamlErrorInfo.h"
 #include <array>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <stdexcept>
 #include <string>
-#include "PDFxTMDLib/Common/ConfigWrapper.h" 
 
 namespace py = pybind11;
 
@@ -77,7 +77,6 @@ PYBIND11_MODULE(pdfxtmd, m)
             },
             py::arg("pdfSetName"), py::return_value_policy::take_ownership);
 
-
     py::class_<PDFxTMD::GenericTMDFactory>(m, "GenericTMDFactory",
                                            "Factory for creating TMD objects")
         .def(py::init<>())
@@ -100,37 +99,166 @@ PYBIND11_MODULE(pdfxtmd, m)
             },
             py::arg("pdfSetName"), py::arg("setMember"), py::return_value_policy::take_ownership);
     // Bind ITMD
-    py::class_<PDFxTMD::ITMD>(m, "ITMD", "Interface for Transverse Momentum Dependent (TMD) PDFs")
-        .def("tmd",
-             py::overload_cast<PDFxTMD::PartonFlavor, double, double, double>(&PDFxTMD::ITMD::tmd,
-                                                                              py::const_),
-             py::arg("flavor"), py::arg("x"), py::arg("kt2"), py::arg("mu2"),
-             "Calculate the TMD for a specific flavor.")
+    py::class_<PDFxTMD::ITMD>(
+        m, "ITMD",
+        "Interface for Transverse Momentum Dependent (TMD) Parton Distribution Functions")
         .def(
             "tmd",
-            [](const PDFxTMD::ITMD &self, double x, double kt2, double mu2) {
-                std::array<double, 13> result;
-                self.tmd(x, kt2, mu2, result);
-                return result;
+            [](const PDFxTMD::ITMD &self, PDFxTMD::PartonFlavor flavor, double x, double kt2,
+               double mu2) {
+                try
+                {
+                    if (x <= 0 || x >= 1)
+                    {
+                        throw std::invalid_argument("Momentum fraction x must be in (0, 1)");
+                    }
+                    if (kt2 < 0)
+                    {
+                        throw std::invalid_argument(
+                            "Transverse momentum squared kt2 must be non-negative");
+                    }
+                    if (mu2 <= 0)
+                    {
+                        throw std::invalid_argument(
+                            "Factorization scale squared mu2 must be positive");
+                    }
+                    return self.tmd(flavor, x, kt2, mu2);
+                }
+                catch (const std::exception &e)
+                {
+                    throw py::value_error("Error evaluating TMD for flavor " +
+                                          std::to_string(static_cast<int>(flavor)) + " at x=" +
+                                          std::to_string(x) + ", kt2=" + std::to_string(kt2) +
+                                          ", mu2=" + std::to_string(mu2) + ": " + e.what());
+                }
             },
-            py::arg("x"), py::arg("kt2"), py::arg("mu2"), "Calculate the TMD for all flavors.");
-    
+            py::arg("flavor"), py::arg("x"), py::arg("kt2"), py::arg("mu2"),
+            "Calculate the TMD PDF for a specific parton flavor.\n"
+            "\nArgs:\n"
+            "    flavor (PartonFlavor): The parton flavor (e.g., u, d, g).\n"
+            "    x (float): Momentum fraction (0 < x < 1).\n"
+            "    kt2 (float): Transverse momentum squared (GeV^2, non-negative).\n"
+            "    mu2 (float): Factorization scale squared (GeV^2, positive).\n"
+            "\nReturns:\n"
+            "    float: The TMD PDF value.")
+        .def(
+            "tmd",
+            [](const PDFxTMD::ITMD &self, double x, double kt2, double mu2, py::list &output) {
+                try
+                {
+                    // Validate input parameters
+                    if (x <= 0 || x >= 1)
+                    {
+                        throw std::invalid_argument("Momentum fraction x must be in (0, 1)");
+                    }
+                    if (kt2 < 0)
+                    {
+                        throw std::invalid_argument(
+                            "Transverse momentum squared kt2 must be non-negative");
+                    }
+                    if (mu2 <= 0)
+                    {
+                        throw std::invalid_argument(
+                            "Factorization scale squared mu2 must be positive");
+                    }
+                    std::array<double, 13> temp;
+                    self.tmd(x, kt2, mu2, temp);
+                    // Copy results to Python list
+                    for (size_t i = 0; i < temp.size(); ++i)
+                    {
+                        output.append(temp[i]);
+                    }
+                }
+                catch (const std::exception &e)
+                {
+                    throw py::value_error("Error evaluating TMD for all flavors at x=" +
+                                          std::to_string(x) + ", kt2=" + std::to_string(kt2) +
+                                          ", mu2=" + std::to_string(mu2) + ": " + e.what());
+                }
+            },
+            py::arg("x"), py::arg("kt2"), py::arg("mu2"), py::arg("output"),
+            "Calculate TMD PDFs for all flavors and store in the provided list.\n"
+            "\nArgs:\n"
+            "    x (float): Momentum fraction (0 < x < 1).\n"
+            "    kt2 (float): Transverse momentum squared (GeV^2, non-negative).\n"
+            "    mu2 (float): Factorization scale squared (GeV^2, positive).\n"
+            "    output (list): A list of 13 floats to store TMD values for "
+            "{tbar, bbar, cbar, sbar, ubar, dbar, g, d, u, s, c, b, t}.\n"
+            "\nReturns:\n"
+            "    None: Modifies the output list in-place.");
     // Bind ICPDF
     py::class_<PDFxTMD::ICPDF>(m, "ICPDF",
                                "Interface for Collinear Parton Distribution Functions (CPDFs)")
-        .def("pdf",
-             py::overload_cast<PDFxTMD::PartonFlavor, double, double>(&PDFxTMD::ICPDF::pdf,
-                                                                      py::const_),
-             py::arg("flavor"), py::arg("x"), py::arg("mu2"),
-             "Calculate the CPDF for a specific flavor.")
         .def(
             "pdf",
-            [](const PDFxTMD::ICPDF &self, double x, double mu2) {
-                std::array<double, 13> result;
-                self.pdf(x, mu2, result);
-                return result;
+            [](const PDFxTMD::ICPDF &self, PDFxTMD::PartonFlavor flavor, double x, double mu2) {
+                try
+                {
+                    if (x <= 0 || x >= 1)
+                    {
+                        throw std::invalid_argument("Momentum fraction x must be in (0, 1)");
+                    }
+                    if (mu2 <= 0)
+                    {
+                        throw std::invalid_argument(
+                            "Factorization scale squared mu2 must be positive");
+                    }
+                    return self.pdf(flavor, x, mu2);
+                }
+                catch (const std::exception &e)
+                {
+                    throw py::value_error("Error evaluating CPDF for flavor " +
+                                          std::to_string(static_cast<int>(flavor)) +
+                                          " at x=" + std::to_string(x) +
+                                          ", mu2=" + std::to_string(mu2) + ": " + e.what());
+                }
             },
-            py::arg("x"), py::arg("mu2"), "Calculate the CPDF for all flavors.");
+            py::arg("flavor"), py::arg("x"), py::arg("mu2"),
+            "Calculate the CPDF for a specific parton flavor.\n"
+            "\nArgs:\n"
+            "    flavor (PartonFlavor): The parton flavor (e.g., u, d, g).\n"
+            "    x (float): Momentum fraction (0 < x < 1).\n"
+            "    mu2 (float): Factorization scale squared (GeV^2, positive).\n"
+            "\nReturns:\n"
+            "    float: The CPDF value.")
+        .def(
+            "pdf",
+            [](const PDFxTMD::ICPDF &self, double x, double mu2, py::list &output) {
+                try
+                {
+                    // Validate input parameters
+                    if (x <= 0 || x >= 1)
+                    {
+                        throw std::invalid_argument("Momentum fraction x must be in (0, 1)");
+                    }
+                    if (mu2 <= 0)
+                    {
+                        throw std::invalid_argument(
+                            "Factorization scale squared mu2 must be positive");
+                    }
+                    std::array<double, 13> temp;
+                    self.pdf(x, mu2, temp);
+                    for (size_t i = 0; i < temp.size(); ++i)
+                    {
+                        output.append(temp[i]);
+                    }
+                }
+                catch (const std::exception &e)
+                {
+                    throw py::value_error(
+                        "Error evaluating CPDF for all flavors at x=" + std::to_string(x) +
+                        ", mu2=" + std::to_string(mu2) + ": " + e.what());
+                }
+            },
+            py::arg("x"), py::arg("mu2"), py::arg("output"),
+            "Calculate cPDFs for all flavors and store in the provided list.\n"
+            "\nArgs:\n"
+            "    x (float): Momentum fraction (0 < x < 1).\n"
+            "    mu2 (float): Factorization scale squared (GeV^2, positive).\n"
+            "    output (list): A list of 13 floats to store CPDF values for "
+            "{tbar, bbar, cbar, sbar, ubar, dbar, g, d, u, s, c, b, t}.\n"
+            "\nReturns:\n"
+            "    None: Modifies the output list in-place.");
 
     py::class_<PDFxTMD::GenericCPDFFactory>(m, "GenericCPDFFactory",
                                             "Factory for creating CPDF objects")
@@ -190,8 +318,25 @@ PYBIND11_MODULE(pdfxtmd, m)
         .def_readonly("XMin", &PDFxTMD::YamlStandardPDFInfo::XMin, "Minimum value of x")
         .def_readonly("XMax", &PDFxTMD::YamlStandardPDFInfo::XMax, "Maximum value of x")
         .def_readonly("QMin", &PDFxTMD::YamlStandardPDFInfo::QMin, "Minimum value of Q")
-        .def_readonly("QMax", &PDFxTMD::YamlStandardPDFInfo::QMax, "Maximum value of Q");
-
+        .def_readonly("QMax", &PDFxTMD::YamlStandardPDFInfo::QMax, "Maximum value of Q")
+        .def_readonly("Format", &PDFxTMD::YamlStandardPDFInfo::Format, "Format")
+        .def_readonly("SetDesc", &PDFxTMD::YamlStandardPDFInfo::SetDesc, "SetDesc")
+        .def_readonly("lhapdfID", &PDFxTMD::YamlStandardPDFInfo::lhapdfID, "lhapdfID");
+    py::class_<PDFxTMD::YamlStandardTMDInfo>(m, "YamlStandardTMDInfo", "Standard PDF metadata")
+        .def_readonly("NumMembers", &PDFxTMD::YamlStandardTMDInfo::NumMembers,
+                      "Number of members in the set")
+        .def_readonly("Flavors", &PDFxTMD::YamlStandardTMDInfo::Flavors,
+                      "List of parton flavors included")
+        .def_readonly("XMin", &PDFxTMD::YamlStandardTMDInfo::XMin, "Minimum value of x")
+        .def_readonly("XMax", &PDFxTMD::YamlStandardTMDInfo::XMax, "Maximum value of x")
+        .def_readonly("QMin", &PDFxTMD::YamlStandardTMDInfo::QMin, "Minimum value of Q")
+        .def_readonly("QMax", &PDFxTMD::YamlStandardTMDInfo::QMax, "Maximum value of Q")
+        .def_readonly("Format", &PDFxTMD::YamlStandardTMDInfo::Format, "Format")
+        .def_readonly("lhapdfID", &PDFxTMD::YamlStandardTMDInfo::lhapdfID, "lhapdfID")
+        .def_readonly("KtMin", &PDFxTMD::YamlStandardTMDInfo::KtMin, "KtMin")
+        .def_readonly("KtMax", &PDFxTMD::YamlStandardTMDInfo::KtMax, "KtMax")
+        .def_readonly("SetDesc", &PDFxTMD::YamlStandardPDFInfo::SetDesc, "SetDesc")
+        .def_readonly("TMDScheme", &PDFxTMD::YamlStandardTMDInfo::TMDScheme, "TMDScheme");
 
     py::class_<PDFxTMD::YamlErrorInfo>(m, "YamlErrorInfo", "PDF error metadata")
         .def_readonly("ErrorType", &PDFxTMD::YamlErrorInfo::ErrorType,
@@ -244,7 +389,6 @@ PYBIND11_MODULE(pdfxtmd, m)
                  {
                      if (pdfSetName.empty())
                          throw std::invalid_argument("PDF set name cannot be empty");
-                     std::cout << "testttttttttt " << std::endl;
                      return std::make_unique<PDFxTMD::PDFSet<PDFxTMD::CollinearPDFTag>>(
                          pdfSetName, alternativeReplicaUncertainty);
                  }
@@ -571,6 +715,6 @@ PYBIND11_MODULE(pdfxtmd, m)
              py::return_value_policy::move, "Get the standard metadata info object for the set.")
         .def("getPDFErrorInfo", &PDFxTMD::PDFSet<PDFxTMD::TMDPDFTag>::getPDFErrorInfo,
              py::return_value_policy::move, "Get the error metadata info object for the set.")
-        .def("info", &PDFxTMD::PDFSet<PDFxTMD::TMDPDFTag>::info,
-             py::return_value_policy::move, "Get the configuration info object for the set.");
+        .def("info", &PDFxTMD::PDFSet<PDFxTMD::TMDPDFTag>::info, py::return_value_policy::move,
+             "Get the configuration info object for the set.");
 }

@@ -315,7 +315,6 @@ template <typename Tag> class PDFSet
     {
         for (int i = 0; i < m_pdfSetStdInfo.NumMembers; ++i)
         {
-            std::cout << "pdfset i " << i << std::endl;
             if (m_PDFSet_.find(i) == m_PDFSet_.end()) {
                 CreatePDFSet(i);
             }
@@ -487,7 +486,7 @@ template <typename Tag> class PDFSet
         {
             m_uncertaintyStrategy_ = IUncertainty(HessianStrategy());
         }
-        else if (coreType == "symmhessian")
+        else if (coreType == "symmhessian" || coreType == "symm-hessian")
         {
             m_uncertaintyStrategy_ = IUncertainty(SymmHessianStrategy());
         }

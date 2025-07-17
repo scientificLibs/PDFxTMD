@@ -160,6 +160,10 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
             format = stdInfo.Format;
         }
     }
+    if (format != "allflavorUpdf" && format != "lhagrid_tmd1")
+    {
+        throw NotSupportError("Format " + format + " is currently not supported");
+    }
     TReader readerType;
     auto [impelmentationInfo, error] = YamlImpelemntationInfoReader(*infoPathPair.first);
     if ((*impelmentationInfo).reader == "")
@@ -168,7 +172,7 @@ ITMD GenericTMDFactory::mkTMD(const std::string &pdfSetName, int setMember)
         {
             readerType = TReader::TDefaultTMDLibAllflavorReader;
         }
-        else
+        else if (format == "lhagrid_tmd1")
         {
             readerType = TReader::TDefaultLHAPDF_TMDReader;
         }
@@ -252,6 +256,20 @@ ICPDF GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
     if (infoPathPair.second != ErrorType::None)
     {
         throw FileLoadException("Unable to find info file of PDF set " + pdfSetName);
+    }
+    std::string format{};
+    std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> standardInfoPair = YamlStandardPDFInfoReader(*infoPathPair.first);
+    if (standardInfoPair.second == ErrorType::None)
+    {
+        if (standardInfoPair.first.has_value())
+        {
+            YamlStandardTMDInfo stdInfo = *standardInfoPair.first;
+            format = stdInfo.Format;
+        }
+    }
+    if (format != "lhagrid1")
+    {
+        throw NotSupportError("Format " + format + " is currently not supported");
     }
     CReader readerType;
     auto [impelmentationInfo, error] = YamlImpelemntationInfoReader(*infoPathPair.first);

@@ -25,6 +25,16 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     }
     output.orderQCD = static_cast<OrderQCD>(*orderQCD);
     //////OrderQCD
+    auto [SetDesc, errorSetDesc] = ConfigWrapper.get<std::string>("SetDesc");
+    if (errorSetDesc != ErrorType::None)
+    {
+        std::cout << "[PDFxTMD][YamlStandardPDFInfoReader] Format is not "
+                     "found in yaml config file"
+                  << std::endl;
+        return {std::nullopt, errorSetDesc};
+    }
+    output.SetDesc = *SetDesc;
+    //////OrderQCD
     auto [format, errorFormat] = ConfigWrapper.get<std::string>("Format");
     if (errorFormat != ErrorType::None)
     {

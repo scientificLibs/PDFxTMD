@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "PDFxTMDLib/Common/LibraryBanner.h"
 
 #define FOLDER_SEP "/"
 #define STD_PDF_INFO_EXTENSION ".info"
@@ -76,7 +77,6 @@ enum PartonFlavor
     wminus,
     higgs
 };
-
 constexpr std::array<PartonFlavor, DEFAULT_TOTAL_PDFS> standardPartonFlavors = {
     PartonFlavor::tbar, PartonFlavor::bbar, PartonFlavor::cbar, PartonFlavor::sbar,
     PartonFlavor::ubar, PartonFlavor::dbar, PartonFlavor::gNS,  PartonFlavor::d,

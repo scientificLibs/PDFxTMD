@@ -12,6 +12,7 @@
 namespace fs = std::filesystem;
 namespace PDFxTMD
 {
+const auto &instance = LibraryBanner::Instance();
 std::string StandardPDFNaming(const std::string &pdfName, int set)
 {
     return pdfName + "_" + std::to_string(set) + ".dat";
