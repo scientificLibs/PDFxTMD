@@ -24,13 +24,23 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
         return {std::nullopt, errorOrderQCD};
     }
     output.orderQCD = static_cast<OrderQCD>(*orderQCD);
-    //////Format
+    //////OrderQCD
+    auto [SetDesc, errorSetDesc] = ConfigWrapper.get<std::string>("SetDesc");
+    if (errorSetDesc != ErrorType::None)
+    {
+        std::cout << "[PDFxTMD][YamlStandardPDFInfoReader] Format is not "
+                     "found in yaml config file"
+                  << std::endl;
+        return {std::nullopt, errorSetDesc};
+    }
+    output.SetDesc = *SetDesc;
+    //////OrderQCD
     auto [format, errorFormat] = ConfigWrapper.get<std::string>("Format");
     if (errorFormat != ErrorType::None)
     {
-        PDFxTMDLOG << "[PDFxTMD][YamlInfoReader] Format is not "
-                      "found in yaml config file"
-                   << std::endl;
+        std::cout << "[PDFxTMD][YamlStandardPDFInfoReader] Format is not "
+                     "found in yaml config file"
+                  << std::endl;
         return {std::nullopt, errorFormat};
     }
     output.Format = *format;
@@ -98,7 +108,7 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     auto [TMDScheme, errorTMDScheme] = ConfigWrapper.get<std::string>("TMDScheme");
     if (errorTMDScheme != ErrorType::None)
     {
-        output.TMDScheme = "";
+        output.TMDScheme.clear();
     }
     else
         output.TMDScheme = *TMDScheme;

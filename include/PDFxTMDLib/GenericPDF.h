@@ -52,7 +52,7 @@ template <typename Tag> struct DefaultPDFImplementations;
 template <> struct DefaultPDFImplementations<TMDPDFTag>
 {
     using Reader = TDefaultLHAPDF_TMDReader;
-    using Interpolator = TTrilinearInterpolator;
+    using Interpolator = TTrilinearInterpolator<Reader>;
     using Extrapolator = TZeroExtrapolator;
 };
 
@@ -60,8 +60,8 @@ template <> struct DefaultPDFImplementations<TMDPDFTag>
 template <> struct DefaultPDFImplementations<CollinearPDFTag>
 {
     using Reader = CDefaultLHAPDFFileReader;
-    using Interpolator = CLHAPDFBicubicInterpolator;
-    using Extrapolator = CContinuationExtrapolator<CLHAPDFBicubicInterpolator>;
+    using Interpolator = CLHAPDFBicubicInterpolator<Reader>;
+    using Extrapolator = CContinuationExtrapolator<CLHAPDFBicubicInterpolator<Reader>>;
 };
 
 template <typename Tag, typename Reader = typename DefaultPDFImplementations<Tag>::Reader,
@@ -76,9 +76,7 @@ class GenericPDF
         loadStandardInfo();
         loadData();
     }
-    ~GenericPDF()
-    {
-    }
+    ~GenericPDF() = default;
     /**
      * @brief Retrieves the collinear PDF value for a specific parton flavor
      *
@@ -137,6 +135,28 @@ class GenericPDF
             m_extrapolator.setInterpolator(&m_interpolator);
         }
     }
+   GenericPDF &operator=(GenericPDF &&other) noexcept
+    {
+        if (this == &other)
+        {
+            return *this;
+        }
+        m_pdfName = std::move(other.m_pdfName);
+        m_setNumber = other.m_setNumber;
+        m_reader = std::move(other.m_reader);
+        m_interpolator = std::move(other.m_interpolator);
+        m_extrapolator = std::move(other.m_extrapolator);
+        m_stdInfo = std::move(other.m_stdInfo);
+
+        // Re-initialize internal dependencies
+        m_interpolator.initialize(&m_reader);
+        if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
+        {
+            m_extrapolator.setInterpolator(&m_interpolator);
+        }
+        return *this;
+    }
+
     GenericPDF(const GenericPDF &other)
         : m_pdfName(other.m_pdfName), m_setNumber(other.m_setNumber), m_reader(other.m_reader),
           m_interpolator(other.m_interpolator), m_extrapolator(other.m_extrapolator),
@@ -147,6 +167,27 @@ class GenericPDF
         {
             m_extrapolator.setInterpolator(&m_interpolator);
         }
+    }
+    GenericPDF &operator=(const GenericPDF &other)
+    {
+        if (this == &other)
+        {
+            return *this;
+        }
+        m_pdfName = other.m_pdfName;
+        m_setNumber = other.m_setNumber;
+        m_reader = other.m_reader;
+        m_interpolator = other.m_interpolator;
+        m_extrapolator = other.m_extrapolator;
+        m_stdInfo = other.m_stdInfo;
+
+        // Re-initialize internal dependencies
+        m_interpolator.initialize(&m_reader);
+        if constexpr (std::is_base_of_v<IcAdvancedPDFExtrapolator<Extrapolator>, Extrapolator>)
+        {
+            m_extrapolator.setInterpolator(&m_interpolator);
+        }
+        return *this;
     }
     /**
      * @brief Evaluates the TMD PDF value for a specific parton flavor

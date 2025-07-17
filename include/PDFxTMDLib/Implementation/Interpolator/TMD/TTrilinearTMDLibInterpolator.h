@@ -12,10 +12,10 @@
 namespace PDFxTMD
 {
 template <class ReaderType>
-class TTrilinearInterpolator : public ITMDInterpolator<TTrilinearInterpolator<ReaderType>, ReaderType>
+class TTrilinearTMDLibInterpolator : public ITMDInterpolator<TTrilinearTMDLibInterpolator<ReaderType>, ReaderType>
 {
   public:
-    explicit TTrilinearInterpolator() = default;
+    explicit TTrilinearTMDLibInterpolator() = default;
     void initialize(const IReader<ReaderType> *reader)
     {
         m_reader = reader;
@@ -32,8 +32,8 @@ class TTrilinearInterpolator : public ITMDInterpolator<TTrilinearInterpolator<Re
         double logX = std::log(x);
         double logkt2 = std::log(kt2);
         double logMu2 = std::log(mu2);
-        interp(m_dimensions.data(), 1, selectedPdf, output, m_tmdShape.log_x_vec.data(), &logX, m_tmdShape.log_kt2_vec.data(), &logkt2
-               , m_tmdShape.log_mu2_vec.data(), &logMu2);
+        interp(m_dimensions.data(), 1, selectedPdf, output, m_tmdShape.log_kt2_vec.data(), &logkt2,
+               m_tmdShape.log_x_vec.data(), &logX, m_tmdShape.log_mu2_vec.data(), &logMu2);
 
         return output[0] < 0 ? 0 : output[0] / kt2;
     }
@@ -49,8 +49,8 @@ class TTrilinearInterpolator : public ITMDInterpolator<TTrilinearInterpolator<Re
         for (int i = 0; i < DEFAULT_TOTAL_PDFS; i++)
         {
             double *selectedPdf = &m_tmdShape.grids[standardPartonFlavors[i]][0];
-            interp(m_dimensions.data(), 1, selectedPdf, output_, m_tmdShape.log_x_vec.data(), &logX,
-                   m_tmdShape.log_kt2_vec.data(), &logkt2, m_tmdShape.log_mu2_vec.data(), &logMu2);
+        interp(m_dimensions.data(), 1, selectedPdf, output_, m_tmdShape.log_kt2_vec.data(), &logkt2,
+               m_tmdShape.log_x_vec.data(), &logX, m_tmdShape.log_mu2_vec.data(), &logMu2);
 
             output[i] = (output_[0] < 0 ? 0 : output_[0] / kt2);
         }
