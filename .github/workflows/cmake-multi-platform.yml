@@ -31,8 +31,8 @@ jobs:
         cmake -S . -B build \
           -DCMAKE_BUILD_TYPE=Release \
           -DENABLE_BUILDING_WRAPPERS=OFF \
-          -CMAKE_OSX_ARCHITECTURES=arm64 \
-          -CMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+          -DCMAKE_OSX_ARCHITECTURES=arm64 \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
           -DCMAKE_CXX_STANDARD=17 \
           -DCMAKE_INSTALL_PREFIX=build/install \
         && cmake --build build --config Release \
@@ -67,7 +67,7 @@ jobs:
         run: |
           docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
 
-      - name: Install Rosetta for macOS cross-compilation (macOS only)
+      - name: Install Rosetta for macOS cross-compilation
         if: matrix.os == 'macos-14'
         run: |
           softwareupdate --install-rosetta --agree-to-license || true
