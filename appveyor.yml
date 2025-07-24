@@ -1,47 +1,96 @@
 version: '{build}'
 
-branches:
-  only:
-    - master
-only_commits:
-  files:
-    - include/PDFxTMDLib/
-    - src/
-    - wrappers/
-    - cmake/
-    - examples/
-    - CMakeLists.txt
 image:
-  - Visual Studio 2019
+  - Visual Studio 2022
   - Ubuntu2204
   - macOS
 
-configuration:
-  - Release
+environment:
+  global:
+    # Skip older Python versions not supported by cibuildwheel
+    CIBW_SKIP: cp27-* cp33-* cp34-* cp35-* cp36-* cp37-*
+    # Set output directory for wheels
+    CIBW_OUTPUT_DIR: wheelhouse
+    # Optional: Specify Python versions to build for (e.g., 3.8+)
+    CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*
+    # Optional: Enable PyPy or GraalPy if needed
+    # CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-* cp313-* pypy*
+    # Optional: Command to run before building wheels (e.g., install dependencies or run CMake)
+    CIBW_BEFORE_BUILD: |
+      pip install -r requirements.txt &&
+      cmake -B build &&
+      cmake --build build --config Release
+    # Optional: Test command to run tests against the wheel-installed package
+    CIBW_TEST_COMMAND: python -m unittest discover -f -s {project}/tests
+    # Optional: Specify architectures for Linux (e.g., include aarch64 if needed)
+    CIBW_ARCHS_LINUX: auto aarch64
+    # Optional: Specify architectures for macOS (e.g., include universal2 or arm64)
+    CIBW_ARCHS_MACOS: auto universal2 arm64
+    # Optional: Specify architectures for Windows (e.g., include ARM64)
+    CIBW_ARCHS_WINDOWS: auto ARM64
+  matrix:
+    - PYTHON_VERSION: 3.12
+
+# Turn off default build to focus on cibuildwheel
+build: off
+
+install:
+  - ps: |
+      if ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2022") {
+        # Set up Python for Windows
+        $env:PATH = "C:\Python$($env:PYTHON_VERSION -replace '\.', '')\Scripts;C:\Python$($env:PYTHON_VERSION -replace '\.', '');$env:PATH"
+        python -m pip install --upgrade pip
+      }
+      elseif ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Ubuntu2204") {
+        # Set up Python for Ubuntu
+        python3 -m pip install --upgrade pip
+      }
+      elseif ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "macos-sonoma") {
+        # Set up Python for macOS
+        python3 -m pip install --upgrade pip
+      }
+  # Install cibuildwheel
+  - python -m pip install cibuildwheel==2.21.3
 
 for:
   - matrix:
       only:
-        - image: Visual Studio 2019
-    before_build:
-      - cmake -G "Visual Studio 16 2019" -A x64 -B build
-      - cmake -G "Visual Studio 16 2019" -A ARM64 -B build-arm64
+        - image: Visual Studio 2022
+    init:
+      - ps: |
+          # Ensure Python is available
+          $py_ver = $env:PYTHON_VERSION -replace '\.', ''
+          $env:PATH = "C:\Python$py_ver;C:\Python$py_ver\Scripts;$env:PATH"
+          python --version
     build_script:
-      - cmake --build build --config %CONFIGURATION%
-      - cmake --build build-arm64 --config %CONFIGURATION%
+      - python -m cibuildwheel --platform windows
+    artifacts:
+      - path: wheelhouse\*.whl
+        name: Windows_Wheels
 
   - matrix:
       only:
         - image: Ubuntu2204
-    before_build:
-      - sh: cmake -DCMAKE_BUILD_TYPE=$CONFIGURATION -B build
+    init:
+      - sh: |
+          # Enable QEMU for aarch64 builds if needed
+          docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
     build_script:
-      - sh: cmake --build build
+      - sh: python3 -m cibuildwheel --platform linux
+    artifacts:
+      - path: wheelhouse/*.whl
+        name: Linux_Wheels
 
   - matrix:
       only:
-        - image: macOS
-    before_build:
-      - sh: cmake -DCMAKE_BUILD_TYPE=$CONFIGURATION -B build
+        - image: macos-sonoma
+    init:
+      - sh: |
+          # Install Rosetta for cross-compilation if needed
+          softwareupdate --install-rosetta --agree-to-license
+          python3 --version
     build_script:
-      - sh: cmake --build build
+      - sh: python3 -m cibuildwheel --platform macos
+    artifacts:
+      - path: wheelhouse/*.whl
+        name: macOS_Wheels
