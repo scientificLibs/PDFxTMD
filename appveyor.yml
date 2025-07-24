@@ -83,7 +83,7 @@ for:
 
   - matrix:
       only:
-        - image: macos-sonoma
+        - image: macos
     init:
       - sh: |
           # Install Rosetta for cross-compilation if needed
