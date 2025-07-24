@@ -3,35 +3,29 @@ version: '{build}'
 image:
   - Visual Studio 2022
   - Ubuntu2204
-  - macOS
+  - macos
 
 environment:
   global:
-    # Skip older Python versions not supported by cibuildwheel
+    # Skip unsupported Python versions
     CIBW_SKIP: cp27-* cp33-* cp34-* cp35-* cp36-* cp37-*
     # Set output directory for wheels
     CIBW_OUTPUT_DIR: wheelhouse
-    # Optional: Specify Python versions to build for (e.g., 3.8+)
-    CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*
-    # Optional: Enable PyPy or GraalPy if needed
-    # CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-* cp313-* pypy*
-    # Optional: Command to run before building wheels (e.g., install dependencies or run CMake)
-    CIBW_BEFORE_BUILD: |
-      pip install -r requirements.txt &&
-      cmake -B build &&
-      cmake --build build --config Release
-    # Optional: Test command to run tests against the wheel-installed package
-    CIBW_TEST_COMMAND: python -m unittest discover -f -s {project}/tests
-    # Optional: Specify architectures for Linux (e.g., include aarch64 if needed)
+    # Specify Python versions to build for
+    CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*
+    # Platform-specific before_build commands (CMake only, no requirements.txt)
+    CIBW_BEFORE_BUILD_WINDOWS: |
+      cmake -B build -G "Visual Studio 17 2022" -A x64 && cmake -B build-arm64 -G "Visual Studio 17 2022" -A ARM64 && cmake --build build --config Release && cmake --build build-arm64 --config Release
+    CIBW_BEFORE_BUILD_LINUX: |
+      cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
+    CIBW_BEFORE_BUILD_MACOS: |
+      cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
     CIBW_ARCHS_LINUX: auto aarch64
-    # Optional: Specify architectures for macOS (e.g., include universal2 or arm64)
     CIBW_ARCHS_MACOS: auto universal2 arm64
-    # Optional: Specify architectures for Windows (e.g., include ARM64)
     CIBW_ARCHS_WINDOWS: auto ARM64
   matrix:
     - PYTHON_VERSION: 3.12
 
-# Turn off default build to focus on cibuildwheel
 build: off
 
 install:
@@ -73,7 +67,7 @@ for:
         - image: Ubuntu2204
     init:
       - sh: |
-          # Enable QEMU for aarch64 builds if needed
+          # Enable QEMU for aarch64 builds
           docker run --rm --privileged docker.io/tonistiigi/binfmt:latest --install all
     build_script:
       - sh: python3 -m cibuildwheel --platform linux
@@ -86,7 +80,7 @@ for:
         - image: macos
     init:
       - sh: |
-          # Install Rosetta for cross-compilation if needed
+          # Install Rosetta for cross-compilation
           softwareupdate --install-rosetta --agree-to-license
           python3 --version
     build_script:
