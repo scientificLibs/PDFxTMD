@@ -3,7 +3,7 @@ version: '{build}'
 image:
   - Visual Studio 2022
   - Ubuntu2204
-  - macos
+  - macOS
 
 environment:
   global:
@@ -77,7 +77,7 @@ for:
 
   - matrix:
       only:
-        - image: macos
+        - image: macOS
     init:
       - sh: |
           # Install Rosetta for cross-compilation
