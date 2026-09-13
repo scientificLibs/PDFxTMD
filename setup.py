@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import platform
+import shutil
 import shlex
 import subprocess
 import sys
@@ -23,7 +24,7 @@ class CMakeExtension(Extension):
 class CMakeBuild(build_ext):
     """Build the Python module through PDFxTMD's native CMake targets.
 
-    This deliberately avoids linking libPDFxTMDLib.a by hand.  CMake remains
+    This deliberately avoids linking libPDFxTMDLib.a by hand. CMake remains
     the single source of truth for native dependencies such as Zstandard,
     oneDNN, and OpenMP.
     """
@@ -32,7 +33,6 @@ class CMakeBuild(build_ext):
         ext_fullpath = Path(self.get_ext_fullpath(ext.name)).resolve()
         extdir = ext_fullpath.parent
         cfg = "Debug" if self.debug else "Release"
-
         build_temp = Path(self.build_temp) / ext.name
         build_temp.mkdir(parents=True, exist_ok=True)
         extdir.mkdir(parents=True, exist_ok=True)
@@ -50,6 +50,7 @@ class CMakeBuild(build_ext):
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY={extdir}{os.sep}",
+            f"-DPDFXTMD_PYTHON_OUTPUT_DIR={extdir}",
             f"-DPython3_EXECUTABLE={sys.executable}",
             f"-Dpybind11_DIR={pybind11.get_cmake_dir()}",
             "-DENABLE_BUILDING_WRAPPERS=ON",
@@ -64,7 +65,7 @@ class CMakeBuild(build_ext):
         extra_cmake_args = shlex.split(os.environ.get("CMAKE_ARGS", ""))
         cmake_args.extend(extra_cmake_args)
 
-        # GitHub Actions exposes vcpkg through VCPKG_ROOT.  Add its toolchain
+        # GitHub Actions exposes vcpkg through VCPKG_ROOT. Add its toolchain
         # as a subprocess argument rather than interpolating a Windows path
         # through cibuildwheel's shell environment parser.
         has_toolchain = any(
@@ -76,6 +77,15 @@ class CMakeBuild(build_ext):
             toolchain = Path(vcpkg_root) / "scripts" / "buildsystems" / "vcpkg.cmake"
             if toolchain.is_file():
                 cmake_args.append(f"-DCMAKE_TOOLCHAIN_FILE={toolchain}")
+
+        vcpkg_triplet = os.environ.get("VCPKG_TARGET_TRIPLET")
+        if vcpkg_triplet:
+            cmake_args.append(f"-DVCPKG_TARGET_TRIPLET={vcpkg_triplet}")
+
+        if sys.platform == "darwin":
+            macos_target = os.environ.get("MACOSX_DEPLOYMENT_TARGET")
+            if macos_target:
+                cmake_args.append(f"-DCMAKE_OSX_DEPLOYMENT_TARGET={macos_target}")
 
         generator = os.environ.get("CMAKE_GENERATOR", "")
         cmake_args.extend(
@@ -106,6 +116,37 @@ class CMakeBuild(build_ext):
             build_args.extend(["--parallel", str(os.cpu_count() or 2)])
 
         subprocess.check_call(["cmake", "--build", str(build_temp), *build_args])
+
+        # Never let setuptools create a wheel that silently omits the compiled
+        # Python extension. Multi-config generators such as Visual Studio can
+        # otherwise place the .pyd in a configuration subdirectory.
+        if not ext_fullpath.is_file():
+            patterns = ("pdfxtmd*.pyd",) if sys.platform == "win32" else ("pdfxtmd*.so",)
+            candidates = [
+                candidate
+                for root in (extdir, build_temp)
+                for pattern in patterns
+                for candidate in root.rglob(pattern)
+                if candidate.is_file()
+            ]
+
+            if not candidates:
+                raise RuntimeError(
+                    "CMake completed successfully, but the Python extension "
+                    f"was not found. Expected: {ext_fullpath}"
+                )
+
+            source = max(candidates, key=lambda path: path.stat().st_mtime)
+            print(f"Copying Python extension from {source} to {ext_fullpath}")
+            ext_fullpath.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, ext_fullpath)
+
+        if not ext_fullpath.is_file():
+            raise RuntimeError(
+                f"Python extension was not generated at {ext_fullpath}"
+            )
+
+        print(f"Python extension ready: {ext_fullpath}")
 
 
 setup(

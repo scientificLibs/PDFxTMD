@@ -34,13 +34,6 @@ jobs:
         with:
           python-version: "3.11"
 
-      # ----------------------------------------------------------------------
-      # macOS
-      #
-      # cibuildwheel builds directly on the macOS host, so vcpkg is prepared
-      # once here.  Do NOT use --depth 1: vcpkg.json pins a builtin-baseline
-      # and therefore requires the corresponding git history.
-      # ----------------------------------------------------------------------
       - name: Bootstrap vcpkg (macOS)
         if: runner.os == 'macOS'
         shell: bash
@@ -48,27 +41,15 @@ jobs:
           VCPKG_ROOT: ${{ runner.temp }}/vcpkg
         run: |
           set -euxo pipefail
-
           git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-
           "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
-
-          # Make VCPKG_ROOT available to subsequent steps.
           echo "VCPKG_ROOT=$VCPKG_ROOT" >> "$GITHUB_ENV"
 
-      # ----------------------------------------------------------------------
-      # Windows
-      #
-      # Use PowerShell rather than trying to execute bootstrap-vcpkg.bat
-      # through bash.  setup.py will detect VCPKG_ROOT and automatically pass
-      # the vcpkg CMake toolchain file.
-      # ----------------------------------------------------------------------
       - name: Bootstrap vcpkg (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-
           $vcpkgRoot = Join-Path $env:RUNNER_TEMP "vcpkg"
 
           git clone https://github.com/microsoft/vcpkg.git $vcpkgRoot
@@ -81,51 +62,27 @@ jobs:
             throw "Failed to bootstrap vcpkg."
           }
 
-          # Make VCPKG_ROOT available to subsequent steps.
           "VCPKG_ROOT=$vcpkgRoot" |
             Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      # ----------------------------------------------------------------------
-      # Build Python wheels
-      #
-      # Linux is different from macOS/Windows: cibuildwheel builds Linux
-      # wheels inside a manylinux container. Therefore vcpkg must be installed
-      # inside that container with CIBW_BEFORE_ALL_LINUX.
-      #
-      # On macOS and Windows, VCPKG_ROOT from the previous steps is inherited
-      # directly by the cibuildwheel build processes.
-      # ----------------------------------------------------------------------
       - name: Build wheels
-        uses: pypa/cibuildwheel@v4.1.1
+        uses: pypa/cibuildwheel@v4.2.1
         env:
-          # Python versions to build.
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
-
-          # Only CPython manylinux/macOS/Windows wheels are wanted here.
           CIBW_SKIP: "pp* *-musllinux_*"
-
-          # The DPD vcpkg feature currently supports x64.
           CIBW_ARCHS_LINUX: x86_64
           CIBW_ARCHS_MACOS: x86_64
           CIBW_ARCHS_WINDOWS: AMD64
+          CIBW_BUILD_VERBOSITY: "1"
 
-          # Verify that:
-          #   1. the compiled extension can actually be imported, and
-          #   2. DPD support was enabled in the resulting wheel.
-          #
-          # This also catches many missing DLL/.so/.dylib problems.
           CIBW_TEST_COMMAND: >-
-            python -c "import pdfxtmd; assert pdfxtmd.__has_dpd__,
+            python -c "import pdfxtmd;
+            print('PDFxTMD Python module:', pdfxtmd.__file__);
+            assert pdfxtmd.__has_dpd__,
             'wheel was built without DPD support'"
 
-          # ------------------------------------------------------------------
-          # Linux dependency preparation
-          #
-          # Linux wheels are built inside cibuildwheel's manylinux container,
-          # so host-side vcpkg installations are not visible there.
-          #
-          # Do not use --depth 1 because vcpkg.json contains builtin-baseline.
-          # ------------------------------------------------------------------
+          # Linux wheels are built inside the manylinux container, so vcpkg
+          # must be bootstrapped inside that container.
           CIBW_BEFORE_ALL_LINUX: >-
             dnf install -y git curl zip unzip tar &&
             git clone https://github.com/microsoft/vcpkg.git /opt/vcpkg &&
@@ -134,18 +91,24 @@ jobs:
           CIBW_ENVIRONMENT_LINUX: >-
             PDFXTMD_ENABLE_DPD=ON
             VCPKG_ROOT=/opt/vcpkg
+            VCPKG_TARGET_TRIPLET=x64-linux
 
-          # On macOS and Windows, VCPKG_ROOT is already inherited from
-          # GITHUB_ENV. setup.py detects it and supplies:
-          #
-          #   -DCMAKE_TOOLCHAIN_FILE=<VCPKG_ROOT>/scripts/buildsystems/vcpkg.cmake
-          #
-          # automatically.
+          # std::filesystem in the Xcode/libc++ used by the Intel runner
+          # requires a deployment target of at least macOS 10.15.
           CIBW_ENVIRONMENT_MACOS: >-
             PDFXTMD_ENABLE_DPD=ON
+            MACOSX_DEPLOYMENT_TARGET=10.15
+            VCPKG_TARGET_TRIPLET=x64-osx
 
+          # Keep native vcpkg libraries static inside the Windows wheel while
+          # retaining the dynamic MSVC runtime expected by Python extensions.
           CIBW_ENVIRONMENT_WINDOWS: >-
             PDFXTMD_ENABLE_DPD=ON
+            VCPKG_TARGET_TRIPLET=x64-windows-static-md
+
+      - name: List generated wheels
+        shell: bash
+        run: ls -lh wheelhouse
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -154,18 +117,10 @@ jobs:
           path: wheelhouse/*.whl
           if-no-files-found: error
 
-  # --------------------------------------------------------------------------
-  # Publish
-  #
-  # Publishing only happens for an actual GitHub Release publication.
-  # PyPI trusted publishing / OIDC is used, so no API token is stored here.
-  # --------------------------------------------------------------------------
   publish:
     name: Publish to PyPI
     needs: build
-
     if: github.event_name == 'release' && github.event.action == 'published'
-
     runs-on: ubuntu-latest
 
     permissions:
@@ -178,6 +133,9 @@ jobs:
           pattern: wheels-*
           merge-multiple: true
           path: dist
+
+      - name: List wheels
+        run: ls -lh dist
 
       - name: Publish wheels to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
