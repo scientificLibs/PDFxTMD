@@ -50,6 +50,7 @@ jobs:
           CIBW_ARCHS_LINUX: x86_64
           CIBW_TEST_COMMAND: 'python -c "import pdfxtmd; assert pdfxtmd.__has_dpd__"'
           CIBW_BEFORE_ALL_LINUX: >-
+            dnf install -y zip unzip &&
             git clone --depth 1 https://github.com/microsoft/vcpkg.git /opt/vcpkg &&
             /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics &&
             /opt/vcpkg/vcpkg install --x-manifest-root=/project --x-feature=dpd
