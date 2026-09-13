@@ -1,5 +1,6 @@
 #pragma once
 #include "PDFxTMDLib/Common/PartonUtils.h"
+#include "PDFxTMDLib/Common/StringUtils.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -8,7 +9,6 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
-#include "PDFxTMDLib/Common/StringUtils.h"
 
 namespace PDFxTMD
 {
@@ -16,7 +16,7 @@ namespace PDFxTMD
 inline bool isBlockSeparator(std::string &line)
 {
     trim(line);
-    return  line == "---";
+    return line == "---";
 }
 
 inline bool isComment(const std::string &line)

@@ -20,4 +20,4 @@ class ITMDAdvancedTMDExtrapolator : public IAdvancedExtrapolator<Derived, X_T, K
         return this->derived().extrapolate(x, kt, mu, output);
     }
 };
-}
+} // namespace PDFxTMD

@@ -1,6 +1,6 @@
 #pragma once
-#include "PDFxTMDLib/Common/SPDF/AllFlavorsShape.h"
 #include "PDFxTMDLib/Common/NumParser.h"
+#include "PDFxTMDLib/Common/SPDF/AllFlavorsShape.h"
 #include "PDFxTMDLib/Interface/IReader.h"
 
 namespace PDFxTMD

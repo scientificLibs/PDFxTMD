@@ -12,4 +12,4 @@ class ITMDInterpolator : public IInterpolator<Derived, Reader, X_T, KT_T, MU_T>
         return this->derived().interpolate(x, kt, mu, output);
     }
 };
-}
+} // namespace PDFxTMD

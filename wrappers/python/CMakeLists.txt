@@ -1,7 +1,6 @@
 message(STATUS "Detecting pybind11...")
 find_package(pybind11 QUIET)
 if(NOT pybind11_FOUND)
-  # Install pybind11 on demand
   include(FetchContent)
   set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
   message(STATUS "pybind11 not detected, fetching pybind11...")
@@ -12,10 +11,24 @@ if(NOT pybind11_FOUND)
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE)
   FetchContent_MakeAvailable(pybind11)
-  set(PYBIND11_INCLUDE_DIRS ${pybind11_SOURCE_DIR})
 endif()
+
 pybind11_add_module(pdfxtmd pyBindings.cpp)
-target_include_directories(pdfxtmd PUBLIC  ${PROJECT_SOURCE_DIR}/include )
-target_link_libraries(pdfxtmd PRIVATE ${PROJECT_NAME})
+target_include_directories(pdfxtmd PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
+# The Python extension must use CMake's native target graph rather than linking
+# an installed archive manually.  On Unix-like systems use the static target so
+# the wheel does not depend on a separately installed libPDFxTMDLib.so.  CMake
+# then propagates the native DPD link requirements (Zstandard, oneDNN, OpenMP)
+# to the extension's final link step.
+if(WIN32)
+  set(PDFXTMD_PYTHON_NATIVE_TARGET ${PROJECT_NAME})
+else()
+  set(PDFXTMD_PYTHON_NATIVE_TARGET ${PROJECT_NAME}_static)
+endif()
 
+target_link_libraries(pdfxtmd PRIVATE ${PDFXTMD_PYTHON_NATIVE_TARGET})
+
+if(NOT ENABLE_DPD)
+  target_compile_definitions(pdfxtmd PRIVATE PDFXTMD_DISABLE_DPD=1)
+endif()

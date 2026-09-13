@@ -206,14 +206,21 @@ std::vector<std::string> GetPDFxTMDPathsFromYaml()
     {
 
         std::ofstream ofs(configFilePath);
-        ofs << "paths: " << std::endl;
+        ofs << "paths: []" << std::endl;
         ofs.close();
         return {};
     }
-    config.loadFromFile(configFilePath, PDFxTMD::ConfigWrapper::Format::YAML);
+    if (!config.loadFromFile(configFilePath, PDFxTMD::ConfigWrapper::Format::YAML))
+    {
+        return {};
+    }
 
     auto pathsPair = config.get<std::vector<std::string>>("paths");
-    return *pathsPair.first;
+    if (pathsPair.second != ErrorType::None || !pathsPair.first.has_value())
+    {
+        return {};
+    }
+    return std::move(*pathsPair.first);
 }
 
 bool AddPathToEnvironment(const std::string &newPath)

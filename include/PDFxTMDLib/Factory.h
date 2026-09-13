@@ -1,9 +1,9 @@
 #pragma once
 #include "PDFxTMDLib/GenericPDF.h"
+#include "PDFxTMDLib/Interface/DPD/ICDPD.h"
+#include "PDFxTMDLib/Interface/IQCDCoupling.h"
 #include "PDFxTMDLib/Interface/SPDF/ICPDF.h"
 #include "PDFxTMDLib/Interface/SPDF/ITMD.h"
-#include "PDFxTMDLib/Interface/DPDF/ICDPDF.h"
-#include "PDFxTMDLib/Interface/IQCDCoupling.h"
 
 namespace PDFxTMD
 {
@@ -95,18 +95,18 @@ class GenericCPDFFactory
     ICPDF mkCPDF(const std::string &pdfSetName, int setMember);
 };
 
-
-class GenericCDPDFFactory
+/** @brief Factory for collinear double-parton distributions. */
+class GenericCDPDFactory
 {
   public:
-    GenericCDPDFFactory() = default;
+    GenericCDPDFactory() = default;
     /**
-     * @brief Creates a new ICPDF object
+     * @brief Create a collinear double-PDF object.
      *
      * @param pdfSetName The name of the PDF set
      * @param setMember The member number of the PDF set
-     * @return ICPDF The newly created ICPDF object
+     * @return The requested DPD member.
      */
-    ICDPDF mkCDPDF(const std::string &pdfSetName, int setMember);
+    ICDPD mkCDPD(const std::string &pdfSetName, int setMember);
 };
 } // namespace PDFxTMD

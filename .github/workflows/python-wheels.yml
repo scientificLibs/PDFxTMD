@@ -1,0 +1,85 @@
+name: Python wheels
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-13, windows-2022]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install vcpkg dependencies
+        if: runner.os != 'Linux'
+        shell: bash
+        env:
+          VCPKG_ROOT: ${{ runner.temp }}/vcpkg
+        run: |
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            "$VCPKG_ROOT/bootstrap-vcpkg.bat" -disableMetrics
+            "$VCPKG_ROOT/vcpkg.exe" install --x-manifest-root="$GITHUB_WORKSPACE" --x-feature=dpd
+          else
+            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+            "$VCPKG_ROOT/vcpkg" install --x-manifest-root="$GITHUB_WORKSPACE" --x-feature=dpd
+          fi
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.22.0
+        env:
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
+          CIBW_SKIP: "pp* *-musllinux_*"
+          CIBW_TEST_COMMAND: 'python -c "import pdfxtmd; assert pdfxtmd.__has_dpd__"'
+          CIBW_BEFORE_ALL_LINUX: >-
+            git clone --depth 1 https://github.com/microsoft/vcpkg.git /opt/vcpkg &&
+            /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics &&
+            /opt/vcpkg/vcpkg install --x-manifest-root=/project --x-feature=dpd
+          CIBW_ENVIRONMENT_LINUX: >-
+            PDFXTMD_ENABLE_DPD=ON
+            CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          CIBW_ENVIRONMENT_MACOS: >-
+            PDFXTMD_ENABLE_DPD=ON
+            CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          CIBW_ENVIRONMENT_WINDOWS: >-
+            PDFXTMD_ENABLE_DPD=ON
+            CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    if: github.event_name == 'release' && github.event.action == 'published'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1

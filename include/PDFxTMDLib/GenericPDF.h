@@ -3,19 +3,19 @@
 #include "PDFxTMDLib/Common/Exception.h"
 #include "PDFxTMDLib/Common/PDFUtils.h"
 #include "PDFxTMDLib/Common/PartonUtils.h"
+#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/DPD/CDPDZeroExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/Collinear/SPDF/CContinuationExtrapolator.h"
 #include "PDFxTMDLib/Implementation/Extrapolator/TMD/SPDF/TZeroExtrapolator.h"
-#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/DPDF/CDPDFZeroExtrapolator.h"
+#include "PDFxTMDLib/Implementation/Interpolator/Collinear/DPD/CPDFxTMDDPDInterpolator.h"
 #include "PDFxTMDLib/Implementation/Interpolator/Collinear/SPDF/CLHAPDFBicubicInterpolator.h"
 #include "PDFxTMDLib/Implementation/Interpolator/TMD/SPDF/TTrilinearInterpolator.h"
-#include "PDFxTMDLib/Implementation/Interpolator/Collinear/DPDF/CPDFxTMDDPDFInterpolator.h"
+#include "PDFxTMDLib/Implementation/Reader/Collinear/DPD/CDefaultDPDReader.h"
 #include "PDFxTMDLib/Implementation/Reader/Collinear/SPDF/CDefaultLHAPDFFileReader.h"
-#include "PDFxTMDLib/Implementation/Reader/Collinear/DPDF/CDefaultDPDFReader.h"
 #include "PDFxTMDLib/Implementation/Reader/TMD/SPDF/TDefaultLHAPDF_TMDReader.h"
 #include "PDFxTMDLib/Interface/IExtrapolator.h"
-#include "PDFxTMDLib/Interface/SPDF/IcPDFInterpolator.h"
-#include "PDFxTMDLib/Interface/SPDF/ITMDInterpolator.h"
 #include "PDFxTMDLib/Interface/IReader.h"
+#include "PDFxTMDLib/Interface/SPDF/ITMDInterpolator.h"
+#include "PDFxTMDLib/Interface/SPDF/IcPDFInterpolator.h"
 #include <PDFxTMDLib/Common/YamlMetaInfo/YamlStandardPDFInfo.h>
 #include <algorithm>
 #include <array>
@@ -33,7 +33,7 @@ struct TMDPDFTag
 struct CollinearPDFTag
 {
 };
-struct CollinearDPDFTag
+struct CollinearDPDTag
 {
 };
 
@@ -63,7 +63,6 @@ template <> struct DefaultPDFImplementations<TMDPDFTag>
     using Extrapolator = TZeroExtrapolator;
 };
 
-
 // Specialization for CollinearPDFTag
 template <> struct DefaultPDFImplementations<CollinearPDFTag>
 {
@@ -72,11 +71,11 @@ template <> struct DefaultPDFImplementations<CollinearPDFTag>
     using Extrapolator = CContinuationExtrapolator<CLHAPDFBicubicInterpolator<Reader>>;
 };
 
-template <> struct DefaultPDFImplementations<CollinearDPDFTag>
+template <> struct DefaultPDFImplementations<CollinearDPDTag>
 {
-    using Reader = CDefaultDPDFReader;
-    using Interpolator = CPDFxTMDDPDFInterpolator<Reader>;
-    using Extrapolator = CDPDFZeroExtrapolator;
+    using Reader = CDefaultDPDReader;
+    using Interpolator = CPDFxTMDDPDInterpolator<Reader>;
+    using Extrapolator = CDPDZeroExtrapolator;
 };
 
 template <typename Tag, typename Reader = typename DefaultPDFImplementations<Tag>::Reader,
@@ -150,7 +149,7 @@ class GenericPDF
             m_extrapolator.setInterpolator(&m_interpolator);
         }
     }
-   GenericPDF &operator=(GenericPDF &&other) noexcept
+    GenericPDF &operator=(GenericPDF &&other) noexcept
     {
         if (this == &other)
         {
@@ -251,11 +250,24 @@ class GenericPDF
                 "pdf(double, double, std::array<double, 13>&) is not supported for this tag.");
         }
     }
-    double dpdf(PartonFlavor flavor1, PartonFlavor flavor2, double x1, double mu1_2, double x2, double mu2_2)
+    /**
+     * @brief Evaluate a collinear double-parton distribution.
+     * @param flavor1 Flavor of the first parton.
+     * @param flavor2 Flavor of the second parton.
+     * @param x1 First momentum fraction.
+     * @param mu1_2 First factorization scale squared.
+     * @param x2 Second momentum fraction.
+     * @param mu2_2 Second factorization scale squared.
+     * @return The DPD value for the requested flavors and kinematics.
+     */
+    double dpd(PartonFlavor flavor1, PartonFlavor flavor2, double x1, double mu1_2, double x2,
+               double mu2_2)
     {
-        if constexpr (std::is_same_v<Tag, CollinearDPDFTag>)
+        if constexpr (std::is_same_v<Tag, CollinearDPDTag>)
         {
-            //note: my current interpolator supports the case where x is larger than the greatest x in the grid. it should be handeled later.But is enough for most of the analysis. because x > 0.97.. has zero contriution in most cases
+            // note: my current interpolator supports the case where x is larger than the greatest x
+            // in the grid. it should be handeled later.But is enough for most of the analysis.
+            // because x > 0.97.. has zero contriution in most cases
             if (isInRange(m_reader, x1, mu1_2) && isInRange(m_reader, x2, mu2_2))
                 return m_interpolator.interpolate(flavor1, flavor2, x1, mu1_2, x2, mu2_2);
             return m_extrapolator.extrapolate(flavor1, flavor2, x1, mu1_2, x2, mu2_2);
@@ -282,10 +294,8 @@ class GenericPDF
         auto infoPathPair = StandardInfoFilePath(m_pdfName);
         if (infoPathPair.second != ErrorType::None)
             throw FileLoadException("Unable to find info file of PDF set " + m_pdfName);
-        if constexpr (std::is_same_v<Tag, TMDPDFTag> ||
-             std::is_same_v<Tag, CollinearPDFTag> ||
-             std::is_same_v<Tag, CollinearDPDFTag>
-            )
+        if constexpr (std::is_same_v<Tag, TMDPDFTag> || std::is_same_v<Tag, CollinearPDFTag> ||
+                      std::is_same_v<Tag, CollinearDPDTag>)
         {
             auto pdfStandardInfo = YamlStandardPDFInfoReader(*infoPathPair.first);
             if (pdfStandardInfo.second != ErrorType::None)
@@ -320,6 +330,6 @@ class GenericPDF
 // Convenient type aliases for common use cases
 using TMDPDF = GenericPDF<TMDPDFTag>;
 using CollinearPDF = GenericPDF<CollinearPDFTag>;
-using CollinearDPDF = GenericPDF<CollinearDPDFTag>;
+using CollinearDPD = GenericPDF<CollinearDPDTag>;
 
 } // namespace PDFxTMD

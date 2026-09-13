@@ -5,6 +5,7 @@
 
 namespace PDFxTMD
 {
+/** @brief Type-erased interface for PDF uncertainty calculations. */
 class IUncertainty
 {
   public:
@@ -38,12 +39,14 @@ class IUncertainty
     {
     }
 
+    /** @brief Calculate uncertainty from values evaluated for all set members. */
     void Uncertainty(const std::vector<double> &values, const int numCoreErrMember, const double cl,
                      PDFUncertainty &uncertainty) const
     {
         uncertaintyOperation_(pimpl_.get(), values, numCoreErrMember, cl, uncertainty);
     }
 
+    /** @brief Calculate the correlation between two member-value series. */
     double Correlation(const std::vector<double> &valuesA, const std::vector<double> &valuesB,
                        const int numCoreErrMember) const
     {

@@ -66,3 +66,6 @@ out/*
 /.vscode
 CMakeSettings.json
 *.whl
+
+# Python bytecode cache
+__pycache__/

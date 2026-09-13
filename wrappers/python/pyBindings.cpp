@@ -3,7 +3,7 @@
 #include "PDFxTMDLib/Interface/IQCDCoupling.h"
 #include "PDFxTMDLib/Interface/SPDF/ICPDF.h"
 #include "PDFxTMDLib/Interface/SPDF/ITMD.h"
-#include "PDFxTMDLib/Interface/DPDF/ICDPDF.h"
+#include "PDFxTMDLib/Interface/DPD/ICDPD.h"
 
 #include <array>
 #include <cstddef>
@@ -43,7 +43,7 @@ namespace
         }
     }
 
-    inline void validate_dpdf_kinematics(
+    inline void validate_dpd_kinematics(
         double x1,
         double mu1_2,
         double x2,
@@ -55,7 +55,7 @@ namespace
         validate_mu2(mu2_2, "mu2_2");
     }
 
-    inline bool outside_dpdf_support(double x1, double x2)
+    inline bool outside_dpd_support(double x1, double x2)
     {
         return x1 + x2 >= 1.0;
     }
@@ -147,16 +147,15 @@ namespace
         return values;
     }
 
-    template <typename DPDF>
-    py::array_t<double> dpdf_batch_numpy_impl(
-        DPDF &self,
+    template <typename DPD>
+    py::array_t<double> dpd_batch_numpy_impl(
+        DPD &self,
         PDFxTMD::PartonFlavor flavor1,
         PDFxTMD::PartonFlavor flavor2,
         DoubleArray x1,
         DoubleArray mu1_2,
         DoubleArray x2,
-        DoubleArray mu2_2,
-        bool enforce_support)
+        DoubleArray mu2_2)
     {
         const py::buffer_info x1_info = x1.request();
         const py::buffer_info mu1_info = mu1_2.request();
@@ -173,7 +172,7 @@ namespace
 
         for (py::ssize_t i = 0; i < n; ++i)
         {
-            validate_dpdf_kinematics(x1_ptr[i], mu1_ptr[i], x2_ptr[i], mu2_ptr[i]);
+            validate_dpd_kinematics(x1_ptr[i], mu1_ptr[i], x2_ptr[i], mu2_ptr[i]);
         }
 
         py::array_t<double> values(x1_info.shape);
@@ -183,13 +182,13 @@ namespace
             py::gil_scoped_release release;
             for (py::ssize_t i = 0; i < n; ++i)
             {
-                if (enforce_support && outside_dpdf_support(x1_ptr[i], x2_ptr[i]))
+                if (outside_dpd_support(x1_ptr[i], x2_ptr[i]))
                 {
                     out_ptr[i] = 0.0;
                 }
                 else
                 {
-                    out_ptr[i] = self.dpdf(
+                    out_ptr[i] = self.dpd(
                         flavor1,
                         flavor2,
                         x1_ptr[i],
@@ -207,9 +206,13 @@ namespace
 PYBIND11_MODULE(pdfxtmd, m)
 {
     m.doc() =
-        "Python bindings for PDFxTMD with CPDF, TMD, and DPDF support.";
+        "Python bindings for PDFxTMD with CPDF, TMD, and DPD support.";
 
-    m.attr("__has_dpdf__") = true;
+#ifdef PDFXTMD_DISABLE_DPD
+    m.attr("__has_dpd__") = false;
+#else
+    m.attr("__has_dpd__") = true;
+#endif
 
     py::enum_<PDFxTMD::PartonFlavor>(
         m,
@@ -508,30 +511,29 @@ PYBIND11_MODULE(pdfxtmd, m)
             py::arg("mu2"),
             "Evaluate all TMD flavors and return a list.");
 
-    py::class_<PDFxTMD::ICDPDF>(
+    py::class_<PDFxTMD::ICDPD>(
         m,
-        "ICDPDF",
+        "ICDPD",
         "Interface for collinear double PDFs")
         .def(
-            "dpdf",
-            [](const PDFxTMD::ICDPDF &self,
+            "dpd",
+            [](const PDFxTMD::ICDPD &self,
                PDFxTMD::PartonFlavor flavor1,
                PDFxTMD::PartonFlavor flavor2,
                double x1,
                double mu1_2,
                double x2,
-               double mu2_2,
-               bool enforce_support) {
+               double mu2_2) {
                 try
                 {
-                    validate_dpdf_kinematics(x1, mu1_2, x2, mu2_2);
+                    validate_dpd_kinematics(x1, mu1_2, x2, mu2_2);
 
-                    if (enforce_support && outside_dpdf_support(x1, x2))
+                    if (outside_dpd_support(x1, x2))
                     {
                         return 0.0;
                     }
 
-                    return self.dpdf(
+                    return self.dpd(
                         flavor1,
                         flavor2,
                         x1,
@@ -542,7 +544,7 @@ PYBIND11_MODULE(pdfxtmd, m)
                 catch (const std::exception &e)
                 {
                     throw py::value_error(
-                        "Error evaluating DPDF at x1=" +
+                        "Error evaluating DPD at x1=" +
                         std::to_string(x1) +
                         ", mu1_2=" +
                         std::to_string(mu1_2) +
@@ -560,34 +562,31 @@ PYBIND11_MODULE(pdfxtmd, m)
             py::arg("mu1_2"),
             py::arg("x2"),
             py::arg("mu2_2"),
-            py::arg("enforce_support") = true,
             "Evaluate a collinear double PDF.")
         .def(
-            "dpdf_batch",
-            [](const PDFxTMD::ICDPDF &self,
+            "dpd_batch",
+            [](const PDFxTMD::ICDPD &self,
                PDFxTMD::PartonFlavor flavor1,
                PDFxTMD::PartonFlavor flavor2,
                DoubleArray x1,
                DoubleArray mu1_2,
                DoubleArray x2,
-               DoubleArray mu2_2,
-               bool enforce_support) {
+               DoubleArray mu2_2) {
                 try
                 {
-                    return dpdf_batch_numpy_impl(
+                    return dpd_batch_numpy_impl(
                         self,
                         flavor1,
                         flavor2,
                         x1,
                         mu1_2,
                         x2,
-                        mu2_2,
-                        enforce_support);
+                        mu2_2);
                 }
                 catch (const std::exception &e)
                 {
                     throw py::value_error(
-                        "Error evaluating DPDF NumPy batch: " +
+                        "Error evaluating DPD NumPy batch: " +
                         std::string(e.what()));
                 }
             },
@@ -597,18 +596,16 @@ PYBIND11_MODULE(pdfxtmd, m)
             py::arg("mu1_2"),
             py::arg("x2"),
             py::arg("mu2_2"),
-            py::arg("enforce_support") = true,
-            "Evaluate many DPDF points for one flavor pair from NumPy arrays.")
+            "Evaluate many DPD points for one flavor pair from NumPy arrays.")
         .def(
-            "dpdf_batch",
-            [](const PDFxTMD::ICDPDF &self,
+            "dpd_batch",
+            [](const PDFxTMD::ICDPD &self,
                PDFxTMD::PartonFlavor flavor1,
                PDFxTMD::PartonFlavor flavor2,
                const std::vector<double> &x1,
                const std::vector<double> &mu1_2,
                const std::vector<double> &x2,
-               const std::vector<double> &mu2_2,
-               bool enforce_support) {
+               const std::vector<double> &mu2_2) {
                 try
                 {
                     validate_same_size(x1, mu1_2, x2, mu2_2);
@@ -618,20 +615,20 @@ PYBIND11_MODULE(pdfxtmd, m)
 
                     for (std::size_t i = 0; i < x1.size(); ++i)
                     {
-                        validate_dpdf_kinematics(
+                        validate_dpd_kinematics(
                             x1[i],
                             mu1_2[i],
                             x2[i],
                             mu2_2[i]);
 
-                        if (enforce_support && outside_dpdf_support(x1[i], x2[i]))
+                        if (outside_dpd_support(x1[i], x2[i]))
                         {
                             values.push_back(0.0);
                         }
                         else
                         {
                             values.push_back(
-                                self.dpdf(
+                                self.dpd(
                                     flavor1,
                                     flavor2,
                                     x1[i],
@@ -646,7 +643,7 @@ PYBIND11_MODULE(pdfxtmd, m)
                 catch (const std::exception &e)
                 {
                     throw py::value_error(
-                        "Error evaluating DPDF batch: " +
+                        "Error evaluating DPD batch: " +
                         std::string(e.what()));
                 }
             },
@@ -656,8 +653,7 @@ PYBIND11_MODULE(pdfxtmd, m)
             py::arg("mu1_2"),
             py::arg("x2"),
             py::arg("mu2_2"),
-            py::arg("enforce_support") = true,
-            "Evaluate many DPDF points for one flavor pair.");
+            "Evaluate many DPD points for one flavor pair.");
 
     py::class_<PDFxTMD::GenericCPDFFactory>(
         m,
@@ -737,14 +733,14 @@ PYBIND11_MODULE(pdfxtmd, m)
             py::arg("setMember"),
             py::return_value_policy::take_ownership);
 
-    py::class_<PDFxTMD::GenericCDPDFFactory>(
+    py::class_<PDFxTMD::GenericCDPDFactory>(
         m,
-        "GenericCDPDFFactory",
+        "GenericCDPDFactory",
         "Factory for creating collinear double PDF objects")
         .def(py::init<>())
         .def(
-            "mkCDPDF",
-            [](PDFxTMD::GenericCDPDFFactory &self,
+            "mkCDPD",
+            [](PDFxTMD::GenericCDPDFactory &self,
                const std::string &pdfSetName,
                int setMember) {
                 try
@@ -752,7 +748,7 @@ PYBIND11_MODULE(pdfxtmd, m)
                     if (pdfSetName.empty())
                     {
                         throw std::invalid_argument(
-                            "DPDF set name cannot be empty");
+                            "DPD set name cannot be empty");
                     }
 
                     if (setMember < 0)
@@ -761,12 +757,12 @@ PYBIND11_MODULE(pdfxtmd, m)
                             "Set member index must be non-negative");
                     }
 
-                    return self.mkCDPDF(pdfSetName, setMember);
+                    return self.mkCDPD(pdfSetName, setMember);
                 }
                 catch (const std::exception &e)
                 {
                     throw py::value_error(
-                        "Error creating CDPDF/DPDF for '" +
+                        "Error creating CDPD/DPD for '" +
                         pdfSetName +
                         "': " +
                         e.what());
@@ -915,34 +911,34 @@ PYBIND11_MODULE(pdfxtmd, m)
             py::arg("kt2"),
             py::arg("mu2"));
 
-    py::class_<PDFxTMD::CollinearDPDF>(
+#ifndef PDFXTMD_DISABLE_DPD
+    py::class_<PDFxTMD::CollinearDPD>(
         m,
-        "CollinearDPDF",
+        "CollinearDPD",
         "Concrete collinear double PDF object")
         .def(
             py::init<const std::string &, int>(),
             py::arg("pdfSetName"),
             py::arg("setMember"))
         .def(
-            "dpdf",
-            [](PDFxTMD::CollinearDPDF &self,
+            "dpd",
+            [](PDFxTMD::CollinearDPD &self,
                PDFxTMD::PartonFlavor flavor1,
                PDFxTMD::PartonFlavor flavor2,
                double x1,
                double mu1_2,
                double x2,
-               double mu2_2,
-               bool enforce_support) {
+               double mu2_2) {
                 try
                 {
-                    validate_dpdf_kinematics(x1, mu1_2, x2, mu2_2);
+                    validate_dpd_kinematics(x1, mu1_2, x2, mu2_2);
 
-                    if (enforce_support && outside_dpdf_support(x1, x2))
+                    if (outside_dpd_support(x1, x2))
                     {
                         return 0.0;
                     }
 
-                    return self.dpdf(
+                    return self.dpd(
                         flavor1,
                         flavor2,
                         x1,
@@ -953,7 +949,7 @@ PYBIND11_MODULE(pdfxtmd, m)
                 catch (const std::exception &e)
                 {
                     throw py::value_error(
-                        "Error evaluating CollinearDPDF: " +
+                        "Error evaluating CollinearDPD: " +
                         std::string(e.what()));
                 }
             },
@@ -962,34 +958,31 @@ PYBIND11_MODULE(pdfxtmd, m)
             py::arg("x1"),
             py::arg("mu1_2"),
             py::arg("x2"),
-            py::arg("mu2_2"),
-            py::arg("enforce_support") = true)
+            py::arg("mu2_2"))
         .def(
-            "dpdf_batch",
-            [](PDFxTMD::CollinearDPDF &self,
+            "dpd_batch",
+            [](PDFxTMD::CollinearDPD &self,
                PDFxTMD::PartonFlavor flavor1,
                PDFxTMD::PartonFlavor flavor2,
                DoubleArray x1,
                DoubleArray mu1_2,
                DoubleArray x2,
-               DoubleArray mu2_2,
-               bool enforce_support) {
+               DoubleArray mu2_2) {
                 try
                 {
-                    return dpdf_batch_numpy_impl(
+                    return dpd_batch_numpy_impl(
                         self,
                         flavor1,
                         flavor2,
                         x1,
                         mu1_2,
                         x2,
-                        mu2_2,
-                        enforce_support);
+                        mu2_2);
                 }
                 catch (const std::exception &e)
                 {
                     throw py::value_error(
-                        "Error evaluating CollinearDPDF NumPy batch: " +
+                        "Error evaluating CollinearDPD NumPy batch: " +
                         std::string(e.what()));
                 }
             },
@@ -999,18 +992,16 @@ PYBIND11_MODULE(pdfxtmd, m)
             py::arg("mu1_2"),
             py::arg("x2"),
             py::arg("mu2_2"),
-            py::arg("enforce_support") = true,
-            "Evaluate many DPDF points for one flavor pair from NumPy arrays.")
+            "Evaluate many DPD points for one flavor pair from NumPy arrays.")
         .def(
-            "dpdf_batch",
-            [](PDFxTMD::CollinearDPDF &self,
+            "dpd_batch",
+            [](PDFxTMD::CollinearDPD &self,
                PDFxTMD::PartonFlavor flavor1,
                PDFxTMD::PartonFlavor flavor2,
                const std::vector<double> &x1,
                const std::vector<double> &mu1_2,
                const std::vector<double> &x2,
-               const std::vector<double> &mu2_2,
-               bool enforce_support) {
+               const std::vector<double> &mu2_2) {
                 try
                 {
                     validate_same_size(x1, mu1_2, x2, mu2_2);
@@ -1020,20 +1011,20 @@ PYBIND11_MODULE(pdfxtmd, m)
 
                     for (std::size_t i = 0; i < x1.size(); ++i)
                     {
-                        validate_dpdf_kinematics(
+                        validate_dpd_kinematics(
                             x1[i],
                             mu1_2[i],
                             x2[i],
                             mu2_2[i]);
 
-                        if (enforce_support && outside_dpdf_support(x1[i], x2[i]))
+                        if (outside_dpd_support(x1[i], x2[i]))
                         {
                             values.push_back(0.0);
                         }
                         else
                         {
                             values.push_back(
-                                self.dpdf(
+                                self.dpd(
                                     flavor1,
                                     flavor2,
                                     x1[i],
@@ -1048,7 +1039,7 @@ PYBIND11_MODULE(pdfxtmd, m)
                 catch (const std::exception &e)
                 {
                     throw py::value_error(
-                        "Error evaluating CollinearDPDF batch: " +
+                        "Error evaluating CollinearDPD batch: " +
                         std::string(e.what()));
                 }
             },
@@ -1057,6 +1048,6 @@ PYBIND11_MODULE(pdfxtmd, m)
             py::arg("x1"),
             py::arg("mu1_2"),
             py::arg("x2"),
-            py::arg("mu2_2"),
-            py::arg("enforce_support") = true);
+            py::arg("mu2_2"));
+#endif
 }

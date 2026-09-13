@@ -1,0 +1,32 @@
+# Prefer package targets (including vcpkg) for include paths and configuration-specific libraries.
+find_package(zstd CONFIG QUIET)
+set(_pdfxtmd_zstd_target "")
+foreach(_candidate zstd::libzstd zstd::libzstd_shared zstd::libzstd_static)
+    if(TARGET ${_candidate})
+        set(_pdfxtmd_zstd_target ${_candidate})
+        break()
+    endif()
+endforeach()
+
+if(_pdfxtmd_zstd_target)
+    set(PDFxTMDZstd_FOUND TRUE)
+    if(NOT TARGET PDFxTMDZstd::Zstd)
+        add_library(PDFxTMDZstd::Zstd INTERFACE IMPORTED)
+        set_target_properties(PDFxTMDZstd::Zstd PROPERTIES
+            INTERFACE_LINK_LIBRARIES "${_pdfxtmd_zstd_target}")
+    endif()
+else()
+    find_path(ZSTD_INCLUDE_DIR NAMES zstd.h)
+    find_library(ZSTD_LIBRARY NAMES zstd)
+    include(FindPackageHandleStandardArgs)
+    find_package_handle_standard_args(PDFxTMDZstd REQUIRED_VARS ZSTD_INCLUDE_DIR ZSTD_LIBRARY)
+    if(PDFxTMDZstd_FOUND AND NOT TARGET PDFxTMDZstd::Zstd)
+        add_library(PDFxTMDZstd::Zstd UNKNOWN IMPORTED)
+        set_target_properties(PDFxTMDZstd::Zstd PROPERTIES
+            IMPORTED_LOCATION "${ZSTD_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${ZSTD_INCLUDE_DIR}")
+    endif()
+    mark_as_advanced(ZSTD_INCLUDE_DIR ZSTD_LIBRARY)
+endif()
+unset(_candidate)
+unset(_pdfxtmd_zstd_target)
