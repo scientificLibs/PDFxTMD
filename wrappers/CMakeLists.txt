@@ -1,6 +1,5 @@
-find_package(Python3 COMPONENTS Interpreter Development QUIET)
-if (Python3_FOUND)
-    add_subdirectory(python)
-else()
-    message(WARNING "Python not found. Skipping python bindings.")
-endif()
+# A Python extension only needs headers and the module-development component;
+# requiring Development also demands an embedding library that many
+# cibuildwheel CPython installations deliberately do not provide.
+find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
+add_subdirectory(python)

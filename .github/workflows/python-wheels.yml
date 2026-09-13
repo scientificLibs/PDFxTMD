@@ -16,6 +16,8 @@ jobs:
   build:
     name: Build wheels (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    env:
+      VCPKG_ROOT: ${{ runner.temp }}/vcpkg
     strategy:
       fail-fast: false
       matrix:
@@ -48,6 +50,7 @@ jobs:
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
           CIBW_SKIP: "pp* *-musllinux_*"
           CIBW_ARCHS_LINUX: x86_64
+          CIBW_ARCHS_WINDOWS: AMD64
           CIBW_TEST_COMMAND: 'python -c "import pdfxtmd; assert pdfxtmd.__has_dpd__"'
           CIBW_BEFORE_ALL_LINUX: >-
             dnf install -y zip unzip &&
@@ -62,7 +65,6 @@ jobs:
             CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
           CIBW_ENVIRONMENT_WINDOWS: >-
             PDFXTMD_ENABLE_DPD=ON
-            CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
       - uses: actions/upload-artifact@v4
         with:

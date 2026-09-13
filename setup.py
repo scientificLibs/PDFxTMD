@@ -61,7 +61,21 @@ class CMakeBuild(build_ext):
 
         # Let users pass normal CMake settings, including a vcpkg toolchain:
         #   CMAKE_ARGS='-DCMAKE_TOOLCHAIN_FILE=/path/to/vcpkg.cmake' pip install .
-        cmake_args.extend(shlex.split(os.environ.get("CMAKE_ARGS", "")))
+        extra_cmake_args = shlex.split(os.environ.get("CMAKE_ARGS", ""))
+        cmake_args.extend(extra_cmake_args)
+
+        # GitHub Actions exposes vcpkg through VCPKG_ROOT.  Add its toolchain
+        # as a subprocess argument rather than interpolating a Windows path
+        # through cibuildwheel's shell environment parser.
+        has_toolchain = any(
+            argument.startswith("-DCMAKE_TOOLCHAIN_FILE=")
+            for argument in extra_cmake_args
+        )
+        vcpkg_root = os.environ.get("VCPKG_ROOT")
+        if not has_toolchain and vcpkg_root:
+            toolchain = Path(vcpkg_root) / "scripts" / "buildsystems" / "vcpkg.cmake"
+            if toolchain.is_file():
+                cmake_args.append(f"-DCMAKE_TOOLCHAIN_FILE={toolchain}")
 
         generator = os.environ.get("CMAKE_GENERATOR", "")
         cmake_args.extend(
