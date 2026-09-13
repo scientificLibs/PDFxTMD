@@ -47,6 +47,7 @@ jobs:
         env:
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
           CIBW_SKIP: "pp* *-musllinux_*"
+          CIBW_ARCHS_LINUX: x86_64
           CIBW_TEST_COMMAND: 'python -c "import pdfxtmd; assert pdfxtmd.__has_dpd__"'
           CIBW_BEFORE_ALL_LINUX: >-
             git clone --depth 1 https://github.com/microsoft/vcpkg.git /opt/vcpkg &&
