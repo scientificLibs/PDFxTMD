@@ -69,3 +69,8 @@ CMakeSettings.json
 
 # Python bytecode cache
 __pycache__/
+
+# Generated analysis and build outputs; keep release artifacts out of Git.
+.PVS-Studio/
+performance_vs_LHAPDF_TMDLIB/build/
+install/examples/
