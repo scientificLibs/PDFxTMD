@@ -1,7 +1,7 @@
 #pragma once
 #include "PDFxTMDLib/Common/YamlMetaInfo/YamlCouplingInfo.h"
-#include <vector>
 #include <PDFxTMDLib/Common/Exception.h>
+#include <vector>
 
 namespace PDFxTMD
 {

@@ -6,18 +6,21 @@
 #include "PDFxTMDLib/Implementation/Coupling/Interpolation/InterpolateQCDCoupling.h"
 #include "PDFxTMDLib/Implementation/Coupling/ODE/ODEQCDCoupling.h"
 #include "PDFxTMDLib/Implementation/Coupling/Null/NullQCDCoupling.h"
-#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CContinuationExtrapolator.h"
-#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CErrExtrapolator.h"
-#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/CNearestPointExtrapolator.h"
-#include "PDFxTMDLib/Implementation/Extrapolator/TMD/TErrExtrapolator.h"
-#include "PDFxTMDLib/Implementation/Extrapolator/TMD/TZeroExtrapolator.h"
-#include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBicubicInterpolator.h"
-#include "PDFxTMDLib/Implementation/Interpolator/Collinear/CLHAPDFBilinearInterpolator.h"
-#include "PDFxTMDLib/Implementation/Interpolator/TMD/TTrilinearInterpolator.h"
-#include "PDFxTMDLib/Implementation/Interpolator/TMD/TTrilinearTMDLibInterpolator.h"
-#include "PDFxTMDLib/Implementation/Reader/Collinear/CDefaultLHAPDFFileReader.h"
-#include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultLHAPDF_TMDReader.h"
-#include "PDFxTMDLib/Implementation/Reader/TMD/TDefaultAllFlavorReader.h"
+#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/SPDF/CContinuationExtrapolator.h"
+#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/SPDF/CErrExtrapolator.h"
+#include "PDFxTMDLib/Implementation/Extrapolator/Collinear/SPDF/CNearestPointExtrapolator.h"
+#include "PDFxTMDLib/Implementation/Extrapolator/TMD/SPDF/TErrExtrapolator.h"
+#include "PDFxTMDLib/Implementation/Extrapolator/TMD/SPDF/TZeroExtrapolator.h"
+#include "PDFxTMDLib/Implementation/Interpolator/Collinear/SPDF/CLHAPDFBicubicInterpolator.h"
+#include "PDFxTMDLib/Implementation/Interpolator/Collinear/SPDF/CLHAPDFBilinearInterpolator.h"
+#include "PDFxTMDLib/Implementation/Interpolator/TMD/SPDF/TTrilinearInterpolator.h"
+#include "PDFxTMDLib/Implementation/Interpolator/TMD/SPDF/TTrilinearTMDLibInterpolator.h"
+#include "PDFxTMDLib/Implementation/Reader/Collinear/SPDF/CDefaultLHAPDFFileReader.h"
+#include "PDFxTMDLib/Implementation/Reader/TMD/SPDF/TDefaultLHAPDF_TMDReader.h"
+#include "PDFxTMDLib/Implementation/Reader/TMD/SPDF/TDefaultAllFlavorReader.h"
+#ifdef PDFXTMD_HAS_DPD_HYBRID
+#include "PDFxTMDLib/Implementation/DPD/Hybrid/CHybridDPD.h"
+#endif
 #include <memory>
 
 namespace PDFxTMD
@@ -35,6 +38,14 @@ enum class CReader
     UNKNOWN,
     CDefaultLHAPDFFileReader
 };
+
+enum class CDReader
+{
+    UNKNOWN,
+    CDefaultDPDReader
+};
+
+
 TReader TReaderType(const std::string &type)
 {
     if (type == "TDefaultLHAPDF_TMDReader")
@@ -57,6 +68,14 @@ CReader CReaderType(const std::string &type)
     throw NotSupportError("This file reader is not supported");
 }
 
+CDReader CDReaderType(const std::string &type)
+{
+    if (type == "CDefaultDPDReader")
+    {
+        return CDReader::CDefaultDPDReader;
+    }
+    throw NotSupportError("This file reader is not supported");
+}
 ///////end reader types
 ////// start interpolator type
 enum class TInterpolator
@@ -72,6 +91,11 @@ enum class CInterpolator
     CLHAPDFBicubicInterpolator,
 };
 
+enum class CDInterpolator
+{
+    CPDFxTMDDPDInterpolator,
+};
+
 CInterpolator CInterpolatorType(const std::string &type)
 {
     if (type == "CLHAPDFBilinearInterpolator")
@@ -83,6 +107,15 @@ CInterpolator CInterpolatorType(const std::string &type)
         return CInterpolator::CLHAPDFBicubicInterpolator;
     }
 
+    throw NotSupportError("This interpolator is not supported");
+}
+
+CDInterpolator CDInterpolatorType(const std::string &type)
+{
+    if (type == "CPDFxTMDDPDInterpolator")
+    {
+        return CDInterpolator::CPDFxTMDDPDInterpolator;
+    }
     throw NotSupportError("This interpolator is not supported");
 }
 
@@ -112,6 +145,12 @@ enum class TExtrapolator
     TZeroExtrapolator,
     TErrExtrapolator,
 };
+
+enum class CDExtrapolator
+{
+    CDPDZeroExtrapolator
+};
+
 CExtrapolator CExtrapolatorype(const std::string &type)
 {
     if (type == "CContinuationExtrapolator")
@@ -139,6 +178,14 @@ TExtrapolator TExtrapolatorype(const std::string &type)
     else if (type == "TExtrapolator")
     {
         return TExtrapolator::TErrExtrapolator;
+    }
+    throw NotSupportError("This extrapolator is not supported");
+}
+CDExtrapolator CDExtrapolatoraType(const std::string &type)
+{
+    if (type == "CDPDZeroExtrapolator")
+    {
+        return CDExtrapolator::CDPDZeroExtrapolator;
     }
     throw NotSupportError("This extrapolator is not supported");
 }
@@ -357,6 +404,92 @@ ICPDF GenericCPDFFactory::mkCPDF(const std::string &pdfSetName, int setMember)
     throw NotSupportError("Not known combination of Reader, Interpolator, "
                           "Extrapolator is selected for this collinear PDF");
 }
+
+ICDPD GenericCDPDFactory::mkCDPD(const std::string &pdfSetName, int setMember)
+{
+#ifndef PDFXTMD_HAS_DPD
+    throw NotSupportError("DPD support is disabled; rebuild with ENABLE_DPD=ON");
+#else
+    auto infoPathPair = StandardInfoFilePath(pdfSetName);
+    if (infoPathPair.second != ErrorType::None)
+    {
+        throw FileLoadException("Unable to find info file of PDF set " + pdfSetName);
+    }
+    std::string format{};
+    std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> standardInfoPair =
+        YamlStandardPDFInfoReader(*infoPathPair.first);
+    if (standardInfoPair.second == ErrorType::None)
+    {
+        if (standardInfoPair.first.has_value())
+        {
+            YamlStandardTMDInfo stdInfo = *standardInfoPair.first;
+            format = stdInfo.Format;
+        }
+    }
+    if (format == "PDFxTMD-DPDH1")
+    {
+#ifdef PDFXTMD_HAS_DPD_HYBRID
+        return ICDPD(CHybridDPD(pdfSetName, setMember));
+#else
+        throw NotSupportError(
+            "Format PDFxTMD-DPDH1 requires a PDFxTMD build with hybrid DPD support");
+#endif
+    }
+    if (format != "PDFxTMD-DPDB1")
+    {
+        throw NotSupportError("Format " + format + " is currently not supported for DPDs");
+    }
+    CDReader readerType;
+    auto [impelmentationInfo, error] = YamlImpelemntationInfoReader(*infoPathPair.first);
+    auto selectedReader = (*impelmentationInfo).reader;
+    if (selectedReader == "")
+    {
+        readerType = CDReader::CDefaultDPDReader;
+    }
+    else
+    {
+        readerType = CDReaderType(selectedReader);
+    }
+    CDInterpolator interpolatorType;
+    auto selectedInterpolator = (*impelmentationInfo).interpolator;
+    if (selectedInterpolator == "")
+    {
+        interpolatorType = CDInterpolator::CPDFxTMDDPDInterpolator;
+    }
+    else
+    {
+        interpolatorType = CDInterpolatorType(selectedInterpolator);
+    }
+    CDExtrapolator extrapolatorType;
+    auto selectedExtrapolator = (*impelmentationInfo).extrapolator;
+    if (selectedExtrapolator == "")
+    {
+        extrapolatorType = CDExtrapolator::CDPDZeroExtrapolator;
+    }
+    else
+    {
+        extrapolatorType = CDExtrapolatoraType(selectedExtrapolator);
+    }
+
+    if (readerType == CDReader::CDefaultDPDReader)
+    {
+        if (interpolatorType == CDInterpolator::CPDFxTMDDPDInterpolator)
+        {
+            if (extrapolatorType == CDExtrapolator::CDPDZeroExtrapolator)
+            {
+                return ICDPD(std::move(
+                    GenericPDF<CollinearDPDTag, CDefaultDPDReader,
+                               CPDFxTMDDPDInterpolator<CDefaultDPDReader>, CDPDZeroExtrapolator>(
+                        pdfSetName, setMember)));
+            }
+        }
+    }
+
+    throw NotSupportError("Not known combination of Reader, Interpolator, "
+                          "Extrapolator is selected for this collinear PDF");
+#endif
+}
+
 IQCDCoupling CouplingFactory::mkCoupling(const std::string &pdfSetName)
 {
     std::pair<std::optional<std::string>, ErrorType> pdfSetInfo = StandardInfoFilePath(pdfSetName);
@@ -398,5 +531,8 @@ IQCDCoupling CouplingFactory::mkCoupling(const std::string &pdfSetName)
     }
     throw NotSupportError("The requested coupling approach is currently not supported");
 }
+
+
+
 
 } // namespace PDFxTMD

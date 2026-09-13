@@ -1,7 +1,7 @@
 [project]
 name = "pdfxtmd"
-version = "1.0.1"
-description = "PDFxTMD is a library for parton distribution functions (PDFs) that integrates both collinear PDFs (cPDFs) and transverse momentum-dependent PDFs (TMDs)."
+version = "2.0.0"
+description = "Python bindings for PDFxTMDLib: collinear PDFs, TMDs, and double parton distributions (DPDs)."
 authors = [
     {name = "Ramin Kord Valeshabadi", email = "raminkord92@gmail.com"}
 ]
@@ -18,31 +18,9 @@ classifiers = [
 Homepage = "https://github.com/Raminkord92/PDFxTMD"
 
 [build-system]
-requires = ["setuptools", "wheel", "pybind11"]
+requires = ["setuptools", "wheel", "pybind11", "cmake>=3.15"]
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 skip = "pp37* pp*"
 manylinux-x86_64-image = "manylinux_2_28"
-
-[tool.cibuildwheel.linux]
-before-all = [
-    "rm -rf build",
-    "cmake -S . -B build -DCMAKE_INSTALL_PREFIX=installed -DCMAKE_BUILD_TYPE=Release -DENABLE_BUILDING_WRAPPERS=OFF",
-    "cmake --build build --config Release",
-    "cmake --install build"
-]
-
-[tool.cibuildwheel.windows]
-before-all = [
-    "build_libs.bat"
-]
-
-[tool.cibuildwheel.macos]
-before-all = [
-    "brew install cmake",
-    "rm -rf build",
-"cmake -S . -B build -DCMAKE_INSTALL_PREFIX=installed -DCMAKE_BUILD_TYPE=Release -DENABLE_BUILDING_WRAPPERS=OFF -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0",
-    "cmake --build build --config Release",
-    "cmake --install build"
-]

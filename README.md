@@ -1,4 +1,4 @@
-![PDFxTMDLib Logo](./logo.png)
+<img src="./logo.png" alt="PDFxTMDLib Logo" width="300">
 
 [![Build status: Windows](https://ci.appveyor.com/api/projects/status/github/Raminkord92/PDFxTMD?branch=main&svg=true&job=Image:Visual%20Studio%202019)](https://ci.appveyor.com/project/Raminkord92/PDFxTMD)
 [![Build status: Linux](https://ci.appveyor.com/api/projects/status/github/Raminkord92/PDFxTMD?branch=main&svg=true&job=Image:Ubuntu2204)](https://ci.appveyor.com/project/Raminkord92/PDFxTMD)
@@ -6,14 +6,7 @@
 
 **PDFxTMDLib** is a high-performance C++ library for parton distribution functions (PDFs), supporting both collinear PDFs (cPDFs) and transverse momentum-dependent PDFs (TMDs). It is designed with modern C++17 principles for performance and extensibility, and provides interfaces for reading standard PDF grid files (LHAPDF, TMDLib) as well as custom formats.
 
-For a comprehensive understanding of the library's architecture, features, and performance benchmarks, please refer to the full paper available on arXiv: [https://arxiv.org/abs/2412.16680](https://arxiv.org/abs/2412.16680), and [https://link.springer.com/article/10.1007/s41781-025-00157-0](https://link.springer.com/article/10.1007/s41781-025-00157-0).
-
----
-## Citation
-
-If **PDFxTMDLib** is useful in your work, please cite:
-
-Valeshabadi, R.K., Rezaie, S. PDFxTMDLib: A High-Performance C++ Library for Collinear and Transverse Momentum-Dependent Parton Distribution Functions. *EPJ Res. Infrastruct.* **10**, 3 (2026). https://doi.org/10.1007/s41781-025-00157-0
+For a comprehensive understanding of the library's architecture, features, and performance benchmarks, please refer to the full paper available on arXiv: [https://arxiv.org/abs/2412.16680](https://arxiv.org/abs/2412.16680).
 
 ---
 
@@ -23,38 +16,47 @@ Valeshabadi, R.K., Rezaie, S. PDFxTMDLib: A High-Performance C++ Library for Col
 - **Cross-platform**: Full support for Linux, Windows, and macOS.
 - **Modern C++**: Built with C++17 for maximum performance and reliability.
 - **Wrappers**: Fortran and Python wrappers for easy integration.
+- **Double parton distributions (DPDs)**: Dense `PDFxTMD-DPDB1` grids and certified neural/sparse
+  `PDFxTMD-DPDH1` deployments through the same `ICDPD` API.
 
 ---
 
 ## Building and Installation
 
-### Prerequisites
+See the **[detailed installation guide](install.md)** for dependency installation,
+platform-specific commands, build options, and Python/Fortran interfaces.
 
-Before installing PDFxTMDLib, ensure your system meets these requirements:
-* **C++17 compatible compiler**: GCC 8+, Clang 7+, MSVC 2019+
-* **CMake**: Version 3.14 or newer
-* **For Windows**: Microsoft Visual Studio 2019 or newer
+The C++ library requires a C++17 compiler and CMake 3.15+. DPD support
+(`ENABLE_DPD=ON` by default) requires Zstandard and oneDNN. For installation
+instructions for different operating systems, see the [detailed installation guide](install.md).
+- **Linux without vcpkg:** follow the [Debian/Ubuntu, Fedora, or Arch Linux instructions](install.md#linux-dependencies-without-vcpkg).
+- **Windows:** vcpkg is recommended; follow the [Windows build instructions](install.md#windows-hybrid-builds-with-onednn-and-openmp) for dependencies and platform limitations.
+- **vcpkg on supported platforms:** use the [manifest workflow](install.md#install-dependencies-with-vcpkg).
+- **CMake FetchContent:** see [integration into another project](install.md#use-as-a-cmake-dependency-with-fetchcontent).
+- **Language interfaces:** see the [Python wrapper](install.md#python-wrapper) and [Fortran interface](install.md#fortran-interface) instructions.
 
-### Build Process
+After installing dependencies, a standalone C++ build from the repository root is:
 
-The library uses a standard CMake build process. Execute the following commands in your terminal:
-
-```bash
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -S ..
-cmake --build .
-````
-
-### Installation
-
-To install the library system-wide (recommended for Linux/macOS), execute the following command from the `build` directory. This may require administrative privileges.
-
-```bash
-cmake --install .
+```text
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=installed -DENABLE_BUILDING_WRAPPERS=OFF -DENABLE_BUILDING_EXAMPLES=OFF -DENABLE_DPD=ON
+cmake --build build --config Release --parallel 2
+cmake --install build --config Release
 ```
 
-This installs headers, libraries, and CMake configuration files to standard system locations.
+This installs into `installed` inside the repository. For vcpkg, add the toolchain
+settings from the linked workflow. To build without dense or hybrid DPD support, set
+`-DENABLE_DPD=OFF`.
+
+## API documentation
+
+Generate the public API documentation directly into the website checkout:
+
+```bash
+cmake -S . -B build -DPDFXTMD_DOXYGEN_HTML_OUTPUT=/path/to/pdfxtmd_website/docs
+cmake --build build --target doxygen
+```
+
+The `doxygen` target documents the public headers and writes HTML to the configured directory.
 
 -----
 
@@ -69,9 +71,14 @@ PDFxTMDLib offers a flexible API with both high-level conveniences and low-level
 For projects using CMake, add these lines to your `CMakeLists.txt` file to link against the installed library:
 
 ```cmake
-find_package(PDFxTMDLib REQUIRED)
+find_package(pdfxtmdlib CONFIG REQUIRED)
 target_link_libraries(your-target-name PDFxTMD::PDFxTMDLib)
 ```
+
+Set `CMAKE_PREFIX_PATH` to the absolute installation prefix when configuring your
+application. For vcpkg builds, use the same toolchain and declare `zstd` and `onednn` for
+DPD builds in your application's manifest. Alternatively, use the
+[FetchContent workflow](install.md#use-as-a-cmake-dependency-with-fetchcontent).
 
 #### Direct Compilation
 

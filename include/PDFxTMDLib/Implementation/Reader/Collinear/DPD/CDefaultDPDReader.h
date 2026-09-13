@@ -1,0 +1,23 @@
+#pragma once
+#include "PDFxTMDLib/Common/DPD/UnequalScaleGrid.h"
+#include "PDFxTMDLib/Common/NumParser.h"
+#include "PDFxTMDLib/Interface/IReader.h"
+#include <map>
+
+namespace PDFxTMD
+{
+class CDefaultDPDReader : public IReader<CDefaultDPDReader>
+{
+  public:
+    void read(const std::string &pdfName, int setNumber);
+    UnEqualScaleGridData getData() const;
+    std::vector<double> getValues(PhaseSpaceComponent comp) const;
+    std::pair<double, double> getBoundaryValues(PhaseSpaceComponent comp) const;
+
+  private:
+    UnEqualScaleGridData m_gridData;
+    std::pair<double, double> m_xMinMax;
+    std::pair<double, double> m_q2MinMax;
+};
+
+} // namespace PDFxTMD

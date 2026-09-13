@@ -1,6 +1,6 @@
 # PDFxTMDLib Python API
 
-**PDFxTMDLib** provides a powerful and easy-to-use Python interface for high-performance Parton Distribution Function (PDF) calculations. It offers unified access to collinear PDFs (cPDFs), Transverse Momentum-Dependent PDFs (TMDs), uncertainty analysis, and QCD coupling calculations.
+**PDFxTMDLib** provides a powerful and easy-to-use Python interface for high-performance Parton Distribution Function (PDF) calculations. It offers unified access to collinear PDFs (cPDFs), Transverse Momentum-Dependent PDFs (TMDs), double parton distributions (DPDs), uncertainty analysis, and QCD coupling calculations.
 
 This guide covers the installation and usage of the Python bindings.
 
@@ -109,6 +109,47 @@ print(f"\nTMD (Gluon) from Factory: {gluon_tmd:.6f}")
 all_flavors_tmd = tmd.tmd(x, kt2, mu2)
 print(f"All TMD Flavors from Factory: {all_flavors_tmd}")
 ```
+
+-----
+
+## Double Parton Distributions (DPDs)
+
+DPDs are available when the package is built with DPD support. The same Python
+API handles dense `PDFxTMD-DPDB1` and hybrid `PDFxTMD-DPDH1` sets.
+
+```python
+import numpy as np
+import pdfxtmd
+
+print("DPD support:", pdfxtmd.__has_dpd__)
+
+dpd = pdfxtmd.GenericCDPDFactory().mkCDPD(
+    "MSTW2008lo68cl_GSDPDF_PDFxTMD", 0
+)
+
+value = dpd.dpd(
+    pdfxtmd.PartonFlavor.g,
+    pdfxtmd.PartonFlavor.g,
+    1e-2, 100.0,
+    2e-2, 400.0,
+)
+print("g-g DPD:", value)
+
+x1 = np.array([1e-3, 1e-2, 5e-2])
+x2 = np.array([2e-3, 2e-2, 1e-1])
+mu1_2 = np.full_like(x1, 100.0)
+mu2_2 = np.full_like(x2, 400.0)
+
+values = dpd.dpd_batch(
+    pdfxtmd.PartonFlavor.g,
+    pdfxtmd.PartonFlavor.g,
+    x1, mu1_2, x2, mu2_2,
+)
+print(values)
+```
+
+The NumPy batch overload accepts arrays with matching shapes and releases the
+Python GIL during native evaluation.
 
 -----
 

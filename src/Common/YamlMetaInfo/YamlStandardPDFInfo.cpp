@@ -135,6 +135,17 @@ std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoRead
     {
         output.lhapdfID = *SetIndex;
     }
+    auto [HybridCacheCapacity, errorHybridCacheCapacity] =
+        ConfigWrapper.get<unsigned long long>("HybridCacheCapacity");
+    if (errorHybridCacheCapacity == ErrorType::None)
+    {
+        output.HybridCacheCapacity = static_cast<std::size_t>(*HybridCacheCapacity);
+    }
+    auto [HybridThreads, errorHybridThreads] = ConfigWrapper.get<int>("HybridThreads");
+    if (errorHybridThreads == ErrorType::None)
+    {
+        output.HybridThreads = *HybridThreads;
+    }
     return {output, errTot};
 }
 } // namespace PDFxTMD

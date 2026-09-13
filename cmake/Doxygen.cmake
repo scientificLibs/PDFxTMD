@@ -1,13 +1,16 @@
-function(Doxygen project_name input_path)
+function(Doxygen project_name)
+  set(PDFXTMD_DOXYGEN_HTML_OUTPUT "${CMAKE_BINARY_DIR}/docs" CACHE PATH
+      "Directory for generated PDFxTMD Doxygen HTML")
+
   find_package(Doxygen)
   if (NOT DOXYGEN_FOUND)
     add_custom_target(doxygen COMMAND false
     COMMENT "Doxygen not found")
     return()
   endif()
-  
+
   set(DOXYGEN_GENERATE_HTML YES)
-  set(DOXYGEN_HTML_OUTPUT ${CMAKE_SOURCE_DIR}/docs)
+  set(DOXYGEN_HTML_OUTPUT "${PDFXTMD_DOXYGEN_HTML_OUTPUT}")
   set(DOXYGEN_PROJECT_NAME ${project_name})
   
   set(DOXYGEN_EXTRACT_ALL YES)
@@ -24,11 +27,18 @@ function(Doxygen project_name input_path)
   
   set(DOXYGEN_EXCLUDE "${CMAKE_SOURCE_DIR}/include/PDFxTMDLib/external")
   set(DOXYGEN_EXCLUDE_PATTERNS "*/external/*")
+
+  set(PDFXTMD_PUBLIC_HEADERS
+    ${CMAKE_SOURCE_DIR}/include/PDFxTMDLib/Factory.h
+    ${CMAKE_SOURCE_DIR}/include/PDFxTMDLib/FortranFactoryWrapper.h
+    ${CMAKE_SOURCE_DIR}/include/PDFxTMDLib/GenericPDF.h
+    ${CMAKE_SOURCE_DIR}/include/PDFxTMDLib/PDFSet.h
+    ${CMAKE_SOURCE_DIR}/include/PDFxTMDLib/Interface
+  )
   
   doxygen_add_docs(doxygen
-    ${CMAKE_SOURCE_DIR}/${input_path}
+    ${PDFXTMD_PUBLIC_HEADERS}
     ${CMAKE_SOURCE_DIR}/README.md
-    ${CMAKE_SOURCE_DIR}/mainpage.dox
     ${CMAKE_SOURCE_DIR}/examples
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     COMMENT "Generate HTML documentation"

@@ -5,7 +5,7 @@
 namespace PDFxTMD
 {
 // taken from lhapdf library!
-template<class ReaderType>
+template <class ReaderType>
 class CLHAPDFBilinearInterpolator
     : public IcPDFInterpolator<CLHAPDFBilinearInterpolator<ReaderType>, ReaderType>
 {

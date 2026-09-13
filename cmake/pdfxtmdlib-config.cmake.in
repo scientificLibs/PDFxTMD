@@ -1,0 +1,20 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+set(_pdfxtmd_saved_module_path "${CMAKE_MODULE_PATH}")
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+if(@ENABLE_DPD@)
+    find_dependency(PDFxTMDZstd)
+endif()
+if(@PDFXTMD_DPD_HYBRID_AVAILABLE@)
+    find_dependency(PDFxTMDDNNL)
+endif()
+set(CMAKE_MODULE_PATH "${_pdfxtmd_saved_module_path}")
+unset(_pdfxtmd_saved_module_path)
+
+if("@PDFXTMD_DPD_HYBRID_AVAILABLE@" AND "@OpenMP_CXX_FOUND@")
+    find_dependency(OpenMP COMPONENTS CXX)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/pdfxtmdlib-targets.cmake")

@@ -1,6 +1,7 @@
 #pragma once
 #include <PDFxTMDLib/Common/ConfigWrapper.h>
 #include <PDFxTMDLib/Common/PartonUtils.h>
+#include <cstddef>
 #include <map>
 #include <optional>
 #include <type_traits>
@@ -27,6 +28,8 @@ struct YamlStandardTMDInfo : YamlStandardPDFInfo
     double KtMin = 0;
     double KtMax = 0;
     std::string TMDScheme = "";
+    std::optional<std::size_t> HybridCacheCapacity;
+    std::optional<int> HybridThreads;
 };
 
 std::pair<std::optional<YamlStandardTMDInfo>, ErrorType> YamlStandardPDFInfoReader(

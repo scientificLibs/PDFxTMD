@@ -1,4 +1,35 @@
 # CHANGELOG
+
+## [2.0.0] - 2026-09-13
+
+### Breaking changes
+
+- Standardized double parton distribution naming on `DPD` across the public API,
+  source paths, and serialized formats. The API uses `ICDPD`,
+  `GenericCDPDFactory`, `mkCDPD()`, and `dpd()`; serialized formats use
+  `PDFxTMD-DPDB1`, `PDFxTMD-DPDH1`, `DPD-HYBRID-B1`, and `DPDNAT1`.
+- `ENABLE_DPD` (default: `ON`) controls both dense and hybrid DPD support.
+  Enabled builds require Zstandard and oneDNN.
+
+### Build and packaging
+
+- Added vcpkg manifest integration that selects DPD dependencies when enabled.
+- Removed the unused Eigen dependency; OpenMP remains optional.
+- Improved Zstandard and oneDNN CMake target linking and installed dependency discovery.
+- Fixed project-relative installation paths and restricted CPack setup to standalone
+  builds so the library can be consumed through CMake FetchContent.
+- Disabled builds omit DPD implementation sources, examples, and the concrete
+  Python `CollinearDPD` binding. The DPD factory reports a clear disabled-support error.
+- Synchronized CMake, Python, and vcpkg version metadata at `2.0.0`.
+
+### Documentation and compatibility
+
+- Updated portable CMake build/install commands and documented Windows/vcpkg and
+  Linux package-manager dependency installation.
+- Documented Python native-linking and DLL-packaging limitations.
+- Kept all DPD serialized schemas at format version 1 while using `DPD`
+  consistently in their identifiers; the separate `TMDPDF` API remains unchanged.
+
 ## [1.0.0] - 2025-7
 - Full lhagrid1 format support
 - introducing lhagrid_tmd1 for TMDs by extensions of lhagrid1 format

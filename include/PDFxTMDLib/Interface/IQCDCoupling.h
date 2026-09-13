@@ -5,10 +5,9 @@
 #include <memory>
 #include <type_traits>
 #include <utility>
-// AlphaQCDMu2
 namespace PDFxTMD
 {
-// Interface for QCD Coupling
+/** @brief Type-erased interface for QCD-coupling implementations. */
 class IQCDCoupling
 {
   public:
@@ -33,6 +32,7 @@ class IQCDCoupling
     {
     }
 
+    /** @brief Return the strong coupling at the factorization scale squared. */
     double AlphaQCDMu2(double mu2) const
     {
         return alphaQCOperation_(pimpl_.get(), mu2);
